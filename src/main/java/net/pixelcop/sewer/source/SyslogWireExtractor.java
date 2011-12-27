@@ -18,6 +18,7 @@
 package net.pixelcop.sewer.source;
 
 import java.io.Closeable;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -117,8 +118,8 @@ public class SyslogWireExtractor implements Closeable {
     if (bytesConsumed > (long)Integer.MAX_VALUE)
       throw new IOException("Too many bytes before newline: " + bytesConsumed);
 
-    if (bytesConsumed == 0) {
-      return null; // TODO EOFException ??
+    if (bytesConsumed == 0 && bufferLength < 0) {
+      throw new EOFException("nothing left to read");
     }
 
     return null;

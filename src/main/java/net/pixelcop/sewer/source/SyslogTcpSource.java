@@ -18,12 +18,7 @@
 package net.pixelcop.sewer.source;
 
 import java.io.IOException;
-import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 
 import net.pixelcop.sewer.Event;
 import net.pixelcop.sewer.Sink;
@@ -40,15 +35,13 @@ import org.slf4j.LoggerFactory;
  */
 public class SyslogTcpSource extends Source {
 
-  static final Logger LOG = LoggerFactory
-      .getLogger(SyslogTcpSource.class);
+  private static final Logger LOG = LoggerFactory.getLogger(SyslogTcpSource.class);
 
-  final public static int SYSLOG_TCP_PORT = 514;
-  final int port;
-  final List<ReaderThread> readers = Collections
-      .synchronizedList(new ArrayList<ReaderThread>());
-  final AtomicLong rejects = new AtomicLong();
-  volatile boolean closed = true;
+  public static final int SYSLOG_TCP_PORT = 514;
+
+  private final int port;
+
+  private TCPServerThread serverThread;
 
   public SyslogTcpSource(int port) {
     this.port = port;
@@ -58,185 +51,10 @@ public class SyslogTcpSource extends Source {
     this(SYSLOG_TCP_PORT); // this is syslog-ng's default tcp port.
   }
 
-  // must synchronize this variable
-  ServerThread svrthread;
-  ServerSocket sock = null;
-  Object sockLock = new Object();
-
-  /**
-   * This thread just waits to accept incoming connections and spawn a reader
-   * thread.
-   */
-  class ServerThread extends Thread {
-    final int port;
-
-    ServerThread(int port) {
-      this.port = port;
-      setName("Syslog Server " + getId());
-    }
-
-    @Override
-    public void run() {
-      while (!closed) {
-        ServerSocket mySock = null; // guarantee no NPE at accept
-        synchronized (sockLock) {
-          mySock = sock; // get a local reference to sock.
-        }
-
-        if (mySock == null || mySock.isClosed())
-          return;
-
-        try {
-          Socket client = mySock.accept();
-          client.setSoLinger(true, 60);
-          new ReaderThread(client).start();
-
-        } catch (IOException e) {
-          if (!closed) {
-            // could be IOException where we run out of file/socket handles.
-            LOG.error("accept had a problem", e);
-          }
-          return;
-
-        } catch (Exception e) {
-          return;
-
-        }
-      }
-    }
-  };
-
-  /**
-   * This thread takes a accepted socket and pull data out until it is empty.
-   */
-  class ReaderThread extends Thread {
-    Socket in;
-    long count;
-    Sink sink;
-
-    ReaderThread(Socket sock) throws Exception {
-      setName("Syslog Reader " + getId());
-      readers.add(this);
-      this.in = sock;
-      try {
-        this.sink = getSink();
-      } catch (Exception e) {
-        LOG.error("Failed to create sink for ReaderThread", e);
-        throw e;
-      }
-
-    }
-
-    @Override
-    public void run() {
-      //LineReader reader = null;
-      //BufferedReader reader = null;
-      //DataInputStream reader = null;
-      SyslogWireExtractor reader = null;
-      try {
-        //reader = new LineReader(in.getInputStream());
-        //reader = new BufferedReader(new InputStreamReader(in.getInputStream()));
-        //reader = new DataInputStream(new BufferedInputStream(in.getInputStream(), 1024 * 64));
-        reader = new SyslogWireExtractor(in.getInputStream());
-        while (true) {
-          try {
-            //Event e = SyslogWireExtractor.extractEvent(reader);
-            Event e = reader.extractEvent();
-            if (e == null) {
-              LOG.warn("Got a null syslog event, bailing...");
-              break;
-            }
-
-            this.sink.append(e);
-
-            if (LOG.isDebugEnabled()) {
-              count++;
-            }
-
-            if (closed && !in.isClosed()) {
-              // close the underlying stream, but try to read out the buffer
-              if (LOG.isDebugEnabled()) {
-                LOG.debug("Closing underlying SocketInputStream but continuing to read from buffer");
-                LOG.debug("syslog count: " + count);
-              }
-              in.close();
-            }
-
-          } catch (IOException ex) {
-            LOG.debug("Caught err", ex);
-            rejects.incrementAndGet();
-            if (closed) {
-              break;
-            }
-
-          }
-        }
-        // done.
-        in.close();
-        sink.close();
-
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("syslog run() complete");
-          LOG.debug("syslog count: " + count);
-        }
-
-      } catch (IOException e) {
-        LOG.error("IOException with SyslogTcpSources", e);
-
-      } finally {
-        if (in != null && in.isConnected()) {
-          try {
-            in.close();
-          } catch (IOException e) {
-            LOG.debug("socket inputstream close failed", e);
-          }
-        }
-        if (reader != null) {
-          try {
-            reader.close();
-          } catch (IOException e) {
-            LOG.debug("close failed", e);
-          }
-        }
-        try {
-          sink.close();
-        } catch (Exception e) {
-          LOG.debug("sink close failed", e);
-        }
-        readers.remove(this);
-      }
-    }
-  }
-
   @Override
   public void close() throws IOException {
     LOG.info("Closing " + this);
-    synchronized (sockLock) {
-      closed = true;
-      if (sock != null) {
-        sock.close();
-        sock = null;
-      }
-    }
-    // wait for all readers to close (This is not robust!)
-    if (readers.size() != 0) {
-      List<ReaderThread> rs = new ArrayList<ReaderThread>(readers); //
-      for (ReaderThread r : rs) {
-        try {
-          r.join();
-        } catch (InterruptedException e) {
-          LOG.error("Reader threads interrupted, but we are closing", e);
-        }
-      }
-    }
-    try {
-      if (svrthread != null) {
-        svrthread.join();
-        svrthread = null;
-      }
-    } catch (InterruptedException e) {
-      LOG.error("Reader threads interrupted, but we are closing", e);
-    }
+    this.serverThread.interrupt();
   };
 
   @Override
@@ -244,27 +62,35 @@ public class SyslogTcpSource extends Source {
     if (LOG.isInfoEnabled()) {
       LOG.info("Opening " + this + " on port " + port);
     }
-    synchronized (sockLock) {
-      if (!closed) {
-        throw new IOException("Attempted to double open socket");
-      }
-      closed = false;
 
-      if (sock == null) {
-        // depending on number of connections, may need to increase backlog
-        // value (automatic server socket argument, default is 50)
-        try {
-          sock = new ServerSocket(port);
-          sock.setReuseAddress(true);
-          sock.setReceiveBufferSize(64*1024);
+    serverThread = new TCPServerThread(port, getSink()) {
 
-        } catch (IOException e) {
-          throw new IOException("Failed to create ServerSocket on port " + port + ": " + e);
-        }
+      @Override
+      public TCPReaderThread createReader(Socket socket, Sink sink) {
+
+        return new TCPReaderThread(socket, sink) {
+
+          private SyslogWireExtractor reader;
+
+          protected void createInputStream() throws IOException {
+            reader = new SyslogWireExtractor(this.socket.getInputStream());
+          };
+
+          @Override
+          public void read() throws IOException {
+
+            Event e = reader.extractEvent();
+            if (e == null) {
+              LOG.warn("Got a null syslog event, bailing...");
+              return;
+            }
+
+            this.sink.append(e);
+          }
+        };
+
       }
-    }
-    svrthread = new ServerThread(port);
-    svrthread.start();
+    };
   }
 
 }

@@ -19,7 +19,9 @@ public abstract class TCPServerThread extends Thread {
   private ServerSocket sock;
   private List<TCPReaderThread> readers;
 
-  public TCPServerThread(int port, Sink sink) throws IOException {
+  public TCPServerThread(String name, int port, Sink sink) throws IOException {
+
+    setName(name + " " + getId());
 
     this.readers = new ArrayList<TCPReaderThread>(5);
 
@@ -41,6 +43,7 @@ public abstract class TCPServerThread extends Thread {
 
       Socket socket = null;
       while ((socket = this.sock.accept()) != null) {
+        socket.setSoLinger(true, 60);
         System.out.println("Got a customer!");
         TCPReaderThread rt = createReader(socket, sink);
         rt.start();

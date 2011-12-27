@@ -63,17 +63,17 @@ public class SyslogTcpSource extends Source {
       LOG.info("Opening " + this + " on port " + port);
     }
 
-    serverThread = new TCPServerThread(port, getSink()) {
+    this.serverThread = new TCPServerThread("Syslog Server", port, getSink()) {
 
       @Override
       public TCPReaderThread createReader(Socket socket, Sink sink) {
 
-        return new TCPReaderThread(socket, sink) {
+        return new TCPReaderThread("Syslog Reader", socket, sink) {
 
           private SyslogWireExtractor reader;
 
           protected void createInputStream() throws IOException {
-            reader = new SyslogWireExtractor(this.socket.getInputStream());
+            this.reader = new SyslogWireExtractor(this.socket.getInputStream());
           };
 
           @Override
@@ -81,16 +81,22 @@ public class SyslogTcpSource extends Source {
 
             Event e = reader.extractEvent();
             if (e == null) {
-              LOG.warn("Got a null syslog event, bailing...");
+              LOG.warn("Got a null syslog event, error extracting?");
               return;
             }
 
+            // System.out.println(new String(((ByteArrayEvent)e).getBody()));
+            // System.out.println("appending to sink: " + this.sink.toString());
             this.sink.append(e);
           }
+
         };
+
 
       }
     };
+
+    this.serverThread.start();
   }
 
 }

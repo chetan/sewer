@@ -15,11 +15,12 @@ public abstract class TCPReaderThread extends Thread {
 
   private static final Logger LOG = LoggerFactory.getLogger(TCPReaderThread.class);
 
-  protected Socket socket;
-  protected Sink sink;
+  protected final Socket socket;
+  protected final Sink sink;
   protected DataInputStream in;
 
-  public TCPReaderThread(Socket socket, Sink sink) {
+  public TCPReaderThread(String name, Socket socket, Sink sink) {
+    setName(name + " " + getId());
     this.socket = socket;
     this.sink = sink;
   }

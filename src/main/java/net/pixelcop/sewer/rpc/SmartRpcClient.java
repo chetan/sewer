@@ -32,6 +32,9 @@ public class SmartRpcClient extends Thread implements InvocationHandler {
 
   private static final Logger LOG = LoggerFactory.getLogger(SmartRpcServer.class);
 
+  private String host;
+  private int port;
+
   private Socket socket;
   private DataOutputStream out;
   private DataInputStream in;
@@ -51,9 +54,9 @@ public class SmartRpcClient extends Thread implements InvocationHandler {
    * @throws UnknownHostException
    * @throws IOException
    */
-  public static Object createClient(Class<?> clazz) throws IllegalArgumentException, UnknownHostException, IOException {
+  public static Object createClient(Class<?> clazz, String host, int port) throws IllegalArgumentException, UnknownHostException, IOException {
 
-    SmartRpcClient client = new SmartRpcClient();
+    SmartRpcClient client = new SmartRpcClient(host, port);
     client.start();
 
     return Proxy.newProxyInstance(
@@ -62,17 +65,9 @@ public class SmartRpcClient extends Thread implements InvocationHandler {
         client);
   }
 
-  public SmartRpcClient() throws UnknownHostException, IOException {
-    this("localhost", SmartRpcServer.DEFAULT_PORT);
-  }
-
   public SmartRpcClient(String host, int port) throws UnknownHostException, IOException {
-
-    socket = new Socket(host, port);
-    if (!socket.isConnected()) {
-      LOG.error("Unable to connect to server!! bailing");
-      return;
-    }
+    this.host = host;
+    this.port = port;
 
     init();
   }
@@ -86,10 +81,12 @@ public class SmartRpcClient extends Thread implements InvocationHandler {
     parser = new JSONParser(JSONParser.MODE_PERMISSIVE);
     responseQueue = new LinkedBlockingQueue<String>(); // TODO set a capacity limit?
 
+    setName("Smart RPC Client " + getId());
+  }
+
+  private void createStreams() throws IOException {
     in = new DataInputStream(new BufferedInputStream(socket.getInputStream(), 64 * 1024));
     out = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream(), 64 * 1024));
-
-    setName("Smart RPC Client " + getId());
   }
 
   /**
@@ -121,8 +118,65 @@ public class SmartRpcClient extends Thread implements InvocationHandler {
   @Override
   public void run() {
 
+    // Handle server socket connection
+    if (this.host == null) {
+      readLoop();
+      return;
+    }
+
+    // Client connections should try to reconnect on any failure
+    while (true) {
+      connectLoop();
+      readLoop();
+    }
+  }
+
+  /**
+   * Continuously tries to connect to the server specified by host & port fields
+   */
+  private void connectLoop() {
+
+    int failures = 0;
+
+    while (true) {
+
+      try {
+        this.socket = new Socket(this.host, this.port);
+        return; // we got a socket, all done here!
+
+      } catch (Exception e) {
+        failures++;
+        LOG.warn("Error connecting to server, failures = " + failures);
+
+        int backoff = 5000;
+        if (failures > 30) {
+          backoff = 10000;
+
+        } else if (failures > 100) {
+          backoff = 30000;
+        }
+
+        try {
+          Thread.sleep(backoff);
+        } catch (InterruptedException e1) {
+          return;
+        }
+
+      }
+
+    }
+
+  }
+
+  /**
+   * Continuously tries to read from the socket connection
+   */
+  private void readLoop() {
+
     try {
-      System.out.println("new customer, starting event loop");
+      if (socket != null) {
+        createStreams();
+      }
 
       while (true) {
         read();
@@ -130,7 +184,7 @@ public class SmartRpcClient extends Thread implements InvocationHandler {
       }
 
     } catch (EOFException e) {
-      LOG.info("Client closed..");
+      LOG.warn("Client closed..", e);
 
     } catch (IOException e) {
       LOG.warn("IO Exception in ClientThread", e);
@@ -149,7 +203,6 @@ public class SmartRpcClient extends Thread implements InvocationHandler {
       }
 
     }
-
   }
 
   private void read() throws IOException, ParseException {

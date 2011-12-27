@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import net.pixelcop.sewer.Event;
 import net.pixelcop.sewer.Sink;
-import net.pixelcop.sewer.ThreadedAsyncSource;
+import net.pixelcop.sewer.Source;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
  * @author chetan
  *
  */
-public class SyslogTcpSource extends ThreadedAsyncSource {
+public class SyslogTcpSource extends Source {
 
   static final Logger LOG = LoggerFactory
       .getLogger(SyslogTcpSource.class);
@@ -119,7 +119,7 @@ public class SyslogTcpSource extends ThreadedAsyncSource {
       readers.add(this);
       this.in = sock;
       try {
-        this.sink = createSink();
+        this.sink = getSink();
       } catch (Exception e) {
         LOG.error("Failed to create sink for ReaderThread", e);
         throw e;

@@ -3,8 +3,18 @@ package net.pixelcop.sewer;
 import java.io.Closeable;
 import java.io.IOException;
 
-public abstract interface Source extends Closeable {
+public abstract class Source implements Closeable {
 
-  public void open() throws IOException;
+  private Sink sink;
+
+  public abstract void open() throws IOException;
+
+  public void setSink(Sink sink) {
+    this.sink = sink;
+  }
+
+  public Sink getSink() {
+    return sink;
+  }
 
 }

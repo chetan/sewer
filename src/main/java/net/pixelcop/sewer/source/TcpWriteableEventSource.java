@@ -11,7 +11,7 @@ import java.util.List;
 
 import net.pixelcop.sewer.ByteArrayEvent;
 import net.pixelcop.sewer.Sink;
-import net.pixelcop.sewer.ThreadedAsyncSource;
+import net.pixelcop.sewer.Source;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
  * @author chetan
  *
  */
-public class TcpWriteableEventSource extends ThreadedAsyncSource {
+public class TcpWriteableEventSource extends Source {
 
   private static final Logger LOG = LoggerFactory.getLogger(TcpWriteableEventSource.class);
 
@@ -101,7 +101,7 @@ public class TcpWriteableEventSource extends ThreadedAsyncSource {
 
     public ReaderThread(Socket socket) throws Exception {
       this.socket = socket;
-      this.sink = createSink();
+      this.sink = getSink();
     }
 
     @Override

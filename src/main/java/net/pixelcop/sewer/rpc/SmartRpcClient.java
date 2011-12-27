@@ -45,6 +45,8 @@ public class SmartRpcClient extends Thread implements InvocationHandler {
 
   private LinkedBlockingQueue<String> responseQueue;
 
+  private SmartRpcClientEventHandler eventHandler;
+
   /**
    * This is used to construct proxy instances for API consumers
    *
@@ -54,10 +56,7 @@ public class SmartRpcClient extends Thread implements InvocationHandler {
    * @throws UnknownHostException
    * @throws IOException
    */
-  public static Object createClient(Class<?> clazz, String host, int port) throws IllegalArgumentException, UnknownHostException, IOException {
-
-    SmartRpcClient client = new SmartRpcClient(host, port);
-    client.start();
+  public static Object createClient(Class<?> clazz, SmartRpcClient client) throws IOException {
 
     return Proxy.newProxyInstance(
         Node.class.getClassLoader(),
@@ -65,7 +64,7 @@ public class SmartRpcClient extends Thread implements InvocationHandler {
         client);
   }
 
-  public SmartRpcClient(String host, int port) throws UnknownHostException, IOException {
+  public SmartRpcClient(String host, int port) throws IOException {
     this.host = host;
     this.port = port;
 
@@ -80,6 +79,10 @@ public class SmartRpcClient extends Thread implements InvocationHandler {
   private void init() throws IOException {
     parser = new JSONParser(JSONParser.MODE_PERMISSIVE);
     responseQueue = new LinkedBlockingQueue<String>(); // TODO set a capacity limit?
+
+    if (socket != null) {
+      createStreams();
+    }
 
     setName("Smart RPC Client " + getId());
   }
@@ -142,11 +145,22 @@ public class SmartRpcClient extends Thread implements InvocationHandler {
 
       try {
         this.socket = new Socket(this.host, this.port);
+        createStreams();
+        if (this.eventHandler != null) {
+          new Thread() {
+            public void run() {
+              eventHandler.onConnect();
+            };
+          }.start();
+        }
+
         return; // we got a socket, all done here!
 
       } catch (Exception e) {
         failures++;
-        LOG.warn("Error connecting to server, failures = " + failures);
+        if (LOG.isWarnEnabled()) {
+          LOG.warn("Error connecting to server [" + host + ":" + port + "], failures = " + failures, e);
+        }
 
         int backoff = 5000;
         if (failures > 30) {
@@ -174,10 +188,6 @@ public class SmartRpcClient extends Thread implements InvocationHandler {
   private void readLoop() {
 
     try {
-      if (socket != null) {
-        createStreams();
-      }
-
       while (true) {
         read();
         out.flush();
@@ -201,7 +211,9 @@ public class SmartRpcClient extends Thread implements InvocationHandler {
       } catch (IOException e) {
         LOG.info("Error closing socket during shutdown");
       }
-
+      if (this.eventHandler != null) {
+        this.eventHandler.onDisconnect();
+      }
     }
   }
 
@@ -247,12 +259,29 @@ public class SmartRpcClient extends Thread implements InvocationHandler {
     return method.invoke(rpc.handler, args.toArray());
   }
 
+  /**
+   * Tests whether or not this client has an active connection
+   * @return
+   */
+  public boolean isConnected() {
+    return (socket != null && socket.isConnected());
+  }
+
+
   public void setHandlers(Map<String, MethodHandler> handlers) {
     this.handlers = handlers;
   }
 
   public Map<String, MethodHandler> getHandlers() {
     return handlers;
+  }
+
+  public void setEventHandler(SmartRpcClientEventHandler eventHandler) {
+    this.eventHandler = eventHandler;
+  }
+
+  public SmartRpcClientEventHandler getEventHandler() {
+    return eventHandler;
   }
 
 }

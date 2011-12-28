@@ -19,11 +19,10 @@ public abstract class TCPReaderThread extends Thread {
   protected final Sink sink;
   protected DataInputStream in;
 
-  public TCPReaderThread(String name, Socket socket, Sink sink) throws IOException {
+  public TCPReaderThread(String name, Socket socket, Sink sink) {
     setName(name + " " + getId());
     this.socket = socket;
     this.sink = sink;
-    sink.open();
   }
 
   @Override
@@ -31,7 +30,9 @@ public abstract class TCPReaderThread extends Thread {
 
     try {
 
+      sink.open();
       createInputStream();
+
       while (true) {
         read();
       }

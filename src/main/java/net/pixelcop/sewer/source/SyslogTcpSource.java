@@ -66,7 +66,7 @@ public class SyslogTcpSource extends Source {
     this.serverThread = new TCPServerThread("Syslog Server", port, getSinkFactory()) {
 
       @Override
-      public TCPReaderThread createReader(Socket socket, Sink sink) throws IOException {
+      public TCPReaderThread createReader(Socket socket, Sink sink) {
 
         return new TCPReaderThread("Syslog Reader", socket, sink) {
 

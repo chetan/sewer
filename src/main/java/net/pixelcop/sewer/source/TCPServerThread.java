@@ -35,7 +35,7 @@ public abstract class TCPServerThread extends Thread {
 
   }
 
-  public abstract TCPReaderThread createReader(Socket socket, Sink sink) throws IOException;
+  public abstract TCPReaderThread createReader(Socket socket, Sink sink);
 
   @Override
   public void run() {

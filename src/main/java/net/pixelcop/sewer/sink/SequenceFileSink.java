@@ -76,14 +76,6 @@ public class SequenceFileSink implements Sink {
       codec = new DeflateCodec();
     }
 
-    // if (codec == null) {
-    // dstPath = new Path(path);
-    // hdfs = dstPath.getFileSystem(conf);
-    // writer = hdfs.create(dstPath);
-    // LOG.info("Creating HDFS file: " + dstPath.toString());
-    // return;
-    // }
-
     dstPath = new Path(path + codec.getDefaultExtension());
     hdfs = dstPath.getFileSystem(conf);
 

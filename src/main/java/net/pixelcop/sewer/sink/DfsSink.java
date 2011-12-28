@@ -71,14 +71,6 @@ public class DfsSink implements Sink {
       codec = new GzipCodec();
     }
 
-    // if (codec == null) {
-    // dstPath = new Path(path);
-    // hdfs = dstPath.getFileSystem(conf);
-    // writer = hdfs.create(dstPath);
-    // LOG.info("Creating HDFS file: " + dstPath.toString());
-    // return;
-    // }
-
     Compressor cmp = codec.createCompressor();
     dstPath = new Path(path + codec.getDefaultExtension());
     hdfs = dstPath.getFileSystem(conf);

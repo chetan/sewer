@@ -66,7 +66,6 @@ public class SequenceFileSink implements Sink {
 
     Configuration conf = new Configuration();
     conf.setInt("io.file.buffer.size", 16384*4); // temp workaround until we fix Config
-    FileSystem hdfs;
 
     // TODO handle pluggable compression codec
     CompressionCodec codec;
@@ -76,14 +75,14 @@ public class SequenceFileSink implements Sink {
       codec = new DeflateCodec();
     }
 
-    dstPath = new Path(path + codec.getDefaultExtension());
-    hdfs = dstPath.getFileSystem(conf);
+    dstPath = new Path(path + ".seq" + codec.getDefaultExtension());
+    FileSystem hdfs = dstPath.getFileSystem(conf);
 
     writer = SequenceFile.createWriter(
         hdfs, conf, dstPath, NullWritable.class, ByteArrayEvent.class, CompressionType.BLOCK, codec);
 
     if (LOG.isInfoEnabled()) {
-      LOG.info("Creating " + codec + " compressed HDFS file: " + dstPath.toString());
+      LOG.info("Creating " + codec.getClass().getSimpleName() + " compressed HDFS file: " + dstPath.toString());
     }
   }
 

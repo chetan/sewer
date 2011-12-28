@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.pixelcop.sewer.Sink;
+import net.pixelcop.sewer.SourceSinkFactory;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,17 +16,17 @@ public abstract class TCPServerThread extends Thread {
 
   private static final Logger LOG = LoggerFactory.getLogger(TCPServerThread.class);
 
-  private Sink sink;
+  private SourceSinkFactory<Sink> sinkFactory;
   private ServerSocket sock;
   private List<TCPReaderThread> readers;
 
-  public TCPServerThread(String name, int port, Sink sink) throws IOException {
+  public TCPServerThread(String name, int port, SourceSinkFactory<Sink> sinkFactory) throws IOException {
 
     setName(name + " " + getId());
 
     this.readers = new ArrayList<TCPReaderThread>(5);
 
-    this.sink = sink;
+    this.sinkFactory = sinkFactory;
 
     this.sock = new ServerSocket(port);
     this.sock.setReuseAddress(true);
@@ -34,7 +35,7 @@ public abstract class TCPServerThread extends Thread {
 
   }
 
-  public abstract TCPReaderThread createReader(Socket socket, Sink sink);
+  public abstract TCPReaderThread createReader(Socket socket, Sink sink) throws IOException;
 
   @Override
   public void run() {
@@ -45,7 +46,7 @@ public abstract class TCPServerThread extends Thread {
       while ((socket = this.sock.accept()) != null) {
         socket.setSoLinger(true, 60);
         System.out.println("Got a customer!");
-        TCPReaderThread rt = createReader(socket, sink);
+        TCPReaderThread rt = createReader(socket, sinkFactory.build());
         rt.start();
         readers.add(rt);
       }

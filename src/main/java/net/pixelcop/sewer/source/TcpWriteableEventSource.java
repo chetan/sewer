@@ -28,10 +28,10 @@ public class TcpWriteableEventSource extends Source {
   @Override
   public void open() throws IOException {
 
-    this.serverThread = new TCPServerThread("TCP Writeable Server", 9999, createSink()) {
+    this.serverThread = new TCPServerThread("TCP Writeable Server", 9999, getSinkFactory()) {
 
       @Override
-      public TCPReaderThread createReader(Socket socket, Sink sink) {
+      public TCPReaderThread createReader(Socket socket, Sink sink) throws IOException {
 
         return new TCPReaderThread("TCP Writeable Reader", socket, sink) {
 

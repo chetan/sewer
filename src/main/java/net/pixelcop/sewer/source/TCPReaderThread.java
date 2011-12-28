@@ -19,10 +19,11 @@ public abstract class TCPReaderThread extends Thread {
   protected final Sink sink;
   protected DataInputStream in;
 
-  public TCPReaderThread(String name, Socket socket, Sink sink) {
+  public TCPReaderThread(String name, Socket socket, Sink sink) throws IOException {
     setName(name + " " + getId());
     this.socket = socket;
     this.sink = sink;
+    sink.open();
   }
 
   @Override
@@ -42,6 +43,11 @@ public abstract class TCPReaderThread extends Thread {
       LOG.warn("IO Exception in ReaderThread", e);
 
     } finally {
+      try {
+        sink.close();
+      } catch (IOException e) {
+        LOG.warn("Error while closing sink");
+      }
       try {
         socket.close();
       } catch (IOException e) {

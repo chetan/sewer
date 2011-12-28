@@ -38,8 +38,11 @@ public class BucketPath {
   private static final String TAG_REGEX = "\\%(\\w|\\%)|\\%\\{([\\w\\.-]+)\\}";
   private static final Pattern tagPattern = Pattern.compile(TAG_REGEX);
 
+  private static final String NANOS = "nanos";
   private static final String TIMESTAMP = "timestamp";
   private static final String DATE = "date";
+  private static final String THREAD = "thread";
+
   private static final String HOST = "host";
   private static final String HOSTNAME = "hostname";
 
@@ -216,6 +219,8 @@ public class BucketPath {
     long ts = System.currentTimeMillis();
     headers.put(TIMESTAMP, ts);
     headers.put(DATE, new Date(ts));
+    headers.put(NANOS, System.nanoTime());
+    headers.put(THREAD, Thread.currentThread().getId());
 
     Matcher matcher = tagPattern.matcher(in);
     StringBuffer sb = new StringBuffer();

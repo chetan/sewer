@@ -27,6 +27,8 @@ import java.util.regex.Pattern;
 
 import net.pixelcop.sewer.util.NetworkUtil;
 
+import org.apache.commons.lang.math.RandomUtils;
+
 import com.google.common.base.Preconditions;
 
 public class BucketPath {
@@ -42,6 +44,7 @@ public class BucketPath {
   private static final String TIMESTAMP = "timestamp";
   private static final String DATE = "date";
   private static final String THREAD = "thread";
+  private static final String RAND = "rand";
 
   private static final String HOST = "host";
   private static final String HOSTNAME = "hostname";
@@ -224,16 +227,22 @@ public class BucketPath {
 
     Matcher matcher = tagPattern.matcher(in);
     StringBuffer sb = new StringBuffer();
+
     while (matcher.find()) {
+
       String replacement = "";
       // Group 2 is the %{...} pattern
       if (matcher.group(2) != null) {
 
-        replacement = headers.get(matcher.group(2)).toString();
-        if (replacement == null) {
-          replacement = "";
-//          LOG.warn("Tag " + matcher.group(2) + " not found");
+        String key = matcher.group(2);
+        if (key.equalsIgnoreCase(RAND)) {
+          replacement = Integer.toString(RandomUtils.nextInt());
+
+        } else if (headers.containsKey(key)) {
+          replacement = headers.get(key).toString();
         }
+        // else { LOG.warn("Tag " + matcher.group(2) + " not found"); }
+
       } else {
         // The %x pattern.
         // Since we know the match is a single character, we can

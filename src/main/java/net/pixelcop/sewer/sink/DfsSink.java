@@ -27,16 +27,20 @@ public class DfsSink implements Sink {
   private static final Logger LOG = LoggerFactory.getLogger(DfsSink.class);
 
   /**
+   * Configured DFS path to write to
+   */
+  private String configPath;
+
+  /**
    * Reference to DFS Path object
    */
   private Path dstPath;
 
-  /**
-   * String input of DFS path to write to
-   */
-  private String path;
-
   private DataOutputStream writer;
+
+  public DfsSink(String path) {
+    this.configPath = path;
+  }
 
   @Override
   public void close() throws IOException {
@@ -45,6 +49,13 @@ public class DfsSink implements Sink {
 
   @Override
   public void open() throws IOException {
+
+    String fullPath = BucketPath.escapeString(configPath, null);
+    createWriter(fullPath);
+
+  }
+
+  private void createWriter(String path) throws IOException {
 
     Configuration conf = new Configuration();
     FileSystem hdfs;
@@ -65,23 +76,11 @@ public class DfsSink implements Sink {
     Compressor cmp = codec.createCompressor();
     dstPath = new Path(path + codec.getDefaultExtension());
     hdfs = dstPath.getFileSystem(conf);
-    writer = hdfs.create(dstPath);
-    try {
-      writer = new DataOutputStream(codec.createOutputStream(writer, cmp));
-
-    } catch (NullPointerException npe) {
-      // tries to find "native" version of codec, if that fails, then tries to
-      // find java version. If there is no java version, the createOutputStream
-      // exits via NPE. We capture this and convert it into a IOE with a more
-      // useful error message.
-      LOG.error("Unable to load compression codec " + codec);
-      throw new IOException("Unable to load compression codec " + codec);
-    }
+    writer = new DataOutputStream(codec.createOutputStream(hdfs.create(dstPath), cmp));
 
     if (LOG.isInfoEnabled()) {
       LOG.info("Creating " + codec + " compressed HDFS file: " + dstPath.toString());
     }
-
   }
 
   @Override

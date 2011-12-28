@@ -56,68 +56,6 @@ public class BucketPath {
   }
 
   /**
-   * Returns true if in contains a substring matching TAG_REGEX (i.e. of the
-   * form %{...} or %x.
-   */
-  private static boolean containsTag(String in) {
-    return tagPattern.matcher(in).find();
-  }
-
-  private static String expandShorthand(char c) {
-    // It's a date
-    switch (c) {
-    case 'a':
-      return "weekday_short";
-    case 'A':
-      return "weekday_full";
-    case 'b':
-      return "monthname_short";
-    case 'B':
-      return "monthname_full";
-    case 'c':
-      return "datetime";
-    case 'd':
-      return "day_of_month_xx"; // two digit
-    case 'D':
-      return "date_short"; // "MM/dd/yy";
-    case 'H':
-      return "hour_24_xx";
-    case 'I':
-      return "hour_12_xx";
-    case 'j':
-      return "day_of_year_xxx"; // three digits
-    case 'k':
-      return "hour_24"; // 1 or 2 digits
-    case 'l':
-      return "hour_12"; // 1 or 2 digits
-    case 'm':
-      return "month_xx";
-    case 'M':
-      return "minute_xx";
-    case 'p':
-      return "am_pm";
-    case 's':
-      return "unix_seconds";
-    case 'S':
-      return "seconds_xx";
-    case 't':
-      // This is different from unix date (which would insert a tab character
-      // here)
-      return "unix_millis";
-    case 'y':
-      return "year_xx";
-    case 'Y':
-      return "year_xxxx";
-    case 'z':
-      return "timezone_delta";
-    default:
-//      LOG.warn("Unrecognized escape in event format string: %" + c);
-      return "" + c;
-    }
-
-  }
-
-  /**
    * Hardcoded lookups for %x style escape replacement. Add your own!
    *
    * All shorthands are Date format strings, currently.
@@ -273,40 +211,5 @@ public class BucketPath {
     return sb.toString();
   }
 
-  /**
-   * Instead of replacing escape sequences in a string, this method returns a
-   * mapping of an attribute name to the value based on the escape sequence
-   * found in the argument string.
-   */
-  private static Map<String, String> getEscapeMapping(String in, Map<String, Object> headers) {
-    Map<String, String> mapping = new HashMap<String, String>();
-    Matcher matcher = tagPattern.matcher(in);
-    while (matcher.find()) {
-      String replacement = "";
-      // Group 2 is the %{...} pattern
-      if (matcher.group(2) != null) {
-
-        replacement = headers.get(matcher.group(2)).toString();
-
-        if (replacement == null) {
-          replacement = "";
-//          LOG.warn("Tag " + matcher.group(2) + " not found");
-        }
-        mapping.put(matcher.group(2), replacement);
-      } else {
-        // The %x pattern.
-        // Since we know the match is a single character, we can
-        // switch on that rather than the string.
-        Preconditions.checkState(matcher.group(1) != null
-            && matcher.group(1).length() == 1,
-            "Expected to match single character tag in string " + in);
-        char c = matcher.group(1).charAt(0);
-        replacement = replaceShorthand(c, headers);
-        mapping.put(expandShorthand(c), replacement);
-      }
-    }
-    return mapping;
-
-  }
 }
 

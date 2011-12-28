@@ -194,7 +194,7 @@ public class SmartRpcClient extends Thread implements InvocationHandler {
       }
 
     } catch (EOFException e) {
-      LOG.warn("Client closed..", e);
+      LOG.debug("Client closed", e);
 
     } catch (IOException e) {
       LOG.warn("IO Exception in ClientThread", e);

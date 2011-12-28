@@ -31,8 +31,8 @@ public abstract class TCPServerThread extends Thread {
     this.sock = new ServerSocket(port);
     this.sock.setReuseAddress(true);
     this.sock.setReceiveBufferSize(64*1024);
-    LOG.warn("Now listening on " + port);
 
+    LOG.info("Now listening on " + port);
   }
 
   public abstract TCPReaderThread createReader(Socket socket, Sink sink);

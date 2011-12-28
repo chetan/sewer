@@ -23,8 +23,10 @@ public abstract class Source implements Closeable {
     return sinkFactory;
   }
 
-  public Sink createSink() {
-    return this.sinkFactory.build();
+  public Sink createSink() throws IOException {
+    Sink sink = this.sinkFactory.build();
+    sink.open();
+    return sink;
   }
 
 }

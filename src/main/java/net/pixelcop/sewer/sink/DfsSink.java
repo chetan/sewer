@@ -40,8 +40,8 @@ public class DfsSink extends Sink {
 
   private DataOutputStream writer;
 
-  public DfsSink(String path) {
-    this.configPath = path;
+  public DfsSink(String[] args) {
+    this.configPath = args[0];
   }
 
   @Override

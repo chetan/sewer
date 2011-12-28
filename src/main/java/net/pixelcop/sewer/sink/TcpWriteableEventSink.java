@@ -18,7 +18,7 @@ public class TcpWriteableEventSink extends Sink {
   private Socket socket;
   private DataOutputStream out;
 
-  public TcpWriteableEventSink() {
+  public TcpWriteableEventSink(String[] args) {
   }
 
   public void open() throws IOException {

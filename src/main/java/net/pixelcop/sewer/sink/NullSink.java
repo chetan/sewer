@@ -7,6 +7,9 @@ import net.pixelcop.sewer.Sink;
 
 public class NullSink extends Sink {
 
+  public NullSink(String[] args) {
+  }
+
   @Override
   public void close() throws IOException {
     setStatus(CLOSED);

@@ -45,8 +45,8 @@ public class SequenceFileSink extends Sink {
 
   private Writer writer;
 
-  public SequenceFileSink(String path) {
-    this.configPath = path;
+  public SequenceFileSink(String[] args) {
+    this.configPath = args[0];
   }
 
   @Override

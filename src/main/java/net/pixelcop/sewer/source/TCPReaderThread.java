@@ -43,12 +43,6 @@ public abstract class TCPReaderThread extends Thread {
 
     } finally {
       try {
-        sink.close();
-      } catch (Exception e) {
-        // TODO properly handle these errors - rollback??
-        LOG.warn("Error closing sink during shutdown");
-      }
-      try {
         socket.close();
       } catch (IOException e) {
         LOG.info("Error closing socket during shutdown");

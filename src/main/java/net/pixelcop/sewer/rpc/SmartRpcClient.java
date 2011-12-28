@@ -21,6 +21,7 @@ import net.minidev.json.parser.JSONParser;
 import net.minidev.json.parser.ParseException;
 import net.pixelcop.sewer.node.Node;
 
+import org.apache.commons.lang.time.StopWatch;
 import org.apache.hadoop.io.WritableUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -140,12 +141,22 @@ public class SmartRpcClient extends Thread implements InvocationHandler {
   private void connectLoop() {
 
     int failures = 0;
+    StopWatch stopwatch = new StopWatch();
+    stopwatch.start();
 
     while (true) {
 
       try {
         this.socket = new Socket(this.host, this.port);
+
+        if (failures > 0) {
+          if (LOG.isInfoEnabled()) {
+            LOG.info("Connected to master after " + failures + " failures (" + stopwatch.toString() + ")");
+          }
+        }
+
         createStreams();
+
         if (this.eventHandler != null) {
           new Thread() {
             public void run() {
@@ -158,8 +169,12 @@ public class SmartRpcClient extends Thread implements InvocationHandler {
 
       } catch (Exception e) {
         failures++;
-        if (LOG.isWarnEnabled()) {
-          LOG.warn("Error connecting to server [" + host + ":" + port + "], failures = " + failures, e);
+        if (failures == 1 && LOG.isWarnEnabled()) {
+          LOG.warn("Error connecting to server [" + host + ":" + port + "], failures = " + failures
+              + " (" + e.getMessage() + ")");
+        } else if (LOG.isDebugEnabled()) {
+          LOG.debug("Error connecting to server [" + host + ":" + port + "], failures = " + failures
+              + " (" + e.getMessage() + ")");
         }
 
         int backoff = 5000;
@@ -194,7 +209,7 @@ public class SmartRpcClient extends Thread implements InvocationHandler {
       }
 
     } catch (EOFException e) {
-      LOG.debug("Client closed", e);
+      LOG.debug("Client closed (EOFException)");
 
     } catch (IOException e) {
       LOG.warn("IO Exception in ClientThread", e);

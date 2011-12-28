@@ -20,8 +20,8 @@ import net.minidev.json.JSONValue;
 import net.minidev.json.parser.JSONParser;
 import net.minidev.json.parser.ParseException;
 import net.pixelcop.sewer.node.Node;
+import net.pixelcop.sewer.util.BackoffHelper;
 
-import org.apache.commons.lang.time.StopWatch;
 import org.apache.hadoop.io.WritableUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -140,20 +140,14 @@ public class SmartRpcClient extends Thread implements InvocationHandler {
    */
   private void connectLoop() {
 
-    int failures = 0;
-    StopWatch stopwatch = new StopWatch();
-    stopwatch.start();
+    BackoffHelper backoff = new BackoffHelper();
 
     while (true) {
 
       try {
         this.socket = new Socket(this.host, this.port);
 
-        if (failures > 0) {
-          if (LOG.isInfoEnabled()) {
-            LOG.info("Connected to master after " + failures + " failures (" + stopwatch.toString() + ")");
-          }
-        }
+        backoff.resolve(LOG, "Connected to master");
 
         createStreams();
 
@@ -168,28 +162,8 @@ public class SmartRpcClient extends Thread implements InvocationHandler {
         return; // we got a socket, all done here!
 
       } catch (Exception e) {
-        failures++;
-        if (failures == 1 && LOG.isWarnEnabled()) {
-          LOG.warn("Error connecting to server [" + host + ":" + port + "], failures = " + failures
-              + " (" + e.getMessage() + ")");
-        } else if (LOG.isDebugEnabled()) {
-          LOG.debug("Error connecting to server [" + host + ":" + port + "], failures = " + failures
-              + " (" + e.getMessage() + ")");
-        }
-
-        int backoff = 5000;
-        if (failures > 30) {
-          backoff = 10000;
-
-        } else if (failures > 100) {
-          backoff = 30000;
-        }
-
-        try {
-          Thread.sleep(backoff);
-        } catch (InterruptedException e1) {
-          return;
-        }
+        backoff.handleFailure(e, LOG,
+            "Error connecting to server [" + host + ":" + port + "]");
 
       }
 

@@ -2,36 +2,28 @@ package net.pixelcop.sewer;
 
 
 @SuppressWarnings({"rawtypes", "unchecked"})
-public abstract class SourceSinkFactory {
-    
-    public class Args {
-        
-        private String input;
-        
-        public Args(String input) {
-            this.input = input;
-        }
+public class SourceSinkFactory<T> {
 
-        public String getInput() {
-            return input;
-        }
-    }
-    
     private Class clazz;
-    private Args args;
-    
-    public SourceSinkFactory(Class clazz, Args args) {
+    private String[] args;
+
+    public SourceSinkFactory(Class clazz, String arg) {
+        this.clazz = clazz;
+        this.args = new String[]{ arg };
+    }
+
+    public SourceSinkFactory(Class clazz, String[] args) {
         this.clazz = clazz;
         this.args = args;
     }
-    
-    public Object build() {
+
+    public T build() {
         try {
-            return clazz.getConstructor(String.class).newInstance(args.getInput());
-            
+            return (T) clazz.getConstructor(String.class).newInstance((Object[]) args);
+
         } catch (Exception e) {
         }
-        
+
         return null; // TODO throw exception?
     }
 

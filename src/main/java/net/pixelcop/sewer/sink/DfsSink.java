@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
  * @author chetan
  *
  */
-public class DfsSink implements Sink {
+public class DfsSink extends Sink {
 
   private static final Logger LOG = LoggerFactory.getLogger(DfsSink.class);
 

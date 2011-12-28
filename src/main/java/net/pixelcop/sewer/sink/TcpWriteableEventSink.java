@@ -11,7 +11,7 @@ import net.pixelcop.sewer.Sink;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TcpWriteableEventSink implements Sink {
+public class TcpWriteableEventSink extends Sink {
 
   private static final Logger LOG = LoggerFactory.getLogger(TcpWriteableEventSink.class);
 

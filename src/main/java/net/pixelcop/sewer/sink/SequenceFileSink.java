@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
  * @author chetan
  *
  */
-public class SequenceFileSink implements Sink {
+public class SequenceFileSink extends Sink {
 
   private static final Logger LOG = LoggerFactory.getLogger(SequenceFileSink.class);
 

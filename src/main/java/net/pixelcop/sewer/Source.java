@@ -5,16 +5,26 @@ import java.io.IOException;
 
 public abstract class Source implements Closeable {
 
-  private Sink sink;
+  private SourceSinkFactory<Sink> sinkFactory;;
 
+  /**
+   * Open the source endpoint (file, network, etc). The source is also responsible
+   * for creating and opening it's associated Sink as necessary.
+   *
+   * @throws IOException
+   */
   public abstract void open() throws IOException;
 
-  public void setSink(Sink sink) {
-    this.sink = sink;
+  public void setSinkFactory(SourceSinkFactory<Sink> sinkFactory) {
+    this.sinkFactory = sinkFactory;
   }
 
-  public Sink getSink() {
-    return sink;
+  public SourceSinkFactory<Sink> getSinkFactory() {
+    return sinkFactory;
+  }
+
+  public Sink createSink() {
+    return this.sinkFactory.build();
   }
 
 }

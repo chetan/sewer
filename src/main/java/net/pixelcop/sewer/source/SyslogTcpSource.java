@@ -63,7 +63,7 @@ public class SyslogTcpSource extends Source {
       LOG.info("Opening " + this + " on port " + port);
     }
 
-    this.serverThread = new TCPServerThread("Syslog Server", port, getSink()) {
+    this.serverThread = new TCPServerThread("Syslog Server", port, createSink()) {
 
       @Override
       public TCPReaderThread createReader(Socket socket, Sink sink) {

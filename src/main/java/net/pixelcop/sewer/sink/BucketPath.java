@@ -22,12 +22,11 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.pixelcop.sewer.util.NetworkUtil;
-
-import org.apache.commons.lang.math.RandomUtils;
 
 import com.google.common.base.Preconditions;
 
@@ -39,6 +38,8 @@ public class BucketPath {
    */
   private static final String TAG_REGEX = "\\%(\\w|\\%)|\\%\\{([\\w\\.-]+)\\}";
   private static final Pattern tagPattern = Pattern.compile(TAG_REGEX);
+
+  private static final Random RANDOM = new Random();
 
   private static final String NANOS = "nanos";
   private static final String TIMESTAMP = "timestamp";
@@ -174,7 +175,7 @@ public class BucketPath {
 
         String key = matcher.group(2);
         if (key.equalsIgnoreCase(RAND)) {
-          replacement = Integer.toString(RandomUtils.nextInt());
+          replacement = Integer.toString(RANDOM.nextInt());
 
         } else if (headers.containsKey(key)) {
           replacement = headers.get(key).toString();

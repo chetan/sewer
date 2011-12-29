@@ -7,6 +7,7 @@ import net.pixelcop.sewer.sink.DfsSink;
 import net.pixelcop.sewer.sink.NullSink;
 import net.pixelcop.sewer.sink.SequenceFileSink;
 import net.pixelcop.sewer.sink.TcpWriteableEventSink;
+import net.pixelcop.sewer.sink.durable.ReliableSink;
 
 @SuppressWarnings("rawtypes")
 public class SinkRegistry {
@@ -18,6 +19,7 @@ public class SinkRegistry {
     register("dfs", DfsSink.class);
     register("seqfile", SequenceFileSink.class);
     register("tcpwrite", TcpWriteableEventSink.class);
+    register("reliable", ReliableSink.class);
   }
 
   public static final void register(String name, Class clazz) {

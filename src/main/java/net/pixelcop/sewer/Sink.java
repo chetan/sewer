@@ -12,7 +12,7 @@ public abstract class Sink implements Closeable {
   protected int status = CLOSED;
   protected Sink subSink = null;
 
-  private SourceSinkFactory<Sink> sinkFactory;
+  protected SourceSinkFactory<Sink> sinkFactory;
 
 
   /**
@@ -55,11 +55,18 @@ public abstract class Sink implements Closeable {
     return sinkFactory;
   }
 
-  public void createSubSink() {
+  /**
+   * Create the SubSink, if possible
+   *
+   * @return True if a SubSink was created, false otherwise.
+   */
+  public boolean createSubSink() {
     if (sinkFactory == null) {
-      return;
+      return false;
     }
 
+    subSink = sinkFactory.build();
+    return true;
   }
 
 }

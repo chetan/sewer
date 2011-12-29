@@ -4,7 +4,6 @@ import java.io.IOException;
 
 import net.pixelcop.sewer.ByteArrayEvent;
 import net.pixelcop.sewer.Event;
-import net.pixelcop.sewer.Sink;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -27,7 +26,7 @@ import org.slf4j.LoggerFactory;
  * @author chetan
  *
  */
-public class SequenceFileSink extends Sink {
+public class SequenceFileSink extends BucketedSink {
 
   private static final Logger LOG = LoggerFactory.getLogger(SequenceFileSink.class);
 
@@ -54,18 +53,39 @@ public class SequenceFileSink extends Sink {
     if (writer != null) {
       writer.close();
     }
+    nextBucket = null;
   }
 
   @Override
   public void open() throws IOException {
-    String fullPath = BucketPath.escapeString(configPath, null);
-    createWriter(fullPath);
+    if (nextBucket == null) {
+      generateNextBucket();
+    }
+    createWriter();
+    status = FLOWING;
   }
 
-  private void createWriter(String path) throws IOException {
+  private void createWriter() throws IOException {
 
     Configuration conf = new Configuration();
     conf.setInt("io.file.buffer.size", 16384*4); // temp workaround until we fix Config
+
+    CompressionCodec codec = createCodec();
+
+    dstPath = new Path(nextBucket + ".seq" + codec.getDefaultExtension());
+    FileSystem hdfs = dstPath.getFileSystem(conf);
+
+    writer = SequenceFile.createWriter(
+        hdfs, conf, dstPath, NullWritable.class, ByteArrayEvent.class, CompressionType.BLOCK, codec);
+
+    if (LOG.isInfoEnabled()) {
+      LOG.info("Created " + codec.getClass().getSimpleName() + " compressed HDFS file: " + dstPath.toString());
+    }
+
+    nextBucket = null;
+  }
+
+  public CompressionCodec createCodec() {
 
     // TODO handle pluggable compression codec
     CompressionCodec codec;
@@ -74,16 +94,19 @@ public class SequenceFileSink extends Sink {
     } else {
       codec = new DeflateCodec();
     }
+    return codec;
 
-    dstPath = new Path(path + ".seq" + codec.getDefaultExtension());
-    FileSystem hdfs = dstPath.getFileSystem(conf);
+  }
 
-    writer = SequenceFile.createWriter(
-        hdfs, conf, dstPath, NullWritable.class, ByteArrayEvent.class, CompressionType.BLOCK, codec);
+  @Override
+  public String getFileExt() {
+    return ".seq" + createCodec().getDefaultExtension();
+  }
 
-    if (LOG.isInfoEnabled()) {
-      LOG.info("Creating " + codec.getClass().getSimpleName() + " compressed HDFS file: " + dstPath.toString());
-    }
+  @Override
+  public String generateNextBucket() {
+    nextBucket = BucketPath.escapeString(configPath, null);
+    return nextBucket;
   }
 
   @Override

@@ -82,7 +82,7 @@ public class SourceSinkFactory<T> {
         }
       }
 
-      classes.add(0, new SourceSinkBuilder(SinkRegistry.get(clazzId), args));
+      classes.add(new SourceSinkBuilder(SinkRegistry.get(clazzId), args));
     }
 
   }

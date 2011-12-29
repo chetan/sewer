@@ -52,12 +52,21 @@ public class SequenceFileSink extends BucketedSink {
   public void close() throws IOException {
     if (writer != null) {
       writer.close();
+
+    } else if (status == OPENING) {
+      // closed down while in the process of opening.
+      // quick open/close, dead client, etc
+      while (status != FLOWING) {
+      }
+      writer.close();
     }
     nextBucket = null;
+    status = CLOSED;
   }
 
   @Override
   public void open() throws IOException {
+    status = OPENING;
     if (nextBucket == null) {
       generateNextBucket();
     }

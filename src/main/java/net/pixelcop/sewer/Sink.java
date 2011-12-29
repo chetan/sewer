@@ -5,9 +5,11 @@ import java.io.IOException;
 
 public abstract class Sink implements Closeable {
 
-  public static final int CLOSED = 0;
-  public static final int FLOWING = 1;
-  public static final int ERROR = 2;
+  public static final int CLOSED    = 0;
+  public static final int OPENING   = 1;
+  public static final int FLOWING   = 2;
+  public static final int ERROR     = -1;
+
 
   protected int status = CLOSED;
   protected Sink subSink = null;

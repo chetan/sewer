@@ -5,7 +5,7 @@ import java.io.IOException;
 
 public abstract class Source implements Closeable {
 
-  private SourceSinkFactory<Sink> sinkFactory;;
+  private SourceSinkFactory<Sink> sinkFactory;
 
   /**
    * Open the source endpoint (file, network, etc). The source is also responsible

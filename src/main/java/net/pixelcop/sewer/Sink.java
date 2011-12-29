@@ -12,6 +12,8 @@ public abstract class Sink implements Closeable {
   protected int status = CLOSED;
   protected Sink subSink = null;
 
+  private SourceSinkFactory<Sink> sinkFactory;
+
 
   /**
    * Open the Sink
@@ -43,6 +45,21 @@ public abstract class Sink implements Closeable {
 
   public Sink getSubSink() {
     return subSink;
+  }
+
+  public void setSinkFactory(SourceSinkFactory<Sink> sinkFactory) {
+    this.sinkFactory = sinkFactory;
+  }
+
+  public SourceSinkFactory<Sink> getSinkFactory() {
+    return sinkFactory;
+  }
+
+  public void createSubSink() {
+    if (sinkFactory == null) {
+      return;
+    }
+
   }
 
 }

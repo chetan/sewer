@@ -43,14 +43,17 @@ public class SourceSinkFactory<T> {
   private String config;
   private List<SourceSinkBuilder> classes;
 
+  private SourceSinkFactory() {
+  }
+
   public SourceSinkFactory(String config) {
     this.config = config;
+    this.classes = new ArrayList<SourceSinkBuilder>();
     parseConfig();
   }
 
   private void parseConfig() {
 
-    classes = new ArrayList<SourceSinkBuilder>();
     String[] pieces = config.split("\\s*>\\s*");
     for (int i = 0; i < pieces.length; i++) {
 
@@ -93,15 +96,17 @@ public class SourceSinkFactory<T> {
         return (T) classes.get(0).build();
       }
 
-      // Create Sink chain
-      Sink sink = null;
-      for (SourceSinkBuilder builder : classes) {
-        Sink newSink = (Sink) builder.build();
-        if (sink != null) {
-          newSink.setSubSink(sink);
-        }
-        sink = newSink;
-      }
+      // Create first Sink in chain
+      Sink sink = (Sink) classes.get(0).build();
+
+      // Create a new factory minus the sink that was just created
+      SourceSinkFactory<Sink> factory = new SourceSinkFactory<Sink>();
+      List list = new ArrayList(this.classes.size());
+      list.addAll(this.classes);
+      list.remove(0);
+      factory.classes = list;
+
+      sink.setSinkFactory(factory);
 
       return (T) sink;
 

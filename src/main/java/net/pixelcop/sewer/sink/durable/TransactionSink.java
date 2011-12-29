@@ -2,6 +2,7 @@ package net.pixelcop.sewer.sink.durable;
 
 import java.io.IOException;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import net.pixelcop.sewer.Event;
 import net.pixelcop.sewer.Sink;
@@ -61,7 +62,6 @@ public class TransactionSink extends Sink {
 
         try {
           Event e = eventQueue.take();
-          LOG.debug("writing event to failver buffer");
           durableSink.append(e);
 
         } catch (InterruptedException e) {
@@ -88,6 +88,8 @@ public class TransactionSink extends Sink {
 
   class DelayedAppenderThread extends Thread {
 
+    private final long NANO_WAIT = TimeUnit.SECONDS.toNanos(3);
+
     private String myTxId;
     private Sink mySink;
 
@@ -102,16 +104,15 @@ public class TransactionSink extends Sink {
       while (status == FLOWING || !delayedEventQueue.isEmpty()) {
 
         if (subSink.getStatus() != FLOWING) {
-          // TODO sleep a sec here? w/ backoff policy?
+          // TODO sleep a sec here? w/ backoff policy? await()?
           continue;
         }
 
-        LOG.debug("subsink open for business! clearing " + delayedEventQueue.size()
-            + " events from queue");
-
         try {
-          Event e = delayedEventQueue.take();
-          mySink.append(e);
+          Event e = delayedEventQueue.poll(NANO_WAIT, TimeUnit.NANOSECONDS);
+          if (e != null) {
+            mySink.append(e);
+          }
 
         } catch (InterruptedException e) {
           LOG.warn("DelayedAppenderThread was interrupted with " + delayedEventQueue.size()

@@ -18,7 +18,6 @@ public class AsyncBufferSink extends Sink implements Runnable {
 
   private LinkedBlockingQueue<Event> buffer;
   private final String name;
-  private final Sink parentSink;
 
   private final Thread thread;
 
@@ -26,11 +25,9 @@ public class AsyncBufferSink extends Sink implements Runnable {
    * Buffering sink which will close when the parent sink closes and the queue is empty
    *
    * @param name Thread name
-   * @param parentSink Parent sink which opened this buffer
    */
-  public AsyncBufferSink(String name, Sink parentSink) {
+  public AsyncBufferSink(String name) {
     this.name = "BufferSink::" + name + " " + Thread.currentThread().getId();
-    this.parentSink = parentSink;
 
     this.thread = new Thread(this);
     this.thread.setName(this.name);
@@ -38,6 +35,11 @@ public class AsyncBufferSink extends Sink implements Runnable {
 
   @Override
   public void close() throws IOException {
+
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(name + " closing");
+    }
+    setStatus(CLOSING);
 
     thread.interrupt();
 
@@ -48,17 +50,17 @@ public class AsyncBufferSink extends Sink implements Runnable {
     }
 
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Closed with " + buffer.size() + " events left in buffer");
+      LOG.debug(name + " closed with " + buffer.size() + " events left in buffer");
     }
-
+    setStatus(CLOSED);
   }
 
   @Override
   public void open() throws IOException {
     setStatus(OPENING);
     buffer = new LinkedBlockingQueue<Event>(100000);
-    thread.start();
     setStatus(FLOWING);
+    thread.start();
   }
 
   @Override
@@ -73,13 +75,13 @@ public class AsyncBufferSink extends Sink implements Runnable {
   @Override
   public void run() {
 
-    while (parentSink.getStatus() == FLOWING && subSink.getStatus() != FLOWING)  {
+    while (getStatus() == FLOWING && subSink.getStatus() != FLOWING)  {
       // wait for the subsink to open as long as our parent sink is open/flowing
       // TODO may need to do this multiple times in the case of multiple failures/recoveries
       // TODO some other way to wait for subsink to open? await/notify?
     }
 
-    if (parentSink.getStatus() != FLOWING) {
+    if (getStatus() != FLOWING) {
       // parent must be closing down and the sink isn't open yet, quit trying to drain
       // the buffer. let the parent worry about it
 
@@ -95,7 +97,7 @@ public class AsyncBufferSink extends Sink implements Runnable {
       LOG.debug(name + " SubSink opened");
     }
 
-    while (parentSink.getStatus() == FLOWING || !buffer.isEmpty()) {
+    while (getStatus() == FLOWING || !buffer.isEmpty()) {
       // run until the sink closes and no events are left
 
       try {

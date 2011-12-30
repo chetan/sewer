@@ -47,6 +47,10 @@ public class AsyncBufferSink extends Sink implements Runnable {
       LOG.error("Interrupted while waiting for " + name + " thread to join");
     }
 
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Closed with " + buffer.size() + " events left in buffer");
+    }
+
   }
 
   @Override
@@ -75,7 +79,19 @@ public class AsyncBufferSink extends Sink implements Runnable {
       // TODO some other way to wait for subsink to open? await/notify?
     }
 
-    if (LOG.isDebugEnabled()) {
+    if (parentSink.getStatus() != FLOWING) {
+      // parent must be closing down and the sink isn't open yet, quit trying to drain
+      // the buffer. let the parent worry about it
+
+      if (LOG.isWarnEnabled() && buffer.size() > 0) {
+        LOG.warn("looks like parent sink closed with " + buffer.size() + " events left in the buffer. events lost?!");
+      } else if (LOG.isDebugEnabled()) {
+        LOG.debug("looks like parent sink closed with an empty event buffer");
+      }
+      return;
+    }
+
+    if (LOG.isDebugEnabled() && subSink.getStatus() == FLOWING) {
       LOG.debug(name + " SubSink opened");
     }
 
@@ -90,7 +106,7 @@ public class AsyncBufferSink extends Sink implements Runnable {
 
       } catch (InterruptedException e) {
         if (LOG.isWarnEnabled() && buffer.size() > 0) {
-          LOG.warn("interrupted with " + buffer.size() + " events left in the buffer");
+          LOG.warn("interrupted with " + buffer.size() + " events left in the buffer, going to run until empty");
         } else if (LOG.isDebugEnabled()) {
           LOG.debug("interrupted with an empty event buffer");
         }
@@ -99,17 +115,13 @@ public class AsyncBufferSink extends Sink implements Runnable {
         LOG.error("Caught an error while appending to the subsink ("
             + subSink.getClass().getSimpleName() + ": " + e.getMessage(), e);
 
-        // TODO shutdown the reliable sink and maybe the source too
-
+        // nothing else we can do, bail out
+        // it's up to whoever started this thread to retry
+        setStatus(ERROR);
+        return;
       }
 
     }
-
-//    try {
-//      subSink.close();
-//    } catch (IOException e) {
-//      LOG.error("Error closing durable sink", e);
-//    }
 
     if (LOG.isDebugEnabled()) {
       LOG.debug(name + " - run finished");

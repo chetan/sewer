@@ -6,53 +6,11 @@ import net.pixelcop.sewer.Event;
 import net.pixelcop.sewer.Sink;
 import net.pixelcop.sewer.sink.BucketedSink;
 import net.pixelcop.sewer.sink.SequenceFileSink;
-import net.pixelcop.sewer.util.BackoffHelper;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TransactionSink extends Sink {
-
-  /**
-   * Asynchronously open the SubSink, retrying until it actually opens
-   *
-   * @author chetan
-   *
-   */
-  class SubSinkOpenerThread extends Thread {
-
-    public SubSinkOpenerThread(long id) {
-      setName("SubSinkOpener " + id);
-    }
-
-    @Override
-    public void run() {
-
-      BackoffHelper backoff = new BackoffHelper();
-
-      String subSinkName = getSubSink().getClass().getSimpleName();
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Opening SubSink: " + subSinkName);
-      }
-
-      while (getSubSink().getStatus() != FLOWING) {
-
-        try {
-          getSubSink().open();
-          backoff.resolve(LOG, "SubSink opened");
-          onSubSinkOpen(); // notify parent
-          return;
-
-        } catch (Exception e) {
-          backoff.handleFailure(e, LOG, "Error opening subsink (" + subSinkName + ")");
-
-        }
-
-      }
-
-    }
-
-  }
+public class TransactionSink extends Sink implements SubSinkOpenerEvents {
 
   private static final Logger LOG = LoggerFactory.getLogger(TransactionSink.class);
 
@@ -125,7 +83,7 @@ public class TransactionSink extends Sink {
 
     setStatus(FLOWING);
 
-    opener = new SubSinkOpenerThread(Thread.currentThread().getId());
+    opener = new SubSinkOpenerThread(Thread.currentThread().getId(), subSink, this);
     opener.start();
 
     persister = new AsyncBufferSink("persister", this);
@@ -163,7 +121,7 @@ public class TransactionSink extends Sink {
     persister.append(event);
   }
 
-  // Called from various threads
+  @Override
   public void onSubSinkOpen() {
     opener = null;
   }

@@ -3,6 +3,7 @@ package net.pixelcop.sewer;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.pixelcop.sewer.source.PipeSource;
 import net.pixelcop.sewer.source.SyslogTcpSource;
 import net.pixelcop.sewer.source.TcpWriteableEventSource;
 
@@ -14,6 +15,7 @@ public class SourceRegistry {
   static {
     register("tcpwrite", TcpWriteableEventSource.class);
     register("syslog", SyslogTcpSource.class);
+    register("pipe", PipeSource.class);
   }
 
   public static final void register(String name, Class clazz) {

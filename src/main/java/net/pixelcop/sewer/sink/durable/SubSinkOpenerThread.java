@@ -1,5 +1,7 @@
 package net.pixelcop.sewer.sink.durable;
 
+import java.io.IOException;
+
 import net.pixelcop.sewer.Sink;
 import net.pixelcop.sewer.util.BackoffHelper;
 
@@ -64,8 +66,16 @@ class SubSinkOpenerThread extends Thread {
 
     }
 
-    if (status == CANCELED && LOG.isDebugEnabled()) {
+    if (status == CANCELED) {
       LOG.debug("sink opener canceled");
+      if (sink.getStatus() == Sink.FLOWING) {
+        // opened on the last try, lets shut it down
+        try {
+          sink.close();
+        } catch (IOException e) {
+          LOG.debug("sink failed to close while canceling SubSinkOpener");
+        }
+      }
     }
 
   }

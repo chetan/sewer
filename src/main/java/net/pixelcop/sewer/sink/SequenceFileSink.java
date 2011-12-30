@@ -59,6 +59,10 @@ public class SequenceFileSink extends BucketedSink {
     }
     nextBucket = null;
     setStatus(CLOSED);
+
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Closed SequenceFileSink at path " + configPath);
+    }
   }
 
   @Override

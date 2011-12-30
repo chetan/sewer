@@ -162,8 +162,14 @@ public class SmartRpcClient extends Thread implements InvocationHandler {
         return; // we got a socket, all done here!
 
       } catch (Exception e) {
-        backoff.handleFailure(e, LOG,
-            "Error connecting to server [" + host + ":" + port + "]");
+        try {
+          backoff.handleFailure(e, LOG,
+              "Error connecting to server [" + host + ":" + port + "]",
+              false); // TODO do we need a cancel flag here too? @see {@link SubSinkOpenerThread}
+        } catch (InterruptedException e1) {
+          LOG.debug("interrupted while trying to connect");
+          return;
+        }
 
       }
 

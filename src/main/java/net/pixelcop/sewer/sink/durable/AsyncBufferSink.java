@@ -10,9 +10,9 @@ import net.pixelcop.sewer.Sink;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class BufferSink extends Sink implements Runnable {
+public class AsyncBufferSink extends Sink implements Runnable {
 
-  private static final Logger LOG = LoggerFactory.getLogger(BufferSink.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AsyncBufferSink.class);
 
   private static final long NANO_WAIT = TimeUnit.SECONDS.toNanos(3);
 
@@ -28,7 +28,7 @@ public class BufferSink extends Sink implements Runnable {
    * @param name Thread name
    * @param parentSink Parent sink which opened this buffer
    */
-  public BufferSink(String name, Sink parentSink) {
+  public AsyncBufferSink(String name, Sink parentSink) {
     this.name = "BufferSink::" + name + " " + Thread.currentThread().getId();
     this.parentSink = parentSink;
 

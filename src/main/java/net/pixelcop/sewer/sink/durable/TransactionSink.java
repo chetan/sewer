@@ -63,8 +63,8 @@ public class TransactionSink extends Sink {
   private SequenceFileSink durableSink;
 
   private SubSinkOpenerThread opener;
-  private BufferSink persister;
-  private BufferSink delayedSink;
+  private AsyncBufferSink persister;
+  private AsyncBufferSink delayedSink;
 
   public TransactionSink() {
     this.durableDirPath = TransactionManager.getInstance().getWALPath();
@@ -128,11 +128,11 @@ public class TransactionSink extends Sink {
     opener = new SubSinkOpenerThread(Thread.currentThread().getId());
     opener.start();
 
-    persister = new BufferSink("persister", this);
+    persister = new AsyncBufferSink("persister", this);
     persister.setSubSink(durableSink);
     persister.open();
 
-    delayedSink = new BufferSink("delayed appender", this);
+    delayedSink = new AsyncBufferSink("delayed appender", this);
     delayedSink.setSubSink(this.subSink);
     delayedSink.open();
 

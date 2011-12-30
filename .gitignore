@@ -1,7 +1,9 @@
 target/
 reports/
+tmp/
 
 .classpath
 .project
 .settings/
 
+src/main/java/Test*.java

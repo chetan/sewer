@@ -12,6 +12,7 @@ public abstract class Sink implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(Sink.class);
 
   public static final int CLOSED    = 0;
+  public static final int CLOSING   = 3;
   public static final int OPENING   = 1;
   public static final int FLOWING   = 2;
   public static final int ERROR     = -1;

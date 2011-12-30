@@ -90,9 +90,9 @@ public class AsyncBufferSink extends Sink implements Runnable {
 
       } catch (InterruptedException e) {
         if (LOG.isWarnEnabled() && buffer.size() > 0) {
-          LOG.warn(name + " was interrupted with " + buffer.size() + " events left in the buffer");
+          LOG.warn("interrupted with " + buffer.size() + " events left in the buffer");
         } else if (LOG.isDebugEnabled()) {
-          LOG.debug(name + " was interrupted with an empty event buffer");
+          LOG.debug("interrupted with an empty event buffer");
         }
 
       } catch (IOException e) {

@@ -35,7 +35,7 @@ class SubSinkOpenerThread extends Thread {
       LOG.debug("Opening SubSink: " + subSinkName);
     }
 
-    while (sink.getStatus() != TransactionSink.FLOWING) {
+    while (sink.getStatus() != Sink.FLOWING) {
 
       try {
         sink.open();

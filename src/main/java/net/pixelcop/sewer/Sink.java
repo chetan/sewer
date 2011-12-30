@@ -2,6 +2,7 @@ package net.pixelcop.sewer;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class Sink implements Closeable {
 
@@ -11,7 +12,7 @@ public abstract class Sink implements Closeable {
   public static final int ERROR     = -1;
 
 
-  protected int status = CLOSED;
+  private AtomicInteger status = new AtomicInteger(CLOSED);
   protected Sink subSink = null;
 
   protected SourceSinkFactory<Sink> sinkFactory;
@@ -32,13 +33,12 @@ public abstract class Sink implements Closeable {
   public abstract void append(Event event) throws IOException;
 
 
-
   public void setStatus(int status) {
-    this.status = status;
+    this.status.set(status);
   }
 
   public int getStatus() {
-    return status;
+    return status.get();
   }
 
   public void setSubSink(Sink subSink) {

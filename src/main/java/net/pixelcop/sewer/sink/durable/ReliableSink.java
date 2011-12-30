@@ -49,6 +49,17 @@ public class ReliableSink extends Sink implements SubSinkOpenerEvents {
     // cleanup threads first, then close subsink and commit tx
     persister.close();
     delayedSink.close();
+    if (opener != null) {
+      opener.cancel();
+    }
+
+    try {
+      durableSink.close();
+    } catch (IOException e) {
+      LOG.warn("Failed to close durable sink: " + e.getMessage(), e);
+      // we can continue safely assuming that the subsink closes cleanly
+      // in which case, the tx will be committed anyway
+    }
 
     // try to close subsink. it succeeds w/o error, then the tx is completed.
     // TODO check this over

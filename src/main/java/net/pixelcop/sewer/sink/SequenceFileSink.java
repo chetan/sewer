@@ -51,17 +51,10 @@ public class SequenceFileSink extends BucketedSink {
   @Override
   public void close() throws IOException {
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Closing SequenceFileSink " + configPath);
+      LOG.debug("Closing SequenceFileSink at path " + configPath);
     }
 
     if (writer != null) {
-      writer.close();
-
-    } else if (getStatus() == OPENING) {
-      // closed down while in the process of opening.
-      // quick open/close, dead client, etc
-      while (getStatus() != FLOWING) {
-      }
       writer.close();
     }
     nextBucket = null;

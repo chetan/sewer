@@ -4,7 +4,12 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public abstract class Sink implements Closeable {
+
+  private static final Logger LOG = LoggerFactory.getLogger(Sink.class);
 
   public static final int CLOSED    = 0;
   public static final int OPENING   = 1;
@@ -69,6 +74,18 @@ public abstract class Sink implements Closeable {
 
     subSink = sinkFactory.build();
     return true;
+  }
+
+  @Override
+  protected void finalize() throws Throwable {
+    if (getStatus() != CLOSED) {
+      try {
+        close();
+      } catch (Throwable t) {
+        LOG.warn("Caught during finalizer close(): " + t.getMessage(), t);
+        // rethrow? this should be good enough since the object was disposed of anyway
+      }
+    }
   }
 
 }

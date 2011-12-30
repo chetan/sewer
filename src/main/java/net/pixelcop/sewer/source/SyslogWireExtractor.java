@@ -25,6 +25,7 @@ import java.io.InputStream;
 import net.pixelcop.sewer.ByteArrayEvent;
 import net.pixelcop.sewer.Event;
 
+import org.apache.hadoop.io.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,6 +51,8 @@ public class SyslogWireExtractor implements Closeable {
   // the current position in the buffer
   private int bufferPosn = 0;
 
+  private final Text text;
+
   /**
    * Create a line reader that reads from the given stream using the
    * default buffer-size (64k).
@@ -71,10 +74,19 @@ public class SyslogWireExtractor implements Closeable {
     this.in = in;
     this.bufferSize = bufferSize;
     this.buffer = new byte[this.bufferSize];
+    this.text = new Text();
   }
 
+  /**
+   * Reads the next line of input and creates an Event
+   *
+   * @return Event from next line of input
+   * @throws IOException If the line length is extremely large (greater than Integer.MAX_VALUE)
+   * @throws EOFException When stream EOF is reached
+   */
   public Event extractEvent() throws IOException {
 
+    text.clear();
     int txtLength = 0; //tracks str.getLength(), as an optimization
     int newlineLength = 0; //length of terminating newline
     long bytesConsumed = 0;
@@ -82,10 +94,12 @@ public class SyslogWireExtractor implements Closeable {
       int startPosn = bufferPosn; //starting from where we left off the last time
       int ltPosn = -1;
       if (bufferPosn >= bufferLength) {
+        // fill buffer
         startPosn = bufferPosn = 0;
         bufferLength = in.read(buffer);
-        if (bufferLength <= 0)
+        if (bufferLength <= 0) {
           break; // EOF
+        }
       }
       if (buffer[bufferPosn] == LT) {
         ltPosn = bufferPosn;
@@ -107,22 +121,27 @@ public class SyslogWireExtractor implements Closeable {
         appendLength = maxLineLength - txtLength;
       }
       if (appendLength > 0) {
-        byte[] bytes = new byte[appendLength];
-        System.arraycopy(buffer, startPosn, bytes, 0, appendLength);
-        return new ByteArrayEvent(bytes);
-        //str.append(buffer, startPosn, appendLength);
-        //txtLength += appendLength;
+        text.append(buffer, startPosn, appendLength);
+        txtLength += appendLength;
       }
     } while (newlineLength == 0 && bytesConsumed < maxBytesToConsume);
 
-    if (bytesConsumed > (long)Integer.MAX_VALUE)
-      throw new IOException("Too many bytes before newline: " + bytesConsumed);
 
-    if (bytesConsumed == 0 && bufferLength < 0) {
-      throw new EOFException("nothing left to read");
+    // Check for errors, else return a new event
+
+    if (bytesConsumed > (long)Integer.MAX_VALUE) {
+      throw new IOException("Too many bytes before newline: " + bytesConsumed);
     }
 
-    return null;
+    if (bytesConsumed == 0 && bufferLength < 0) {
+      throw new EOFException();
+    }
+
+    if (bytesConsumed == 0) {
+      LOG.warn("no bytes consumed, nothing left, no EOF?!");
+    }
+
+    return new ByteArrayEvent(text.getBytes());
   }
 
 

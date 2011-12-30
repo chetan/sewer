@@ -69,7 +69,11 @@ public abstract class TCPServerThread extends Thread {
       Socket socket = null;
       while ((socket = this.sock.accept()) != null) {
         socket.setSoLinger(true, 60);
-        System.out.println("Got a customer!");
+
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("new connection from: " + socket.getInetAddress().getHostName());
+        }
+
         TCPReaderThread rt = createReader(socket, sinkFactory.build());
         rt.start();
         readers.add(rt);

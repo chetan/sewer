@@ -78,15 +78,7 @@ public class SyslogTcpSource extends Source {
 
           @Override
           public void read() throws IOException {
-
             Event e = reader.extractEvent();
-            if (e == null) {
-              LOG.warn("Got a null syslog event, error extracting?");
-              return;
-            }
-
-            // System.out.println(new String(((ByteArrayEvent)e).getBody()));
-            // System.out.println("appending to sink: " + this.sink.toString());
             this.sink.append(e);
           }
 

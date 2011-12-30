@@ -61,15 +61,20 @@ public class ReliableSink extends Sink implements SubSinkOpenerEvents {
       // in which case, the tx will be committed anyway
     }
 
+    if (subSink.getStatus() == OPENING) {
+      // never opened, rollback!
+      TransactionManager.getInstance().releaseTx(txId);
+      return;
+    }
+
     // try to close subsink. it succeeds w/o error, then the tx is completed.
-    // TODO check this over
     try {
       subSink.close();
 
     } catch (IOException e) {
       // release tx
       LOG.error("subsink failed to close for txid " + txId);
-      TransactionManager.getInstance().release(txId);
+      TransactionManager.getInstance().releaseTx(txId);
       return;
 
     }
@@ -105,11 +110,11 @@ public class ReliableSink extends Sink implements SubSinkOpenerEvents {
     opener = new SubSinkOpenerThread(Thread.currentThread().getId(), subSink, this);
     opener.start();
 
-    persister = new AsyncBufferSink("persister", this);
+    persister = new AsyncBufferSink("persister");
     persister.setSubSink(durableSink);
     persister.open();
 
-    delayedSink = new AsyncBufferSink("delayed appender", this);
+    delayedSink = new AsyncBufferSink("delayed appender");
     delayedSink.setSubSink(this.subSink);
     delayedSink.open();
 

@@ -16,6 +16,10 @@ class SubSinkOpenerThread extends Thread {
 
   private static final Logger LOG = LoggerFactory.getLogger(SubSinkOpenerThread.class);
 
+  private static final int RUNNING  = 1;
+  private static final int CANCELED = -1;
+
+  private int status = RUNNING;
   private Sink sink;
   private SubSinkOpenerEvents callback;
 
@@ -35,7 +39,7 @@ class SubSinkOpenerThread extends Thread {
       LOG.debug("Opening SubSink: " + subSinkName);
     }
 
-    while (sink.getStatus() != Sink.FLOWING) {
+    while (status != CANCELED && sink.getStatus() != Sink.FLOWING) {
 
       try {
         sink.open();
@@ -45,13 +49,33 @@ class SubSinkOpenerThread extends Thread {
         }
         return;
 
-      } catch (Exception e) {
-        backoff.handleFailure(e, LOG, "Error opening subsink (" + subSinkName + ")");
+      } catch (Throwable t) {
+        // We want to catch all exceptions while trying to open
+        try {
+          backoff.handleFailure(t, LOG,
+              "Error opening subsink (" + subSinkName + ")",
+              status == CANCELED);
+        } catch (InterruptedException e1) {
+          LOG.debug("opener was interrupted; bailing");
+          return;
+        }
 
       }
 
     }
 
+    if (status == CANCELED && LOG.isDebugEnabled()) {
+      LOG.debug("sink opener canceled");
+    }
+
+  }
+
+  /**
+   * Signal the Opener to cancel ASAP
+   */
+  public void cancel() {
+    this.interrupt();
+    this.status = CANCELED;
   }
 
 }

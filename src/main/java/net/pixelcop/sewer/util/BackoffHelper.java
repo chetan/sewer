@@ -22,8 +22,10 @@ public class BackoffHelper {
    * @param t
    * @param log
    * @param msg
+   * @param retryCanceled
+   * @throws InterruptedException
    */
-  public void handleFailure(Throwable t, Logger log, String msg) {
+  public void handleFailure(Throwable t, Logger log, String msg, boolean retryCanceled) throws InterruptedException {
 
     failures++;
     if (failures == 1 && log.isWarnEnabled()) {
@@ -31,6 +33,10 @@ public class BackoffHelper {
 
     } else if (log.isDebugEnabled()) {
       log.debug(msg + ", failures = " + failures + " (" + t.getMessage() + ")");
+    }
+
+    if (retryCanceled) {
+      return;
     }
 
     int backoff = 5000;
@@ -41,12 +47,7 @@ public class BackoffHelper {
       backoff = 30000;
     }
 
-    try {
-      Thread.sleep(backoff);
-    } catch (InterruptedException e1) {
-      return;
-    }
-
+    Thread.sleep(backoff);
   }
 
   /**

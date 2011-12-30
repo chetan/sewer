@@ -62,7 +62,7 @@ public class BackoffHelper {
     }
 
     // will always be shown if debug is enabled
-    log.info(msg + " after " + failures + " failures (" + getElapsedTime() + ")");
+    log.debug(msg + " after " + failures + " failures (" + getElapsedTime() + ")");
   }
 
   public int getNumFailures() {

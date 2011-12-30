@@ -175,7 +175,7 @@ public class BucketPath {
 
         String key = matcher.group(2);
         if (key.equalsIgnoreCase(RAND)) {
-          replacement = Integer.toString(RANDOM.nextInt());
+          replacement = Integer.toString(Math.abs(RANDOM.nextInt()));
 
         } else if (headers.containsKey(key)) {
           replacement = headers.get(key).toString();

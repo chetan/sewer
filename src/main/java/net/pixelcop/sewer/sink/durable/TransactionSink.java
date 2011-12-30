@@ -1,8 +1,6 @@
 package net.pixelcop.sewer.sink.durable;
 
 import java.io.IOException;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 import net.pixelcop.sewer.Event;
 import net.pixelcop.sewer.Sink;
@@ -15,16 +13,23 @@ import org.slf4j.LoggerFactory;
 
 public class TransactionSink extends Sink {
 
-  class OpenerThread extends Thread {
+  /**
+   * Asynchronously open the SubSink, retrying until it actually opens
+   *
+   * @author chetan
+   *
+   */
+  class SubSinkOpenerThread extends Thread {
 
-    public OpenerThread() {
-      setName("Subsink Opener " + getId());
+    public SubSinkOpenerThread(long id) {
+      setName("SubSinkOpener " + id);
     }
 
     @Override
     public void run() {
 
       BackoffHelper backoff = new BackoffHelper();
+
       String subSinkName = getSubSink().getClass().getSimpleName();
       if (LOG.isDebugEnabled()) {
         LOG.debug("Opening SubSink: " + subSinkName);
@@ -49,87 +54,6 @@ public class TransactionSink extends Sink {
 
   }
 
-  class PersistentThread extends Thread {
-
-    public PersistentThread() {
-      setName("Persister " + getId());
-    }
-
-    @Override
-    public void run() {
-      while (status == FLOWING || !eventQueue.isEmpty()) {
-        // run until the sink closes and no events are left
-
-        try {
-          Event e = eventQueue.take();
-          durableSink.append(e);
-
-        } catch (InterruptedException e) {
-          LOG.warn("PersistentThread was interrupted with " + eventQueue.size()
-              + " events left in the queue");
-
-        } catch (IOException e) {
-          LOG.error("Caught an error while appending to the durable sink at " + durablePath + ": "
-              + e.getMessage(), e);
-
-          // TODO shutdown the reliable sink and maybe the source too
-
-        }
-
-      }
-      try {
-        durableSink.close();
-      } catch (IOException e) {
-        LOG.error("Error closing durable sink", e);
-      }
-      LOG.debug("persister run finished");
-    }
-  }
-
-  class DelayedAppenderThread extends Thread {
-
-    private final long NANO_WAIT = TimeUnit.SECONDS.toNanos(3);
-
-    private String myTxId;
-    private Sink mySink;
-
-    public DelayedAppenderThread(String txId, Sink sink) {
-      myTxId = txId;
-      mySink = sink;
-      setName("Delayed Appender " + getId());
-    }
-
-    @Override
-    public void run() {
-      while (status == FLOWING || !delayedEventQueue.isEmpty()) {
-
-        if (subSink.getStatus() != FLOWING) {
-          // TODO sleep a sec here? w/ backoff policy? await()?
-          continue;
-        }
-
-        try {
-          Event e = delayedEventQueue.poll(NANO_WAIT, TimeUnit.NANOSECONDS);
-          if (e != null) {
-            mySink.append(e);
-          }
-
-        } catch (InterruptedException e) {
-          LOG.warn("DelayedAppenderThread was interrupted with " + delayedEventQueue.size()
-              + " events left in the queue");
-
-        } catch (IOException e) {
-          LOG.error("Caught an error while appending to the subsink at: " + e.getMessage(), e);
-
-          // TODO shutdown the reliable sink and maybe the source too?
-
-        }
-
-      }
-      LOG.debug("delayed appender run finished");
-    }
-  }
-
   private static final Logger LOG = LoggerFactory.getLogger(TransactionSink.class);
 
   private String durableDirPath;
@@ -138,12 +62,9 @@ public class TransactionSink extends Sink {
   private String txId;
   private SequenceFileSink durableSink;
 
-  private OpenerThread opener;
-  private PersistentThread persister;
-  private DelayedAppenderThread delayedAppender;
-
-  private LinkedBlockingQueue<Event> eventQueue = new LinkedBlockingQueue<Event>(100000);
-  private LinkedBlockingQueue<Event> delayedEventQueue = new LinkedBlockingQueue<Event>(100000);
+  private SubSinkOpenerThread opener;
+  private BufferSink persister;
+  private BufferSink delayedSink;
 
   public TransactionSink() {
     this.durableDirPath = TransactionManager.getInstance().getWALPath();
@@ -152,12 +73,16 @@ public class TransactionSink extends Sink {
   @Override
   public void close() throws IOException {
 
-    status = CLOSED; // signal our threads to wrap up
+    setStatus(CLOSED); // signal our threads to wrap up
 
     if (subSink == null) {
       // never opened??
       return;
     }
+
+    // cleanup threads first, then close subsink and commit tx
+    persister.close();
+    delayedSink.close();
 
     // try to close subsink. it succeeds w/o error, then the tx is completed.
     // TODO check this over
@@ -165,39 +90,21 @@ public class TransactionSink extends Sink {
       subSink.close();
 
     } catch (IOException e) {
+      // release tx
       LOG.error("subsink failed to close for txid " + txId);
-      cleanupThreads();
       TransactionManager.getInstance().release(txId);
       return;
 
     }
 
-    cleanupThreads();
+    // closed cleanly, commit tx
     TransactionManager.getInstance().commitTx(txId);
-
-  }
-
-  private void cleanupThreads() {
-
-    if (persister.isAlive()) {
-      persister.interrupt();
-    }
-
-    if (delayedAppender.isAlive()) {
-      delayedAppender.interrupt();
-    }
-
-    try {
-      persister.join();
-      delayedAppender.join();
-
-    } catch (InterruptedException e) {
-      LOG.debug("Interrupted while waiting for persister & delayed appender to join", e);
-    }
   }
 
   @Override
   public void open() throws IOException {
+
+    setStatus(OPENING);
 
     createSubSink();
 
@@ -218,23 +125,29 @@ public class TransactionSink extends Sink {
 
     setStatus(FLOWING);
 
-    persister = new PersistentThread();
-    persister.start();
-
-    delayedAppender = new DelayedAppenderThread(txId, subSink);
-    delayedAppender.start();
-
-    opener = new OpenerThread();
+    opener = new SubSinkOpenerThread(Thread.currentThread().getId());
     opener.start();
+
+    persister = new BufferSink("persister", this);
+    persister.setSubSink(durableSink);
+    persister.open();
+
+    delayedSink = new BufferSink("delayed appender", this);
+    delayedSink.setSubSink(this.subSink);
+    delayedSink.open();
 
   }
 
+  /**
+   * This appends the event to two separate sinks: the subsink & and our local disk buffer.
+   * Writing to the disk buffer happens asynchronously in the background to allow execution
+   * to continue on this thread.
+   */
   @Override
   public void append(Event event) throws IOException {
 
     if (subSink.getStatus() == FLOWING) {
       try {
-        //LOG.debug("subsink is open, appending directly to it");
         subSink.append(event);
       } catch (IOException e) {
         // This is 'OK' in that we still persist the message to our durable sink
@@ -243,22 +156,11 @@ public class TransactionSink extends Sink {
       }
 
     } else {
-      // write message to delay queue
-      LOG.debug("subsink not open, writing event to delayed queue");
-      try {
-        delayedEventQueue.put(event);
-      } catch (InterruptedException e) {
-        LOG.error("interrupted while putting event in delayed queue");
-      }
+      // write message to delayed queue
+      delayedSink.append(event);
     }
 
-    try {
-      //LOG.debug("putting event in persistent queue as well...");
-      eventQueue.put(event);
-    } catch (InterruptedException e) {
-      LOG.error("interrupted while putting event in persist queue");
-    }
-
+    persister.append(event);
   }
 
   // Called from various threads

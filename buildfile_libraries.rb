@@ -29,14 +29,15 @@ JUNIT = [ "junit:junit:jar:4.8.1" ]
 
 ANT = [ "org.apache.ant:ant:jar:1.8.0" ]
 
-JETTY_VERSION = "6.1.14" # 6.1.26
+JETTY_VERSION = "7.5.4.v20111024"
 JETTY = [
-    "org.mortbay.jetty:jetty-util:jar:#{JETTY_VERSION}",
-    "org.mortbay.jetty:jetty:jar:#{JETTY_VERSION}",
-    "org.mortbay.jetty:servlet-api:jar:2.5-20081211",
-    "org.mortbay.jetty:jsp-2.1:jar:#{JETTY_VERSION}",
-    "org.mortbay.jetty:jsp-api-2.1:jar:#{JETTY_VERSION}",
-    ]
+  "javax.servlet:servlet-api:jar:2.5",
+  "org.eclipse.jetty:jetty-continuation:jar:#{JETTY_VERSION}",
+  "org.eclipse.jetty:jetty-http:jar:#{JETTY_VERSION}",
+  "org.eclipse.jetty:jetty-io:jar:#{JETTY_VERSION}",
+  "org.eclipse.jetty:jetty-server:jar:#{JETTY_VERSION}",
+  "org.eclipse.jetty:jetty-util:jar:#{JETTY_VERSION}"
+  ]
 
 HADOOP_DEPS = [
     "hsqldb:hsqldb:jar:1.8.0.10",

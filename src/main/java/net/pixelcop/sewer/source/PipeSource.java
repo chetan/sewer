@@ -57,7 +57,7 @@ public class PipeSource extends Source implements Runnable {
    reopenPipe();
 
    thread = new Thread(this);
-   thread.setName("PipeSource Reader");
+   thread.setName("PipeSource");
    thread.start();
   }
 

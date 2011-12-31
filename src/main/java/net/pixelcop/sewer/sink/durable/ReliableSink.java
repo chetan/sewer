@@ -114,7 +114,7 @@ public class ReliableSink extends Sink implements SinkOpenerEvents {
     persister.setSubSink(durableSink);
     persister.open();
 
-    delayedSink = new AsyncBufferSink("delayed appender");
+    delayedSink = new AsyncBufferSink("delaybuffer");
     delayedSink.setSubSink(this.subSink);
     delayedSink.open();
 

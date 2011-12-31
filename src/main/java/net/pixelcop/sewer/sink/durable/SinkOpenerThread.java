@@ -26,7 +26,7 @@ public class SinkOpenerThread extends Thread {
   private SinkOpenerEvents callback;
 
   public SinkOpenerThread(long id, Sink sink, SinkOpenerEvents callback) {
-    setName("SubSinkOpener " + id);
+    setName("SinkOpener " + id);
     this.sink = sink;
     this.callback = callback;
   }

@@ -2,6 +2,7 @@ package net.pixelcop.sewer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -58,13 +59,13 @@ public class SourceSinkFactory<T> {
     this.classes = classes;
   }
 
-  public SourceSinkFactory(String config) {
+  public SourceSinkFactory(String config, Map<String, Class> registry) {
     this.config = config;
     this.classes = new ArrayList<SourceSinkBuilder>();
-    parseConfig();
+    parseConfig(registry);
   }
 
-  private void parseConfig() {
+  private void parseConfig(Map<String, Class> registry) {
 
     String[] pieces = config.split("\\s*>\\s*");
     for (int i = 0; i < pieces.length; i++) {
@@ -94,7 +95,7 @@ public class SourceSinkFactory<T> {
         }
       }
 
-      classes.add(new SourceSinkBuilder(SinkRegistry.get(clazzId), args));
+      classes.add(new SourceSinkBuilder(registry.get(clazzId), args));
     }
 
   }

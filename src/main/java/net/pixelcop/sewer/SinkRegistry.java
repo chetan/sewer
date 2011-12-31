@@ -36,4 +36,8 @@ public class SinkRegistry {
     return registry.containsKey(name);
   }
 
+  public static Map<String, Class> getRegistry() {
+    return registry;
+  }
+
 }

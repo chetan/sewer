@@ -3,23 +3,33 @@ package net.pixelcop.sewer.node;
 import java.io.IOException;
 
 import net.pixelcop.sewer.Sink;
+import net.pixelcop.sewer.SinkRegistry;
 import net.pixelcop.sewer.Source;
+import net.pixelcop.sewer.SourceRegistry;
+import net.pixelcop.sewer.SourceSinkFactory;
 import net.pixelcop.sewer.rpc.MasterAPI;
 import net.pixelcop.sewer.rpc.SmartRpcClient;
 import net.pixelcop.sewer.rpc.SmartRpcClientEventHandler;
 import net.pixelcop.sewer.rpc.SmartRpcServer;
-import net.pixelcop.sewer.sink.NullSink;
-import net.pixelcop.sewer.source.SyslogTcpSource;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Node extends Thread implements SmartRpcClientEventHandler {
 
+  private static final Logger LOG = LoggerFactory.getLogger(Node.class);
+
   private static Node instance;
+
+  private final NodeConfig conf;
 
   private MasterAPI master;
   private String nodeType;
 
   private Source source;
-  private Sink sink;
+
+  private SourceSinkFactory<Source> sourceFactory;
+  private SourceSinkFactory<Sink> sinkFactory;
 
   public static Node getInstance() {
     return instance;
@@ -27,50 +37,48 @@ public class Node extends Thread implements SmartRpcClientEventHandler {
 
   public static void main(String[] args) {
 
-    if (args.length == 0) {
-      System.err.println("Missing node type");
-      System.err.println("usage: Node.class <agent|collector>");
-      System.exit(1);
-    }
+    NodeConfig conf = new NodeConfigurator().configure(args);
 
-    instance = new Node(args[0]);
     try {
-      instance.configure();
-
+      instance = new Node(conf);
     } catch (IOException e) {
-      // TODO Auto-generated catch block
+      System.err.println("Error while starting node: " + e.getMessage());
       e.printStackTrace();
+      System.exit(2);
     }
+
     instance.start();
   }
 
+  public Node(NodeConfig config) throws IOException {
+
+    setName("Node " + getId());
+
+    this.setNodeType(null); // TODO set node type
+
+    this.conf = config;
+    configure();
+
+    // connectToMaster();
+  }
+
   /**
-   * Load node configuration and start source/sink
+   * Load node configuration and start source/sink. In the future this could be from a Master
+   * server, but for now we simply use a properties file.
+   *
    * @throws IOException
    */
   public void configure() throws IOException {
 
-    // for now, lets just start using static configs based on the node type/name
+    this.sourceFactory = new SourceSinkFactory<Source>(conf.get(NodeConfig.SOURCE), SourceRegistry.getRegistry());
+    this.sinkFactory = new SourceSinkFactory<Sink>(conf.get(NodeConfig.SINK), SinkRegistry.getRegistry());
 
-    if (this.nodeType.equalsIgnoreCase("agent")) {
-
-      this.sink = new NullSink();
-      this.sink.open();
-
-      this.source = new SyslogTcpSource(9888);
-      this.source.setSink(this.sink);
-      this.source.open();
-
-      return;
-    }
+    this.source = sourceFactory.build();
+    this.source.setSinkFactory(sinkFactory);
 
   }
 
-  public Node(String nodeType) {
-
-    setName("Node Thread " + getId());
-
-    this.setNodeType(nodeType);
+  private void connectToMaster() {
 
     String host = "localhost";
     int port = SmartRpcServer.DEFAULT_PORT;
@@ -87,7 +95,7 @@ public class Node extends Thread implements SmartRpcClientEventHandler {
     } catch (Exception e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
-      System.err.println("Startup failed! Bailing out");
+      LOG.error("Startup failed! Bailing out");
       System.exit(1);
     }
 
@@ -96,23 +104,29 @@ public class Node extends Thread implements SmartRpcClientEventHandler {
   @Override
   public void run() {
 
-    // TODO do we even need to do anything with the master in a loop? heartbeat? check configs?
+    try {
+      this.source.open();
+    } catch (IOException e) {
+      LOG.error("Failed to open source: " + e.getMessage(), e);
+      System.exit(1);
+
+    }
 
   }
 
   @Override
   public void onConnect() {
     if (!master.handshake(nodeType)) {
-      System.err.println("HANDSHAKE FAILED");
+      LOG.error("HANDSHAKE FAILED");
       System.exit(1);
     }
-    System.out.println("Handshake succeeded");
+    LOG.debug("Handshake succeeded");
   }
 
   @Override
   public void onDisconnect() {
     // nothing for now
-    System.out.println("onDisconnect() raised");
+   LOG.debug("onDisconnect() raised");
   }
 
 
@@ -124,6 +138,18 @@ public class Node extends Thread implements SmartRpcClientEventHandler {
 
   public String getNodeType() {
     return nodeType;
+  }
+
+  public Source getSource() {
+    return source;
+  }
+
+  public SourceSinkFactory<Sink> getSinkFactory() {
+    return sinkFactory;
+  }
+
+  public NodeConfig getConf() {
+    return conf;
   }
 
 }

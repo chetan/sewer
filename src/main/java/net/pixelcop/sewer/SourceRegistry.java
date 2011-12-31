@@ -30,4 +30,8 @@ public class SourceRegistry {
     return registry.containsKey(name);
   }
 
+  public static Map<String, Class> getRegistry() {
+    return registry;
+  }
+
 }

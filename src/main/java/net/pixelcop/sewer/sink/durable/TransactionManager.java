@@ -1,21 +1,32 @@
 package net.pixelcop.sewer.sink.durable;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
+import net.pixelcop.sewer.Sink;
+import net.pixelcop.sewer.SourceSinkFactory;
+import net.pixelcop.sewer.SourceSinkFactory.SourceSinkBuilder;
+import net.pixelcop.sewer.node.Node;
 import net.pixelcop.sewer.sink.SequenceFileSink;
+import net.pixelcop.sewer.source.TransactionSource;
+import net.pixelcop.sewer.util.BackoffHelper;
+import net.pixelcop.sewer.util.HdfsUtil;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TransactionManager {
+public class TransactionManager extends Thread {
 
   private static final Logger LOG = LoggerFactory.getLogger(TransactionManager.class);
+
+  private static final long NANO_WAIT = TimeUnit.SECONDS.toNanos(3);
 
   private static final TransactionManager instance = new TransactionManager();
   static {
@@ -28,7 +39,13 @@ public class TransactionManager {
 
   private final String txFileExt = new SequenceFileSink(new String[]{""}).getFileExt();
 
+  private SourceSinkFactory<Sink> unreliableSinkFactory;
+  private Transaction drainingTx;
+
   private TransactionManager() {
+    this.unreliableSinkFactory = createUnreliableSinkFactory();
+    this.setName("TxMan");
+    this.start();
   }
 
   public static TransactionManager getInstance() {
@@ -36,6 +53,7 @@ public class TransactionManager {
   }
 
   public String getWALPath() {
+    // TODO retrieve from configuration
     return "/opt/sewer/wal";
   }
 
@@ -69,22 +87,28 @@ public class TransactionManager {
 
   }
 
+  /**
+   * Delete the files belonging to the given transaction id
+   * @param id
+   */
   private void deleteTxFiles(String id) {
 
-    LOG.debug("Deleting files belonging to tx " + id);
-
-    Configuration conf = new Configuration();
-    Path path = new Path(getWALPath() + "/" + id + txFileExt);
-    LOG.debug("path: " + path.toString());
-    try {
-      FileSystem fs = path.getFileSystem(conf);
-      fs.delete(path, false);
-
-    } catch (IOException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Deleting files belonging to tx " + id);
     }
 
+    Path path = createTxPath(id);
+    try {
+      HdfsUtil.deletePath(path);
+
+    } catch (IOException e) {
+      LOG.warn("Error deleting tx file: " + e.getMessage() + "\n    path:" + path.toString(), e);
+    }
+
+  }
+
+  private Path createTxPath(String id) {
+    return new Path(getWALPath() + "/" + id + txFileExt);
   }
 
   /**
@@ -94,13 +118,14 @@ public class TransactionManager {
    *
    * @param id Transaction ID
    */
-  public void release(String id) {
+  public void releaseTx(String id) {
 
     if (!exists(id)) {
       return;
     }
 
     try {
+      LOG.debug("tx released: " + id);
       lostTransactions.put(transactions.get(id));
 
     } catch (InterruptedException e) {
@@ -113,6 +138,94 @@ public class TransactionManager {
 
   private boolean exists(String id) {
     return transactions.containsKey(id);
+  }
+
+  /**
+   * Monitor lost transactions and retry, one at a time
+   */
+  @Override
+  public void run() {
+
+    while (true) {
+
+      drainingTx = null;
+      try {
+        drainingTx = lostTransactions.poll(NANO_WAIT, TimeUnit.NANOSECONDS);
+      } catch (InterruptedException e) {
+        // means we're shutting down
+        // TODO save lostTransactions queue and exit
+      }
+
+      if (drainingTx == null) {
+        continue;
+      }
+
+      drainTx();
+    }
+
+  }
+
+  /**
+   * Drains the currently selected Transaction. Returns on completion or if interrupted
+   */
+  private void drainTx() {
+
+    // drain this tx to sink
+    LOG.debug("Draining tx " + drainingTx.getId());
+    BackoffHelper backoff = new BackoffHelper();
+    while (true) {
+      TransactionSource txSource = new TransactionSource(
+          createTxPath(drainingTx.getId()), drainingTx.getBucket(), txFileExt);
+
+      txSource.setSinkFactory(this.unreliableSinkFactory);
+
+      try {
+        // returns only when it has been drained completely or throws an error due to
+        // drain failure
+        txSource.open();
+        commitTx(drainingTx.getId());
+        break;
+
+      } catch (IOException e) {
+        try {
+          backoff.handleFailure(e, LOG, "Error draining tx", false); // TODO cancel flag?
+        } catch (InterruptedException e1) {
+          LOG.debug("Interrupted while draining, must be shutting down?");
+        }
+
+
+      } finally {
+        try {
+          LOG.debug("closing txSource");
+          txSource.close();
+        } catch (IOException e) {
+          LOG.debug("exception closing txSource after error: " + e.getMessage());
+        }
+      }
+    }
+
+  }
+
+  /**
+   * Returns the configured sink without any extra reliability mechanisms
+   *
+   * @return Sink
+   */
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  private SourceSinkFactory<Sink> createUnreliableSinkFactory() {
+
+    List classes = Node.getInstance().getSinkFactory().getClasses();
+    List rawSinkClasses = new ArrayList();
+
+    for (Iterator iter = classes.iterator(); iter.hasNext();) {
+      SourceSinkBuilder builder = (SourceSinkBuilder) iter.next();
+      if (builder.getClazz() == ReliableSink.class || builder.getClazz() == RollSink.class) {
+        continue;
+      }
+      rawSinkClasses.add(builder);
+    }
+
+    return new SourceSinkFactory<Sink>(rawSinkClasses);
   }
 
 }

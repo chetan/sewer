@@ -108,7 +108,7 @@ public class TransactionManager extends Thread {
   }
 
   private Path createTxPath(String id) {
-    return new Path(getWALPath() + "/" + id + txFileExt);
+    return new Path("file://" + getWALPath() + "/" + id + txFileExt);
   }
 
   /**

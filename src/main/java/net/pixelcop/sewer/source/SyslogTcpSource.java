@@ -24,6 +24,7 @@ import net.pixelcop.sewer.Event;
 import net.pixelcop.sewer.Sink;
 import net.pixelcop.sewer.Source;
 
+import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,12 +44,20 @@ public class SyslogTcpSource extends Source {
 
   private TCPServerThread serverThread;
 
+  public SyslogTcpSource() {
+    this(SYSLOG_TCP_PORT);
+  }
+
   public SyslogTcpSource(int port) {
     this.port = port;
   }
 
-  public SyslogTcpSource() {
-    this(SYSLOG_TCP_PORT); // this is syslog-ng's default tcp port.
+  public SyslogTcpSource(String[] args) {
+    if (args == null) {
+      this.port = SYSLOG_TCP_PORT;
+    } else {
+      this.port = NumberUtils.toInt(args[0], SYSLOG_TCP_PORT);
+    }
   }
 
   @Override

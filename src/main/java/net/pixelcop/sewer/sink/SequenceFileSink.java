@@ -51,7 +51,7 @@ public class SequenceFileSink extends BucketedSink {
   @Override
   public void close() throws IOException {
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Closing SequenceFileSink at path " + configPath);
+      LOG.debug("Closing SequenceFileSink: " + dstPath.toString());
     }
 
     if (writer != null) {
@@ -60,8 +60,8 @@ public class SequenceFileSink extends BucketedSink {
     nextBucket = null;
     setStatus(CLOSED);
 
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Closed SequenceFileSink at path " + configPath);
+    if (LOG.isInfoEnabled()) {
+      LOG.info("Closed SequenceFileSink: " + dstPath.toString());
     }
   }
 
@@ -89,7 +89,7 @@ public class SequenceFileSink extends BucketedSink {
         hdfs, conf, dstPath, NullWritable.class, ByteArrayEvent.class, CompressionType.BLOCK, codec);
 
     if (LOG.isInfoEnabled()) {
-      LOG.info("Created " + codec.getClass().getSimpleName() + " compressed HDFS file: " + dstPath.toString());
+      LOG.info("Opened SequenceFileSink: " + dstPath.toString());
     }
 
     nextBucket = null;

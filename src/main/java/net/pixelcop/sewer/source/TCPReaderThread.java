@@ -38,7 +38,7 @@ public abstract class TCPReaderThread extends Thread {
       }
 
     } catch (EOFException e) {
-      LOG.info("Client closed..");
+      LOG.info("Client closed connection (EOF)");
 
     } catch (IOException e) {
       LOG.warn("IO Exception in ReaderThread", e);

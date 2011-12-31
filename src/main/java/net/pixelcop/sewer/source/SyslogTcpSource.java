@@ -53,14 +53,14 @@ public class SyslogTcpSource extends Source {
 
   @Override
   public void close() throws IOException {
-    LOG.info("Closing " + this);
+    LOG.info("Closing " + this.getClass().getSimpleName());
     this.serverThread.interrupt();
   };
 
   @Override
   public void open() throws IOException {
     if (LOG.isInfoEnabled()) {
-      LOG.info("Opening " + this + " on port " + port);
+      LOG.info("Opening " + this.getClass().getSimpleName() + " on port " + port);
     }
 
     this.serverThread = new TCPServerThread("Syslog Server", port, getSinkFactory()) {

@@ -85,10 +85,12 @@ public class AsyncBufferSink extends Sink implements Runnable {
       // parent must be closing down and the sink isn't open yet, quit trying to drain
       // the buffer. let the parent worry about it
 
-      if (LOG.isWarnEnabled() && buffer.size() > 0) {
-        LOG.warn("looks like parent sink closed with " + buffer.size() + " events left in the buffer. events lost?!");
-      } else if (LOG.isDebugEnabled()) {
-        LOG.debug("looks like parent sink closed with an empty event buffer");
+      if (LOG.isDebugEnabled()) {
+        if (buffer.size() > 0) {
+          LOG.debug("looks like parent sink closed with " + buffer.size() + " events left in the buffer. events lost?!");
+        } else {
+          LOG.debug("looks like parent sink closed with an empty event buffer");
+        }
       }
       return;
     }
@@ -107,10 +109,12 @@ public class AsyncBufferSink extends Sink implements Runnable {
         }
 
       } catch (InterruptedException e) {
-        if (LOG.isWarnEnabled() && buffer.size() > 0) {
-          LOG.warn("interrupted with " + buffer.size() + " events left in the buffer, going to run until empty");
-        } else if (LOG.isDebugEnabled()) {
-          LOG.debug("interrupted with an empty event buffer");
+        if (LOG.isDebugEnabled()) {
+          if (buffer.size() > 0) {
+            LOG.debug("interrupted with " + buffer.size() + " events left in the buffer, going to run until empty");
+          } else {
+            LOG.debug("interrupted with an empty event buffer");
+          }
         }
 
       } catch (IOException e) {
@@ -126,7 +130,7 @@ public class AsyncBufferSink extends Sink implements Runnable {
     }
 
     if (LOG.isDebugEnabled()) {
-      LOG.debug(name + " - run finished");
+      LOG.debug(name + " - run finished with " + buffer.size() + " events left");
     }
   }
 

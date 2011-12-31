@@ -11,7 +11,7 @@ public class SourceSinkFactory<T> {
 
   private static final Pattern configPattern = Pattern.compile("^(.*?)(\\((.*?)\\))?$");
 
-  class SourceSinkBuilder {
+  public class SourceSinkBuilder {
     private Class clazz;
     private String[] args;
 
@@ -38,12 +38,24 @@ public class SourceSinkFactory<T> {
       sb.append(")");
       return sb.toString();
     }
+
+    public Class getClazz() {
+      return clazz;
+    }
+
+    public String[] getArgs() {
+      return args;
+    }
   }
 
   private String config;
   private List<SourceSinkBuilder> classes;
 
   private SourceSinkFactory() {
+  }
+
+  public SourceSinkFactory(List<SourceSinkBuilder> classes) {
+    this.classes = classes;
   }
 
   public SourceSinkFactory(String config) {
@@ -115,6 +127,10 @@ public class SourceSinkFactory<T> {
     }
 
     return null; // TODO throw exception?
+  }
+
+  public List<SourceSinkBuilder> getClasses() {
+    return classes;
   }
 
 }

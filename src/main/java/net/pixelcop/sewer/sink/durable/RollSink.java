@@ -1,7 +1,9 @@
 package net.pixelcop.sewer.sink.durable;
 
 import java.io.IOException;
+import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
 
 import net.pixelcop.sewer.Event;
 import net.pixelcop.sewer.Sink;
@@ -22,7 +24,9 @@ public class RollSink extends Sink implements Runnable {
 
   private static final int DEFAULT_ROLL_INTERVAL = 30;
 
+  private CyclicBarrier safeRollBarrier;
   private CountDownLatch rolling;
+
   private Thread rollThread;
   private final int interval;
 
@@ -79,12 +83,14 @@ public class RollSink extends Sink implements Runnable {
   @Override
   public void append(Event event) throws IOException {
 
-    if (rolling != null) {
+    if (safeRollBarrier != null) {
       LOG.debug("append: waiting for rotation to complete");
       try {
+        safeRollBarrier.await();
         rolling.await();
         rolling = null;
-      } catch (InterruptedException e) {
+        safeRollBarrier = null;
+      } catch (Exception e) {
         // We must be shutting down if we got here, but possibly not a clean shutdown
         // we may lose this event?
         LOG.warn("interrupted while waiting for roll to complete");
@@ -125,23 +131,34 @@ public class RollSink extends Sink implements Runnable {
    * Close old sink and open a new one
    *
    * @throws IOException
+   * @throws BrokenBarrierException
+   * @throws InterruptedException
    */
-  private void rotate() throws IOException {
+  private void rotate() throws IOException, InterruptedException {
 
-    LOG.debug("rotating sink");
+    LOG.info("rotating sink");
+
+    Sink newSink = sinkFactory.build();
+    newSink.open();
 
     setStatus(OPENING);
 
     // will cause appends to block momentarily until rotation is complete
+    this.safeRollBarrier = new CyclicBarrier(2);
     this.rolling = new CountDownLatch(1);
 
-    new SinkCloserThread(subSink).start();
+    try {
+      this.safeRollBarrier.await();
+    } catch (BrokenBarrierException e) {
+      LOG.warn("oh noes, teh barrier broke! " + e.getMessage(), e);
+    }
 
-    createSubSink();
-    subSink.open();
+    new SinkCloserThread(subSink).start();
+    this.subSink = newSink;
 
     setStatus(FLOWING);
     this.rolling.countDown();
+    LOG.debug("rotation complete");
   }
 
 }

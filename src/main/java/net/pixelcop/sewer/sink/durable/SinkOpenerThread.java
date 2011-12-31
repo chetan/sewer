@@ -14,18 +14,18 @@ import org.slf4j.LoggerFactory;
  * @author chetan
  *
  */
-class SubSinkOpenerThread extends Thread {
+public class SinkOpenerThread extends Thread {
 
-  private static final Logger LOG = LoggerFactory.getLogger(SubSinkOpenerThread.class);
+  private static final Logger LOG = LoggerFactory.getLogger(SinkOpenerThread.class);
 
   private static final int RUNNING  = 1;
   private static final int CANCELED = -1;
 
   private int status = RUNNING;
   private Sink sink;
-  private SubSinkOpenerEvents callback;
+  private SinkOpenerEvents callback;
 
-  public SubSinkOpenerThread(long id, Sink sink, SubSinkOpenerEvents callback) {
+  public SinkOpenerThread(long id, Sink sink, SinkOpenerEvents callback) {
     setName("SubSinkOpener " + id);
     this.sink = sink;
     this.callback = callback;

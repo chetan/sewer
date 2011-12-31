@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
  * @author chetan
  *
  */
-public class ReliableSink extends Sink implements SubSinkOpenerEvents {
+public class ReliableSink extends Sink implements SinkOpenerEvents {
 
   private static final Logger LOG = LoggerFactory.getLogger(ReliableSink.class);
 
@@ -28,7 +28,7 @@ public class ReliableSink extends Sink implements SubSinkOpenerEvents {
   private String txId;
   private SequenceFileSink durableSink;
 
-  private SubSinkOpenerThread opener;
+  private SinkOpenerThread opener;
   private AsyncBufferSink persister;
   private AsyncBufferSink delayedSink;
 
@@ -107,7 +107,7 @@ public class ReliableSink extends Sink implements SubSinkOpenerEvents {
 
     setStatus(FLOWING);
 
-    opener = new SubSinkOpenerThread(Thread.currentThread().getId(), subSink, this);
+    opener = new SinkOpenerThread(Thread.currentThread().getId(), subSink, this);
     opener.start();
 
     persister = new AsyncBufferSink("persister");

@@ -18,22 +18,6 @@ import org.slf4j.LoggerFactory;
  */
 public class RollSink extends Sink implements Runnable {
 
-  class SinkCloserThread extends Thread {
-    private Sink sink;
-    public SinkCloserThread(Sink sink) {
-      this.sink = sink;
-      setName("SinkCloser " + getId());
-    }
-    @Override
-    public void run() {
-      try {
-        this.sink.close();
-      } catch (IOException e) {
-        LOG.warn("Error while closing sink during rotate: " + e.getMessage(), e);
-      }
-    }
-  }
-
   private static final Logger LOG = LoggerFactory.getLogger(RollSink.class);
 
   private static final int DEFAULT_ROLL_INTERVAL = 30;

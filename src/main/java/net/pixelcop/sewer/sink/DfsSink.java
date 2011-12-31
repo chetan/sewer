@@ -6,15 +6,13 @@ import java.io.IOException;
 import net.pixelcop.sewer.Event;
 import net.pixelcop.sewer.Sink;
 import net.pixelcop.sewer.node.Node;
+import net.pixelcop.sewer.util.HdfsUtil;
 
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.compress.CompressionCodec;
 import org.apache.hadoop.io.compress.Compressor;
-import org.apache.hadoop.io.compress.GzipCodec;
-import org.apache.hadoop.io.compress.SnappyCodec;
-import org.apache.hadoop.util.NativeCodeLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,13 +57,7 @@ public class DfsSink extends Sink {
 
   private void createWriter(String path) throws IOException {
 
-    // TODO handle pluggable compression codec
-    CompressionCodec codec;
-    if (NativeCodeLoader.isNativeCodeLoaded()) {
-      codec = new SnappyCodec();
-    } else {
-      codec = new GzipCodec();
-    }
+    CompressionCodec codec = HdfsUtil.createCodec();
 
     Compressor cmp = codec.createCompressor();
     dstPath = new Path(path + ".dat" + codec.getDefaultExtension());

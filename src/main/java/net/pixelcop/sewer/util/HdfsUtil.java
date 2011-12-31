@@ -6,6 +6,11 @@ import net.pixelcop.sewer.node.Node;
 
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.compress.CompressionCodec;
+import org.apache.hadoop.io.compress.DeflateCodec;
+import org.apache.hadoop.io.compress.GzipCodec;
+import org.apache.hadoop.io.compress.SnappyCodec;
+import org.apache.hadoop.util.NativeCodeLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,5 +43,36 @@ public class HdfsUtil {
       hdfs.delete(path, false);
     }
   }
+
+  /**
+   * Return the best available codec for this system
+   *
+   * @return {@link CompressionCodec}
+   */
+  public static CompressionCodec createCodec() {
+    return createCodec(false);
+  }
+
+  /**
+   * Return the best available codec for this system
+   *
+   * @param ipc Codec will be used for inter-process communication
+   * @return {@link CompressionCodec}
+   */
+  public static CompressionCodec createCodec(boolean ipc) {
+
+    if (NativeCodeLoader.isNativeCodeLoaded()) {
+      if (ipc) {
+        return new SnappyCodec();
+      }
+
+      return new GzipCodec();
+
+    } else {
+      return new DeflateCodec();
+    }
+
+  }
+
 
 }

@@ -5,8 +5,8 @@ import java.io.IOException;
 
 import net.pixelcop.sewer.Event;
 import net.pixelcop.sewer.Sink;
+import net.pixelcop.sewer.node.Node;
 
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -59,9 +59,6 @@ public class DfsSink extends Sink {
 
   private void createWriter(String path) throws IOException {
 
-    Configuration conf = new Configuration();
-    conf.setInt("io.file.buffer.size", 16384*4); // temp workaround until we fix Config
-
     // TODO handle pluggable compression codec
     CompressionCodec codec;
     if (NativeCodeLoader.isNativeCodeLoaded()) {
@@ -72,7 +69,7 @@ public class DfsSink extends Sink {
 
     Compressor cmp = codec.createCompressor();
     dstPath = new Path(path + ".dat" + codec.getDefaultExtension());
-    FileSystem hdfs = dstPath.getFileSystem(conf);
+    FileSystem hdfs = dstPath.getFileSystem(Node.getInstance().getConf());
 
     writer = new DataOutputStream(codec.createOutputStream(hdfs.create(dstPath), cmp));
 

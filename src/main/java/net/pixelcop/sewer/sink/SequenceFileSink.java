@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import net.pixelcop.sewer.ByteArrayEvent;
 import net.pixelcop.sewer.Event;
+import net.pixelcop.sewer.node.Node;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -77,11 +78,9 @@ public class SequenceFileSink extends BucketedSink {
 
   private void createWriter() throws IOException {
 
-    Configuration conf = new Configuration();
-    conf.setInt("io.file.buffer.size", 16384*4); // temp workaround until we fix Config
+    Configuration conf = Node.getInstance().getConf();
 
     CompressionCodec codec = createCodec();
-
     dstPath = new Path(nextBucket + ".seq" + codec.getDefaultExtension());
     FileSystem hdfs = dstPath.getFileSystem(conf);
 

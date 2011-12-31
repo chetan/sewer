@@ -5,6 +5,7 @@ import java.io.IOException;
 import net.pixelcop.sewer.ByteArrayEvent;
 import net.pixelcop.sewer.Sink;
 import net.pixelcop.sewer.Source;
+import net.pixelcop.sewer.node.Node;
 import net.pixelcop.sewer.sink.BucketedSink;
 import net.pixelcop.sewer.sink.durable.TransactionManager;
 import net.pixelcop.sewer.util.HdfsUtil;
@@ -83,8 +84,7 @@ public class TransactionSource extends Source {
 
   public Reader createReader() throws IOException {
 
-    Configuration conf = new Configuration();
-    conf.setInt("io.file.buffer.size", 16384*4); // TODO temp workaround until we fix Config
+    Configuration conf = Node.getInstance().getConf();
     FileSystem hdfs = path.getFileSystem(conf);
 
     return new SequenceFile.Reader(hdfs, path, conf);

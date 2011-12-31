@@ -2,7 +2,8 @@ package net.pixelcop.sewer.util;
 
 import java.io.IOException;
 
-import org.apache.hadoop.conf.Configuration;
+import net.pixelcop.sewer.node.Node;
+
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
@@ -22,9 +23,7 @@ public class HdfsUtil {
    */
   public static void deletePath(Path path) throws IOException {
 
-    Configuration conf = new Configuration();
-    conf.setInt("io.file.buffer.size", 16384*4); // TODO temp workaround until we fix Config
-    FileSystem hdfs = path.getFileSystem(conf);
+    FileSystem hdfs = path.getFileSystem(Node.getInstance().getConf());
 
     if (hdfs.exists(path)) {
       if (LOG.isDebugEnabled()) {

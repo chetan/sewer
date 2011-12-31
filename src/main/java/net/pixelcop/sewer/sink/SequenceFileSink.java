@@ -60,7 +60,7 @@ public class SequenceFileSink extends BucketedSink {
     setStatus(CLOSED);
 
     if (LOG.isInfoEnabled()) {
-      LOG.info("Closed SequenceFileSink: " + dstPath.toString());
+      LOG.info("Closed SequenceFileSink: " + HdfsUtil.pathToString(dstPath));
     }
   }
 

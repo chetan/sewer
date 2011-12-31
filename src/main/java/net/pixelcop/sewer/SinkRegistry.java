@@ -6,6 +6,7 @@ import java.util.Map;
 import net.pixelcop.sewer.sink.DfsSink;
 import net.pixelcop.sewer.sink.SequenceFileSink;
 import net.pixelcop.sewer.sink.TcpWriteableEventSink;
+import net.pixelcop.sewer.sink.debug.ConsoleSink;
 import net.pixelcop.sewer.sink.debug.NullSink;
 import net.pixelcop.sewer.sink.durable.ReliableSink;
 import net.pixelcop.sewer.sink.durable.RollSink;
@@ -16,12 +17,18 @@ public class SinkRegistry {
   private static final Map<String, Class> registry = new HashMap<String, Class>();
 
   static {
-    register("null", NullSink.class);
+    // endpoints
     register("dfs", DfsSink.class);
     register("seqfile", SequenceFileSink.class);
     register("tcpwrite", TcpWriteableEventSink.class);
+
+    // decorators
     register("reliable", ReliableSink.class);
     register("roll", RollSink.class);
+
+    // debug
+    register("null", NullSink.class);
+    register("console", ConsoleSink.class);
   }
 
   public static final void register(String name, Class clazz) {

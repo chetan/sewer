@@ -2,8 +2,6 @@ package net.pixelcop.sewer.sink.durable;
 
 import java.io.IOException;
 import java.util.concurrent.BrokenBarrierException;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.CyclicBarrier;
 
 import net.pixelcop.sewer.Event;
 import net.pixelcop.sewer.Sink;
@@ -24,9 +22,6 @@ public class RollSink extends Sink implements Runnable {
 
   private static final int DEFAULT_ROLL_INTERVAL = 30;
 
-  private CyclicBarrier safeRollBarrier;
-  private CountDownLatch rolling;
-
   private Thread rollThread;
   private final int interval;
 
@@ -42,16 +37,6 @@ public class RollSink extends Sink implements Runnable {
   public void close() throws IOException {
     LOG.debug("close()");
     setStatus(CLOSING);
-
-    if (rolling != null) {
-      try {
-        rolling.await();
-      } catch (InterruptedException e) {
-        // We must be shutting down if we got here, but possibly not a clean shutdown
-        // we may lose this event?
-        LOG.warn("interrupted while waiting for roll to complete");
-      }
-    }
 
     this.subSink.close();
     this.rollThread.interrupt();
@@ -82,22 +67,6 @@ public class RollSink extends Sink implements Runnable {
 
   @Override
   public void append(Event event) throws IOException {
-
-    if (safeRollBarrier != null) {
-      LOG.debug("append: waiting for rotation to complete");
-      try {
-        safeRollBarrier.await();
-        rolling.await();
-        rolling = null;
-        safeRollBarrier = null;
-      } catch (Exception e) {
-        // We must be shutting down if we got here, but possibly not a clean shutdown
-        // we may lose this event?
-        LOG.warn("interrupted while waiting for roll to complete");
-      }
-      LOG.debug("append: rotation completed");
-    }
-
     this.subSink.append(event);
   }
 
@@ -143,21 +112,15 @@ public class RollSink extends Sink implements Runnable {
 
     setStatus(OPENING);
 
-    // will cause appends to block momentarily until rotation is complete
-    this.safeRollBarrier = new CyclicBarrier(2);
-    this.rolling = new CountDownLatch(1);
+    Sink oldSink = subSink;
+    this.subSink = newSink; // put new one in place
 
-    try {
-      this.safeRollBarrier.await();
-    } catch (BrokenBarrierException e) {
-      LOG.warn("oh noes, teh barrier broke! " + e.getMessage(), e);
-    }
+    // then start closing the old
+    Thread.sleep(500);
+    new SinkCloserThread(oldSink).start();
 
-    new SinkCloserThread(subSink).start();
-    this.subSink = newSink;
 
     setStatus(FLOWING);
-    this.rolling.countDown();
     LOG.debug("rotation complete");
   }
 

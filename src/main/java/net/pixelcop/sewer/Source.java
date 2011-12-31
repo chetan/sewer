@@ -23,6 +23,12 @@ public abstract class Source implements Closeable {
     return sinkFactory;
   }
 
+  /**
+   * Creates and opens the configured Sink
+   *
+   * @return {@link Sink}
+   * @throws IOException
+   */
   public Sink createSink() throws IOException {
     Sink sink = this.sinkFactory.build();
     sink.open();

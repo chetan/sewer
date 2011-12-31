@@ -30,17 +30,24 @@ public class HdfsUtil {
 
     FileSystem hdfs = path.getFileSystem(Node.getInstance().getConf());
 
-    if (hdfs.exists(path)) {
-      if (LOG.isDebugEnabled()) {
-        try {
-          LOG.debug("Deleting path: " + path.toString());
-        } catch (Throwable t) {
-          // path.toString() throws a nullpointer sometimes, not sure why
-          LOG.debug("Deleting path: " + path.toUri().toString());
-        }
-      }
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Deleting path: " + pathToString(path));
+    }
 
+    if (hdfs.exists(path)) {
       hdfs.delete(path, false);
+
+    } else if (LOG.isDebugEnabled()) {
+      LOG.debug("Path not found: " + pathToString(path));
+    }
+  }
+
+  public static String pathToString(Path path) {
+    try {
+      return path.toString();
+    } catch (Throwable t) {
+      // path.toString() throws a nullpointer sometimes, not sure why
+      return path.toUri().toString();
     }
   }
 

@@ -3,7 +3,9 @@
 VERSION_NUMBER = "0.1.0"
 # Group identifier for your projects
 GROUP = "net.pixelcop.sewer"
-COPYRIGHT = "Pixelcop Research, Inc."
+VENDOR = "Pixelcop Research, Inc."
+URL = "https://github.com/chetan/sewer"
+MAIN_CLASS = 'net.pixelcop.sewer.node.Node'
 
 # Specify Maven 2.0 remote repositories here, like this:
 repositories.remote << "http://mirrors.ibiblio.org/pub/mirrors/maven2"
@@ -18,7 +20,13 @@ define "sewer" do
 
   project.version = VERSION_NUMBER
   project.group = GROUP
-  manifest["Implementation-Vendor"] = COPYRIGHT
+  manifest["Implementation-Vendor"] = VENDOR
+  manifest["Implementation-URL"] = URL
+  manifest["Implementation-Version"] = VERSION_NUMBER
+  manifest["Build-Date"] = Time.new.to_s
+  manifest["Copyright"] = "#{VENDOR} (C) #{Time.new.strftime('%Y')}"
+  manifest["Build-Jdk"] = `javac -version`
+  manifest["Main-Class"] = MAIN_CLASS
 
   compile.with SEWER_JARS
   resources

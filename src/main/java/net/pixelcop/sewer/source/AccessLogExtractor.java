@@ -12,9 +12,16 @@ public class AccessLogExtractor {
   private static final byte[] TAB = new String("\t").getBytes();
   private static final byte[] S_204 = new String("204").getBytes();
 
+  private static final ThreadLocal<Text> textLocal = new ThreadLocal<Text>() {
+    protected Text initialValue() {
+      return new Text(new byte[1024]);
+    };
+  };
+
   public static Event extractByteArrayEvent(Request baseRequest) {
 
-    Text text = new Text();
+    Text text = textLocal.get();
+    text.clear();
 
     // 9 vals
     // ${time_nsecs},${ip_remote},"${http_host}","${request}","${query_string}"

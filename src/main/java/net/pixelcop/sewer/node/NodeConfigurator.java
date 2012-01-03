@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.URISyntaxException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -75,28 +75,73 @@ public class NodeConfigurator {
     NodeConfig conf = new NodeConfig();
     loadHadoopConfigs(conf);
 
-    File file = null;
+    // Load config.properties from Classpath as well as command line, if passed
+    addPropsFromClasspath(conf);
+
+    if (filename != null) {
+      addPropsFromFile(conf, filename);
+    }
+
+    if (verbose) {
+      System.out.println("sewer.soruce = " + conf.get(NodeConfig.SOURCE));
+      System.out.println("sewer.sink   = " + conf.get(NodeConfig.SINK));
+    }
+
+    return conf;
+  }
+
+  @SuppressWarnings("static-access")
+  private void addPropsFromClasspath(NodeConfig conf) {
     try {
-      file = getConfigFile(filename);
+      URL props = Thread.currentThread().getContextClassLoader()
+          .getSystemResource("config.properties");
+
+      if (verbose) {
+        System.out.println("loading config: " + props.toString());
+      }
+
+      InputStream stream = Thread.currentThread().getContextClassLoader()
+          .getSystemResourceAsStream("config.properties");
+
+      addProps(conf, stream);
+
+    } catch (IOException e) {
+      System.err.println("unable to load config from classpath: " + e.getMessage());
+      System.exit(1);
+    }
+  }
+
+  private void addPropsFromFile(NodeConfig conf, String filename) {
+    InputStream stream = null;
+    try {
+      File file = new File(filename);
+      if (verbose) {
+        System.out.println("loading config: " + file.toString());
+      }
+      stream = new FileInputStream(file);
+
     } catch (FileNotFoundException e) {
       System.err.println("file not found: " + filename);
       System.exit(1);
     }
 
-    if (file == null) {
+    if (stream == null) {
       System.err.println("unable to locate a config file. try passing -c <file>");
       System.exit(1);
     }
 
-    Properties props = new Properties();
     try {
-      props.load(new FileInputStream(file));
+      addProps(conf, stream);
     } catch (IOException e) {
-      System.err.println("unable to load config from '" + file.toString() + "': " + e.getMessage());
+      System.err.println("unable to load config from '" + filename + "': " + e.getMessage());
       System.exit(1);
     }
+  }
+
+  private void addProps(NodeConfig conf, InputStream stream) throws IOException {
+    Properties props = new Properties();
+    props.load(stream);
     conf.addResource(props);
-    return conf;
   }
 
   /**
@@ -143,42 +188,6 @@ public class NodeConfigurator {
     }
 
     return list;
-  }
-
-  /**
-   * Find the sewer config, falling back to the classpath if one was not passed in
-   *
-   * @param filename
-   * @return
-   * @throws FileNotFoundException
-   */
-  @SuppressWarnings("static-access")
-  private File getConfigFile(String filename) throws FileNotFoundException {
-
-    if (filename != null) {
-      File file = new File(filename);
-      if (file.exists()) {
-        return file;
-      }
-      throw new FileNotFoundException(filename);
-    }
-
-    URL props = Thread.currentThread().getContextClassLoader()
-        .getSystemResource("config.properties");
-
-    try {
-      File file = new File(props.toURI());
-      if (file.exists()) {
-        if (verbose) {
-          System.out.println("loading config: " + file.toString());
-        }
-        return file;
-      }
-
-    } catch (URISyntaxException e) {
-    }
-
-    return null;
   }
 
 }

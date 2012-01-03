@@ -77,8 +77,28 @@ public class HttpPixelSource extends Source {
 
   @Override
   public void close() throws IOException {
-
-
+    setStatus(CLOSING);
+    LOG.info("Closing " + this.getClass().getSimpleName());
+    try {
+      LOG.debug("stopping server");
+      this.server.stop();
+      LOG.debug("server stopped");
+    } catch (Exception e) {
+      LOG.warn("Exception while stopping server: " + e.getMessage(), e);
+    }
+    try {
+      LOG.debug("waiting for server thread to join");
+      this.server.join();
+      LOG.debug("server thread has joined");
+    } catch (InterruptedException e) {
+      LOG.error("Interrupted waiting for server thread to join", e);
+    }
+    try {
+      sink.close();
+    } catch (IOException e) {
+      LOG.error("Exception closing sink: " + e.getMessage(), e);
+    }
+    setStatus(CLOSED);
   }
 
   @Override

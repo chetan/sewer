@@ -36,13 +36,15 @@ define "sewer" do
 
   run.using :main => MAIN_CLASS
 
-
-  package_with_sources
-  #package_with_javadoc
-
   package(:jar)
+  package(:sources)
+  #package(:javadoc)
+
   package(:tgz).path("#{id}-#{version}").tap do |path|
     path.include "README"
     path.include "LICENSE"
+    path.include package(:jar), package(:sources)
+    path.path("lib").include SEWER_JARS
+    path.path("bin").include "bin/sewer.sh"
   end
 end

@@ -45,6 +45,7 @@ define "sewer" do
     path.include "LICENSE"
     path.include package(:jar), package(:sources)
     path.path("lib").include SEWER_JARS
-    path.path("bin").include "bin/sewer.sh"
+    path.include "bin"
+    path.include "conf"
   end
 end

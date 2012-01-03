@@ -11,9 +11,11 @@ import net.pixelcop.sewer.Sink;
 import net.pixelcop.sewer.Source;
 
 import org.apache.commons.lang3.math.NumberUtils;
+import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,8 +67,23 @@ public class HttpPixelSource extends Source {
 
   private void initServer() {
     this.server = new Server(port);
+
     this.server.setGracefulShutdown(1000);
+    this.server.setStopAtShutdown(false);
     this.server.setSendServerVersion(false);
+    this.server.setSendDateHeader(false);
+
+    SelectChannelConnector conn = new SelectChannelConnector();
+
+    conn.setPort(port);
+    // conn.setAcceptors(4);
+    conn.setAcceptQueueSize(100);
+    conn.setReuseAddress(true);
+    conn.setSoLingerTime(1000);
+
+    this.server.setConnectors(new Connector[]{ conn });
+
+
 
     // Create pixel handler & logger (event generator)
 //    RequestLogHandler requestLogHandler = new RequestLogHandler();

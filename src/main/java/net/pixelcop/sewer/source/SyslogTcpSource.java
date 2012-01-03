@@ -52,13 +52,13 @@ public class SyslogTcpSource extends Source {
       this.serverThread.join();
       LOG.debug("server thread has joined");
     } catch (InterruptedException e) {
-      LOG.error("Interrupted waiting for server thread to join");
+      LOG.error("Interrupted waiting for server thread to join", e);
     }
     try {
       this.serverThread.joinReaders();
       LOG.debug("all reader threads have joined");
     } catch (InterruptedException e) {
-      LOG.error("Interrupted waiting for reader threads to join");
+      LOG.error("Interrupted waiting for reader threads to join", e);
     }
     setStatus(CLOSED);
   }

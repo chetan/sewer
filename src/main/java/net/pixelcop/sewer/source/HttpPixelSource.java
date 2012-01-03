@@ -65,6 +65,7 @@ public class HttpPixelSource extends Source {
 
   private void initServer() {
     this.server = new Server(port);
+    this.server.setGracefulShutdown(5000);
     this.server.setSendServerVersion(false);
 
     // Create pixel handler & logger (event generator)
@@ -80,7 +81,7 @@ public class HttpPixelSource extends Source {
     setStatus(CLOSING);
     LOG.info("Closing " + this.getClass().getSimpleName());
     try {
-      LOG.debug("stopping server");
+      LOG.debug("stopping server gracefully");
       this.server.stop();
       LOG.debug("server stopped");
     } catch (Exception e) {
@@ -93,6 +94,7 @@ public class HttpPixelSource extends Source {
     } catch (InterruptedException e) {
       LOG.error("Interrupted waiting for server thread to join", e);
     }
+
     try {
       sink.close();
     } catch (IOException e) {

@@ -1,38 +1,8 @@
 package net.pixelcop.sewer;
 
-import java.io.Closeable;
-import java.io.IOException;
 
-public abstract class Source implements Closeable {
+public abstract class Source extends Plumbing {
 
-  private SourceSinkFactory<Sink> sinkFactory;
 
-  /**
-   * Open the source endpoint (file, network, etc). The source is also responsible
-   * for creating and opening it's associated Sink as necessary.
-   *
-   * @throws IOException
-   */
-  public abstract void open() throws IOException;
-
-  public void setSinkFactory(SourceSinkFactory<Sink> sinkFactory) {
-    this.sinkFactory = sinkFactory;
-  }
-
-  public SourceSinkFactory<Sink> getSinkFactory() {
-    return sinkFactory;
-  }
-
-  /**
-   * Creates and opens the configured Sink
-   *
-   * @return {@link Sink}
-   * @throws IOException
-   */
-  public Sink createSink() throws IOException {
-    Sink sink = this.sinkFactory.build();
-    sink.open();
-    return sink;
-  }
 
 }

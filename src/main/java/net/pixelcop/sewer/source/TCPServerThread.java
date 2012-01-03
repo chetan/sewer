@@ -1,13 +1,17 @@
 package net.pixelcop.sewer.source;
 
+import static net.pixelcop.sewer.StatusProvider.*;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.util.List;
 import java.util.Vector;
 
 import net.pixelcop.sewer.Sink;
 import net.pixelcop.sewer.SourceSinkFactory;
+import net.pixelcop.sewer.StatusProvider;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +37,7 @@ public abstract class TCPServerThread extends Thread {
         reader.join();
         readers.remove(reader);
       } catch (InterruptedException e) {
-        LOG.warn("cleanup thread was interrupted");
+        LOG.warn("tcp server cleanup thread was interrupted");
       }
     }
   }
@@ -43,16 +47,20 @@ public abstract class TCPServerThread extends Thread {
   private SourceSinkFactory<Sink> sinkFactory;
   private ServerSocket sock;
   private List<TCPReaderThread> readers;
+  private final StatusProvider statusProvider;
 
-  public TCPServerThread(String name, int port, SourceSinkFactory<Sink> sinkFactory) throws IOException {
+  public TCPServerThread(String name, int port, SourceSinkFactory<Sink> sinkFactory,
+      StatusProvider statusProvider) throws IOException {
 
     setName(name + " " + getId());
 
     this.readers = new Vector<TCPReaderThread>(5);
 
     this.sinkFactory = sinkFactory;
+    this.statusProvider = statusProvider;
 
     this.sock = new ServerSocket(port);
+    this.sock.setSoTimeout(1000);
     this.sock.setReuseAddress(true);
     this.sock.setReceiveBufferSize(64*1024);
 
@@ -64,37 +72,68 @@ public abstract class TCPServerThread extends Thread {
   @Override
   public void run() {
 
-    try {
+    while (statusProvider.getStatus() != CLOSING) {
 
-      Socket socket = null;
-      while ((socket = this.sock.accept()) != null) {
-        socket.setSoLinger(true, 60);
+      try {
 
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("new connection from: " + socket.getInetAddress().getHostName());
+        Socket socket = null;
+        while ((socket = this.sock.accept()) != null) {
+          socket.setSoLinger(true, 60);
+
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("new connection from: " + socket.getInetAddress().getHostName());
+          }
+
+          TCPReaderThread rt = createReader(socket, sinkFactory.build());
+          rt.start();
+          readers.add(rt);
+          new CleanupThread(rt).start();
         }
 
-        TCPReaderThread rt = createReader(socket, sinkFactory.build());
-        rt.start();
-        readers.add(rt);
-        new CleanupThread(rt).start();
-      }
+      } catch (SocketTimeoutException e) {
+        continue;
 
-    } catch (IOException e) {
-      LOG.error("Caught IOException during accept(); shutting down", e);
+      } catch (IOException e) {
+        LOG.error("Caught IOException during accept(); shutting down", e);
 
-    } catch (Exception e) {
-      LOG.error("Failed to setup ReaderThread sink; shutting down", e);
+      } catch (Exception e) {
+        LOG.error("Failed to setup ReaderThread sink; shutting down", e);
 
-    } finally {
-      if (readers != null && !readers.isEmpty()) {
-        for (TCPReaderThread reader : readers) {
-          reader.interrupt();
-        }
       }
 
     }
 
+    if (this.sock != null) {
+      try {
+        this.sock.close();
+      } catch (IOException e) {
+        LOG.error("Error closing socket: " + e.getMessage(), e);
+      }
+    }
+
+    // cleanup
+    LOG.debug("TCPServerThread closing down");
+    if (readers != null && !readers.isEmpty()) {
+      LOG.debug("Interrupting " + readers.size() + " reader threads");
+      for (TCPReaderThread reader : readers) {
+        // reader.interrupt();
+      }
+    }
+
+  }
+
+  /**
+   * Wait for all {@link TCPReaderThread}s to join
+   * @throws InterruptedException
+   */
+  public void joinReaders() throws InterruptedException {
+    if (readers == null) {
+      return;
+    }
+    LOG.debug("joining " + readers.size() + " reader thread(s)");
+    for (TCPReaderThread reader : readers) {
+      reader.join();
+    }
   }
 
 }

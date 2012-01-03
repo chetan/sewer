@@ -45,22 +45,38 @@ public class SyslogTcpSource extends Source {
 
   @Override
   public void close() throws IOException {
+    setStatus(CLOSING);
     LOG.info("Closing " + this.getClass().getSimpleName());
-    this.serverThread.interrupt();
-  };
+    try {
+      LOG.debug("joining server thread");
+      this.serverThread.join();
+      LOG.debug("server thread has joined");
+    } catch (InterruptedException e) {
+      LOG.error("Interrupted waiting for server thread to join");
+    }
+    try {
+      this.serverThread.joinReaders();
+      LOG.debug("all reader threads have joined");
+    } catch (InterruptedException e) {
+      LOG.error("Interrupted waiting for reader threads to join");
+    }
+    setStatus(CLOSED);
+  }
 
   @Override
   public void open() throws IOException {
+    setStatus(OPENING);
+
     if (LOG.isInfoEnabled()) {
       LOG.info("Opening " + this.getClass().getSimpleName() + " on port " + port);
     }
 
-    this.serverThread = new TCPServerThread("Syslog Server", port, getSinkFactory()) {
+    this.serverThread = new TCPServerThread("Syslog Server", port, getSinkFactory(), this) {
 
       @Override
       public TCPReaderThread createReader(Socket socket, Sink sink) {
 
-        return new TCPReaderThread("Syslog Reader", socket, sink) {
+        return new TCPReaderThread("Syslog Reader", socket, sink, SyslogTcpSource.this) {
 
           private SyslogWireExtractor reader;
 
@@ -76,11 +92,11 @@ public class SyslogTcpSource extends Source {
 
         };
 
-
       }
     };
 
     this.serverThread.start();
+    setStatus(FLOWING);
   }
 
 }

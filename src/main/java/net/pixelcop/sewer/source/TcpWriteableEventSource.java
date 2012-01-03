@@ -28,18 +28,19 @@ public class TcpWriteableEventSource extends Source {
   @Override
   public void open() throws IOException {
 
-    this.serverThread = new TCPServerThread("TCP Writeable Server", 9999, getSinkFactory()) {
+    this.serverThread = new TCPServerThread("TCP Writeable Server", 9999, getSinkFactory(), this) {
 
       @Override
       public TCPReaderThread createReader(Socket socket, Sink sink) {
 
-        return new TCPReaderThread("TCP Writeable Reader", socket, sink) {
+        return new TCPReaderThread("TCP Writeable Reader", socket, sink, TcpWriteableEventSource.this) {
 
           @Override
           public void read() throws IOException {
             ByteArrayEvent event = new ByteArrayEvent(in);
             this.sink.append(event);
           }
+
         };
 
       }
@@ -50,7 +51,22 @@ public class TcpWriteableEventSource extends Source {
 
   @Override
   public void close() throws IOException {
-    this.serverThread.interrupt();
+    setStatus(CLOSING);
+    LOG.info("Closing " + this.getClass().getSimpleName());
+    try {
+      LOG.debug("joining server thread");
+      this.serverThread.join();
+      LOG.debug("server thread has joined");
+    } catch (InterruptedException e) {
+      LOG.error("Interrupted waiting for server thread to join");
+    }
+    try {
+      this.serverThread.joinReaders();
+      LOG.debug("all reader threads have joined");
+    } catch (InterruptedException e) {
+      LOG.error("Interrupted waiting for reader threads to join");
+    }
+    setStatus(CLOSED);
   }
 
 }

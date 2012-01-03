@@ -65,7 +65,7 @@ public class HttpPixelSource extends Source {
 
   private void initServer() {
     this.server = new Server(port);
-    this.server.setGracefulShutdown(5000);
+    this.server.setGracefulShutdown(1000);
     this.server.setSendServerVersion(false);
 
     // Create pixel handler & logger (event generator)

@@ -34,5 +34,15 @@ define "sewer" do
   test.compile.with SEWER_TEST_JARS
   test.resources
 
+  run.using :main => MAIN_CLASS
+
+
+  package_with_sources
+  #package_with_javadoc
+
   package(:jar)
+  package(:tgz).path("#{id}-#{version}").tap do |path|
+    path.include "README"
+    path.include "LICENSE"
+  end
 end

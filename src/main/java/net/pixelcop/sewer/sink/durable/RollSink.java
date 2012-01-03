@@ -107,7 +107,7 @@ public class RollSink extends Sink implements Runnable {
 
     LOG.info("rotating sink");
 
-    Sink newSink = sinkFactory.build();
+    Sink newSink = getSinkFactory().build();
     newSink.open();
 
     setStatus(OPENING);

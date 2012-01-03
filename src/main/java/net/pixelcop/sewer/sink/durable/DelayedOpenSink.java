@@ -37,11 +37,13 @@ public class DelayedOpenSink extends Sink {
   @Override
   public void append(Event event) throws IOException {
     if (getStatus() == CLOSED) {
-      LOG.debug("append called: opening subsink");
       setStatus(OPENING);
+      LOG.debug("append called: opening subsink");
       createSubSink();
       getSubSink().open();
       setStatus(FLOWING);
+    }
+    while (getStatus() != FLOWING) {
     }
     getSubSink().append(event);
   }

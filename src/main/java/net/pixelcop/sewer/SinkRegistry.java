@@ -8,6 +8,7 @@ import net.pixelcop.sewer.sink.SequenceFileSink;
 import net.pixelcop.sewer.sink.TcpWriteableEventSink;
 import net.pixelcop.sewer.sink.debug.ConsoleSink;
 import net.pixelcop.sewer.sink.debug.NullSink;
+import net.pixelcop.sewer.sink.durable.DelayedOpenSink;
 import net.pixelcop.sewer.sink.durable.ReliableSink;
 import net.pixelcop.sewer.sink.durable.RollSink;
 
@@ -25,6 +26,7 @@ public class SinkRegistry {
     // decorators
     register("reliable", ReliableSink.class);
     register("roll", RollSink.class);
+    register("delayed_open", DelayedOpenSink.class);
 
     // debug
     register("null", NullSink.class);

@@ -9,6 +9,7 @@ public class NodeConfig extends Configuration {
 
   public static final String SOURCE = "sewer.source";
   public static final String SINK = "sewer.sink";
+  public static final String WAL_PATH = "sewer.wal.path";
 
   public NodeConfig() {
     super();

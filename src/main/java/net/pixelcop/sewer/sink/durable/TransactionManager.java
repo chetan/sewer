@@ -13,6 +13,7 @@ import net.pixelcop.sewer.Sink;
 import net.pixelcop.sewer.SourceSinkFactory;
 import net.pixelcop.sewer.SourceSinkFactory.SourceSinkBuilder;
 import net.pixelcop.sewer.node.Node;
+import net.pixelcop.sewer.node.NodeConfig;
 import net.pixelcop.sewer.sink.SequenceFileSink;
 import net.pixelcop.sewer.source.TransactionSource;
 import net.pixelcop.sewer.util.BackoffHelper;
@@ -27,6 +28,8 @@ public class TransactionManager extends Thread {
   private static final Logger LOG = LoggerFactory.getLogger(TransactionManager.class);
 
   private static final long NANO_WAIT = TimeUnit.SECONDS.toNanos(3);
+
+  private static final String DEFAULT_WAL_PATH = "/opt/sewer/wal";
 
   private static final TransactionManager instance = new TransactionManager();
   static {
@@ -53,8 +56,7 @@ public class TransactionManager extends Thread {
   }
 
   public String getWALPath() {
-    // TODO retrieve from configuration
-    return "/opt/sewer/wal";
+    return Node.getInstance().getConf().get(NodeConfig.WAL_PATH, DEFAULT_WAL_PATH);
   }
 
   /**

@@ -83,8 +83,8 @@ public class NodeConfigurator {
     }
 
     if (verbose) {
-      System.out.println("sewer.soruce = " + conf.get(NodeConfig.SOURCE));
-      System.out.println("sewer.sink   = " + conf.get(NodeConfig.SINK));
+      System.out.println(NodeConfig.SOURCE + " = " + conf.get(NodeConfig.SOURCE));
+      System.out.println(NodeConfig.SINK + "   = " + conf.get(NodeConfig.SINK));
     }
 
     return conf;

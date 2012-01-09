@@ -12,7 +12,9 @@ import java.io.IOException;
  */
 public class ByteArrayEvent implements Event {
 
-    private byte[] body;
+    private static final String NULL = "null";
+
+    private byte[] body; // TODO use re-usable buffer for reading sequence files
 
     public ByteArrayEvent() {
     }
@@ -39,6 +41,9 @@ public class ByteArrayEvent implements Event {
 
     @Override
     public String toString() {
+      if (body == null) {
+        return NULL;
+      }
       return new String(body);
     }
 

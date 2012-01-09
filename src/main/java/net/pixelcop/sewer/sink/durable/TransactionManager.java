@@ -67,7 +67,9 @@ public class TransactionManager extends Thread {
    */
   public String startTx(String bucket) {
 
-    Transaction tx = new Transaction(bucket);
+    Transaction tx = new Transaction(
+        Node.getInstance().getSource().getEventClass(), bucket, this.txFileExt);
+
     transactions.put(tx.getId(), tx);
 
     return tx.getId();
@@ -84,8 +86,8 @@ public class TransactionManager extends Thread {
       return;
     }
 
-    transactions.remove(id);
-    deleteTxFiles(id);
+    Transaction tx = transactions.remove(id);
+    deleteTxFiles(tx);
 
   }
 
@@ -93,13 +95,13 @@ public class TransactionManager extends Thread {
    * Delete the files belonging to the given transaction id
    * @param id
    */
-  private void deleteTxFiles(String id) {
+  private void deleteTxFiles(Transaction tx) {
 
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Deleting files belonging to tx " + id);
+      LOG.debug("Deleting files belonging to tx " + tx);
     }
 
-    Path path = createTxPath(id);
+    Path path = tx.createTxPath();
     try {
       HdfsUtil.deletePath(path);
 
@@ -107,10 +109,6 @@ public class TransactionManager extends Thread {
       LOG.warn("Error deleting tx file: " + e.getMessage() + "\n    path:" + path.toString(), e);
     }
 
-  }
-
-  private Path createTxPath(String id) {
-    return new Path("file://" + getWALPath() + "/" + id + txFileExt);
   }
 
   /**
@@ -173,11 +171,10 @@ public class TransactionManager extends Thread {
   private void drainTx() {
 
     // drain this tx to sink
-    LOG.debug("Draining tx " + drainingTx.getId());
+    LOG.debug("Draining tx " + drainingTx);
     BackoffHelper backoff = new BackoffHelper();
     while (true) {
-      TransactionSource txSource = new TransactionSource(
-          createTxPath(drainingTx.getId()), drainingTx.getBucket(), txFileExt);
+      TransactionSource txSource = new TransactionSource(drainingTx);
 
       txSource.setSinkFactory(this.unreliableSinkFactory);
 

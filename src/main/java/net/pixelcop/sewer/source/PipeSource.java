@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import net.pixelcop.sewer.ByteArrayEvent;
 import net.pixelcop.sewer.Event;
 import net.pixelcop.sewer.Sink;
 import net.pixelcop.sewer.Source;
@@ -97,6 +98,11 @@ public class PipeSource extends Source implements Runnable {
 
     }
 
+  }
+
+  @Override
+  public Class<?> getEventClass() {
+    return ByteArrayEvent.class;
   }
 
 }

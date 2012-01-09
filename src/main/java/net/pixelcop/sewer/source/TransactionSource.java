@@ -3,10 +3,12 @@ package net.pixelcop.sewer.source;
 import java.io.IOException;
 
 import net.pixelcop.sewer.ByteArrayEvent;
+import net.pixelcop.sewer.Event;
 import net.pixelcop.sewer.Sink;
 import net.pixelcop.sewer.Source;
 import net.pixelcop.sewer.node.Node;
 import net.pixelcop.sewer.sink.BucketedSink;
+import net.pixelcop.sewer.sink.durable.Transaction;
 import net.pixelcop.sewer.sink.durable.TransactionManager;
 import net.pixelcop.sewer.util.HdfsUtil;
 
@@ -23,15 +25,20 @@ public class TransactionSource extends Source {
 
   private static final Logger LOG = LoggerFactory.getLogger(TransactionManager.class);
 
+  private Transaction tx;
+
   private Path path;
   private String bucket;
   private String ext;
   private Sink sink;
 
-  public TransactionSource(Path path, String bucket, String ext) {
-    this.path = path;
-    this.bucket = bucket;
-    this.ext = ext;
+  public TransactionSource(Transaction tx) {
+
+    this.tx = tx;
+
+    this.path = tx.createTxPath();
+    this.bucket = tx.getBucket();
+    this.ext = tx.getFileExt();
   }
 
   @Override
@@ -64,7 +71,13 @@ public class TransactionSource extends Source {
       reader = createReader();
 
       NullWritable nil = NullWritable.get();
-      ByteArrayEvent event = new ByteArrayEvent();
+      Event event = null;
+      try {
+        event = tx.newEvent();
+      } catch (Exception e) {
+        // Should relaly never happen, since the Event class should always be available
+        throw new IOException("Failed to create Event class", e);
+      }
 
       while (reader.next(nil, event)) {
         sink.append(event);
@@ -88,6 +101,11 @@ public class TransactionSource extends Source {
     FileSystem hdfs = path.getFileSystem(conf);
 
     return new SequenceFile.Reader(hdfs, path, conf);
+  }
+
+  @Override
+  public Class<?> getEventClass() {
+    return ByteArrayEvent.class;
   }
 
 }

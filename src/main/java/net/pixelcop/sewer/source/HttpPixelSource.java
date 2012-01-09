@@ -137,4 +137,9 @@ public class HttpPixelSource extends Source {
 
   }
 
+  @Override
+  public Class<?> getEventClass() {
+    return AccessLogEvent.class;
+  }
+
 }

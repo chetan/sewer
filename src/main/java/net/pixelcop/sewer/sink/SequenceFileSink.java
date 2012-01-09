@@ -2,7 +2,6 @@ package net.pixelcop.sewer.sink;
 
 import java.io.IOException;
 
-import net.pixelcop.sewer.ByteArrayEvent;
 import net.pixelcop.sewer.Event;
 import net.pixelcop.sewer.node.Node;
 import net.pixelcop.sewer.util.HdfsUtil;
@@ -83,7 +82,9 @@ public class SequenceFileSink extends BucketedSink {
     FileSystem hdfs = dstPath.getFileSystem(conf);
 
     writer = SequenceFile.createWriter(
-        hdfs, conf, dstPath, NullWritable.class, ByteArrayEvent.class, CompressionType.BLOCK, codec);
+        hdfs, conf, dstPath, NullWritable.class,
+        Node.getInstance().getSource().getEventClass(),
+        CompressionType.BLOCK, codec);
 
     if (LOG.isInfoEnabled()) {
       LOG.info("Opened SequenceFileSink: " + dstPath.toString());

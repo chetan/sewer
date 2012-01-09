@@ -3,6 +3,7 @@ package net.pixelcop.sewer.source;
 import java.io.IOException;
 import java.net.Socket;
 
+import net.pixelcop.sewer.ByteArrayEvent;
 import net.pixelcop.sewer.Event;
 import net.pixelcop.sewer.Sink;
 import net.pixelcop.sewer.Source;
@@ -97,6 +98,11 @@ public class SyslogTcpSource extends Source {
 
     this.serverThread.start();
     setStatus(FLOWING);
+  }
+
+  @Override
+  public Class<?> getEventClass() {
+    return ByteArrayEvent.class;
   }
 
 }

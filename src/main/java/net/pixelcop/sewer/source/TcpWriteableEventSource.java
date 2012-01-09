@@ -69,4 +69,9 @@ public class TcpWriteableEventSource extends Source {
     setStatus(CLOSED);
   }
 
+  @Override
+  public Class<?> getEventClass() {
+    return ByteArrayEvent.class;
+  }
+
 }

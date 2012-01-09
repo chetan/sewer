@@ -10,7 +10,6 @@ import org.eclipse.jetty.server.Request;
 public class AccessLogExtractor {
 
   private static final byte[] TAB = new String("\t").getBytes();
-  private static final byte[] S_204 = new String("204").getBytes();
 
   private static final ThreadLocal<Text> textLocal = new ThreadLocal<Text>() {
     protected Text initialValue() {
@@ -25,7 +24,7 @@ public class AccessLogExtractor {
 
     // 9 vals
     // ${time_nsecs},${ip_remote},"${http_host}","${request}","${query_string}"
-    // ${status},"${http_referrer}","${http_user_agent}","${http_cookie}"
+    // "${http_referrer}","${http_user_agent}","${http_cookie}"
 
     // time_nsecs
     // we currently want ns, but we might be better off with
@@ -48,10 +47,6 @@ public class AccessLogExtractor {
     // query_string
     append(text, baseRequest.getQueryString());
 
-    // status
-    text.append(S_204, 0, 3);
-    text.append(TAB, 0, 1);
-
     // http_referrer
     append(text, baseRequest.getHeader(HttpHeaders.REFERER));
 
@@ -73,6 +68,24 @@ public class AccessLogExtractor {
       text.append(val.getBytes(), 0, val.length());
     }
     text.append(TAB, 0, 1);
+  }
+
+  public static Event extractAccessLogEvent(Request req) {
+
+    String ip = req.getHeader(HttpHeaders.X_FORWARDED_FOR);
+    if (ip == null) {
+        ip = req.getRemoteAddr();
+    }
+
+    return new AccessLogEvent(
+        System.nanoTime(),
+        ip,
+        req.getServerName(),
+        req.getRequestURI(),
+        req.getQueryString(),
+        req.getHeader(HttpHeaders.REFERER),
+        req.getHeader(HttpHeaders.USER_AGENT),
+        req.getHeader(HttpHeaders.COOKIE));
   }
 
 }

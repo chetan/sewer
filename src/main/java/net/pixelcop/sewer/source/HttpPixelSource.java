@@ -41,7 +41,7 @@ public class HttpPixelSource extends Source {
       baseRequest.setHandled(true);
 
       // log request
-      Event event = AccessLogExtractor.extractByteArrayEvent(baseRequest);
+      Event event = AccessLogExtractor.extractAccessLogEvent(baseRequest);
       sink.append(event);
     }
   }

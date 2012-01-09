@@ -18,7 +18,7 @@ public class ByteArrayEvent implements Event {
     }
 
     public ByteArrayEvent(byte[] body) {
-        this.setBody(body);
+        this.body = body;
     }
 
     public ByteArrayEvent(DataInput in) throws IOException {
@@ -27,22 +27,14 @@ public class ByteArrayEvent implements Event {
 
     @Override
     public void write(DataOutput out) throws IOException {
-        out.writeInt(getBody().length);
-        out.write(getBody());
+        out.writeInt(body.length);
+        out.write(body);
     }
 
     @Override
     public void readFields(DataInput in) throws IOException {
-        setBody(new byte[in.readInt()]);
-        in.readFully(getBody());
-    }
-
-    public void setBody(byte[] body) {
-        this.body = body;
-    }
-
-    public byte[] getBody() {
-        return body;
+        this.body = new byte[in.readInt()];
+        in.readFully(body);
     }
 
     @Override

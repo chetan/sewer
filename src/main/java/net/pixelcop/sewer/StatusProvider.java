@@ -10,17 +10,17 @@ public interface StatusProvider {
   /**
    * Channel is in the process of closing down
    */
-  public static final int CLOSING   = 3;
+  public static final int CLOSING   = 1;
 
   /**
    * Channel is in the process of opening
    */
-  public static final int OPENING   = 1;
+  public static final int OPENING   = 2;
 
   /**
    * Channel is active and Events are flowing through it
    */
-  public static final int FLOWING   = 2;
+  public static final int FLOWING   = 3;
 
   /**
    * Channel is in an error state and Events are not flowing through it

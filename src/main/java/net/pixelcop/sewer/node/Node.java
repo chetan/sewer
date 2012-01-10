@@ -33,7 +33,7 @@ public class Node extends Thread implements SmartRpcClientEventHandler {
 
   private static final Logger LOG = LoggerFactory.getLogger(Node.class);
 
-  private static Node instance;
+  protected static Node instance;
 
   private final NodeConfig conf;
 
@@ -67,7 +67,6 @@ public class Node extends Thread implements SmartRpcClientEventHandler {
   public Node(NodeConfig config) throws IOException {
 
     setName("Node " + getId());
-
     this.setNodeType(null); // TODO set node type
 
     this.conf = config;
@@ -119,6 +118,7 @@ public class Node extends Thread implements SmartRpcClientEventHandler {
   public void run() {
 
     try {
+      LOG.debug("Opening source");
       this.source.open();
     } catch (IOException e) {
       LOG.error("Failed to open source: " + e.getMessage(), e);

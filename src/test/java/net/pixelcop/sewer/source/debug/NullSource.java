@@ -28,7 +28,6 @@ public class NullSource extends Source {
   @Override
   public void open() throws IOException {
     LOG.debug("open");
-    System.out.println("opening obj: " + this.toString());
     setStatus(FLOWING);
   }
 

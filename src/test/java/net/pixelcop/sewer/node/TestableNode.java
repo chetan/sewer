@@ -5,6 +5,8 @@ import java.util.concurrent.CountDownLatch;
 
 public class TestableNode extends Node {
 
+  private int exitCaught = 0;
+
   /**
    * Used to hack node startup for testability
    */
@@ -17,12 +19,19 @@ public class TestableNode extends Node {
 
   @Override
   public void run() {
-    super.run();
+    try {
+      super.run();
+    } catch (ExitException e) {
+      this.exitCaught = e.status;
+    }
     latch.countDown();
   }
 
   public void await() throws InterruptedException {
     this.latch.await();
+    if (exitCaught != 0) {
+      throw new ExitException(exitCaught);
+    }
   }
 
 }

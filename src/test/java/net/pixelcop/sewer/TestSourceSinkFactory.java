@@ -1,5 +1,6 @@
 package net.pixelcop.sewer;
 
+import static org.junit.Assert.*;
 import net.pixelcop.sewer.node.BaseNodeTest;
 import net.pixelcop.sewer.sink.debug.NullSink;
 import net.pixelcop.sewer.sink.durable.ReliableSink;
@@ -58,6 +59,20 @@ public class TestSourceSinkFactory extends BaseNodeTest {
 
     RollSink sink = (RollSink) factory.build();
     assertEquals(10*1000, sink.getInterval());
+  }
+
+  @Test
+  public void testCreateSimpleSource() {
+    testSource("null");
+    testSource("null()");
+    testSource("null(foobar)");
+  }
+
+  private void testSource(String config) {
+    SourceSinkFactory<Source> factory = new SourceSinkFactory<Source>(config, SourceRegistry.getRegistry());
+    assertNotNull(factory);
+    assertNotNull(factory.getClasses());
+    assertEquals(1, factory.getClasses().size());
   }
 
 }

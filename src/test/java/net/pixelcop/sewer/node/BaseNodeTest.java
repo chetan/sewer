@@ -2,7 +2,6 @@ package net.pixelcop.sewer.node;
 
 import java.security.Permission;
 
-import junit.framework.TestCase;
 import net.pixelcop.sewer.SinkRegistry;
 import net.pixelcop.sewer.SourceRegistry;
 import net.pixelcop.sewer.sink.debug.CountingSink;
@@ -10,11 +9,15 @@ import net.pixelcop.sewer.source.debug.EventGeneratorSource;
 import net.pixelcop.sewer.source.debug.FailOpenSource;
 import net.pixelcop.sewer.source.debug.NullSource;
 
+import org.junit.After;
 import org.junit.Before;
+import org.junit.runner.RunWith;
+import org.junit.runners.BlockJUnit4ClassRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class BaseNodeTest extends TestCase {
+@RunWith(BlockJUnit4ClassRunner.class)
+public abstract class BaseNodeTest {
 
   private static class NoExitSecurityManager extends SecurityManager {
     @Override
@@ -39,8 +42,7 @@ public abstract class BaseNodeTest extends TestCase {
   private SecurityManager securityManager;
 
   @Before
-  @Override
-  protected void setUp() throws Exception {
+  public void setup() throws Exception {
     securityManager = System.getSecurityManager();
     System.setSecurityManager(new NoExitSecurityManager());
     SourceRegistry.register("null", NullSource.class);
@@ -49,9 +51,8 @@ public abstract class BaseNodeTest extends TestCase {
     SinkRegistry.register("counting", CountingSink.class);
   }
 
-  @Override
-  protected void tearDown() throws Exception {
-    super.tearDown();
+  @After
+  public void teardown() throws Exception {
     System.setSecurityManager(securityManager);
   }
 

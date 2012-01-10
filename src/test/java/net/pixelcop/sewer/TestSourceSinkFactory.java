@@ -5,6 +5,7 @@ import net.pixelcop.sewer.node.BaseNodeTest;
 import net.pixelcop.sewer.sink.debug.NullSink;
 import net.pixelcop.sewer.sink.durable.ReliableSink;
 import net.pixelcop.sewer.sink.durable.RollSink;
+import net.pixelcop.sewer.source.debug.NullSource;
 
 import org.junit.Test;
 
@@ -73,6 +74,12 @@ public class TestSourceSinkFactory extends BaseNodeTest {
     assertNotNull(factory);
     assertNotNull(factory.getClasses());
     assertEquals(1, factory.getClasses().size());
+    assertEquals(NullSource.class, factory.getClasses().get(0).getClazz());
+  }
+
+  @Test
+  public void testAcceptsUppercaseName() {
+    testSource("NULL");
   }
 
 }

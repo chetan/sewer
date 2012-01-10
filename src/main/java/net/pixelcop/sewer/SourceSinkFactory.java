@@ -79,7 +79,7 @@ public class SourceSinkFactory<T> {
         // TODO throw exception
       }
 
-      String clazzId = matcher.group(1);
+      String clazzId = matcher.group(1).toLowerCase();
       if (!SinkRegistry.exists(clazzId)) {
         // TODO throw exception
       }

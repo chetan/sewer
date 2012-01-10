@@ -31,10 +31,11 @@ public class SinkRegistry {
     // debug
     register("null", NullSink.class);
     register("console", ConsoleSink.class);
+    register("stdout", ConsoleSink.class);
   }
 
   public static final void register(String name, Class clazz) {
-    registry.put(name, clazz);
+    registry.put(name.toLowerCase(), clazz);
   }
 
   public static final Class get(String name) {

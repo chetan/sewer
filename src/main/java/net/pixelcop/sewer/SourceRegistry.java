@@ -21,7 +21,7 @@ public class SourceRegistry {
   }
 
   public static final void register(String name, Class clazz) {
-    registry.put(name, clazz);
+    registry.put(name.toLowerCase(), clazz);
   }
 
   public static final Class get(String name) {

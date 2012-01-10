@@ -20,6 +20,14 @@ public class TestNodeWiring extends BaseNodeTest {
     TestableNode node = createNode("null", "null");
 
     basicTests(node);
+
+    assertEquals(Plumbing.CLOSED, node.getSource().getStatus());
+    try {
+      node.start();
+      node.await(); // need to wait because we are starting a new thread above
+    } catch (InterruptedException e) {
+    }
+    assertEquals(Plumbing.FLOWING, node.getSource().getStatus());
   }
 
   private void basicTests(Node node) {
@@ -34,21 +42,6 @@ public class TestNodeWiring extends BaseNodeTest {
 
     assertEquals(NullSource.class.getName(), node.getSource().getClass().getName());
     assertEquals(NullSink.class.getName(), node.getSinkFactory().getClasses().get(0).getClazz().getName());
-
-    assertEquals(Plumbing.CLOSED, node.getSource().getStatus());
-
-    try {
-      if (node instanceof TestableNode) {
-        node.start();
-        ((TestableNode) node).await(); // need to wait because we are starting a new thread above
-      } else {
-        Thread.sleep(250);
-      }
-
-    } catch (InterruptedException e) {
-    }
-
-    assertEquals(Plumbing.FLOWING, node.getSource().getStatus());
   }
 
   @Test

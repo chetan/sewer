@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
 
@@ -48,7 +49,8 @@ public class NodeConfigurator {
       cmd = parser.parse(opts, args);
 
     } catch (ParseException e) {
-      e.printStackTrace();
+      System.err.println("Failed to parse command line: " + e.getMessage());
+      System.exit(2);
     }
 
     if (cmd.hasOption('h')) {
@@ -90,25 +92,29 @@ public class NodeConfigurator {
     return conf;
   }
 
-  @SuppressWarnings("static-access")
   private void addPropsFromClasspath(NodeConfig conf) {
+
     try {
-      URL props = Thread.currentThread().getContextClassLoader()
-          .getSystemResource("config.properties");
 
-      if (verbose) {
-        System.out.println("loading config: " + props.toString());
+      Enumeration<URL> urls = Thread.currentThread().getContextClassLoader().getResources("config.properties");
+      while (urls.hasMoreElements()) {
+        addPropsFromUrl(conf, urls.nextElement());
       }
-
-      InputStream stream = Thread.currentThread().getContextClassLoader()
-          .getSystemResourceAsStream("config.properties");
-
-      addProps(conf, stream);
 
     } catch (IOException e) {
       System.err.println("unable to load config from classpath: " + e.getMessage());
-      System.exit(1);
+      System.exit(2);
     }
+  }
+
+  @SuppressWarnings("static-access")
+  private void addPropsFromUrl(NodeConfig conf, URL props) throws IOException {
+
+    if (verbose) {
+      System.out.println("loading config: " + props.toString());
+    }
+
+    addProps(conf, props.openStream());
   }
 
   private void addPropsFromFile(NodeConfig conf, String filename) {
@@ -122,19 +128,19 @@ public class NodeConfigurator {
 
     } catch (FileNotFoundException e) {
       System.err.println("file not found: " + filename);
-      System.exit(1);
+      System.exit(2);
     }
 
     if (stream == null) {
       System.err.println("unable to locate a config file. try passing -c <file>");
-      System.exit(1);
+      System.exit(2);
     }
 
     try {
       addProps(conf, stream);
     } catch (IOException e) {
       System.err.println("unable to load config from '" + filename + "': " + e.getMessage());
-      System.exit(1);
+      System.exit(2);
     }
   }
 

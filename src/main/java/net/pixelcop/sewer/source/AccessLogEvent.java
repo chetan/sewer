@@ -6,6 +6,7 @@ import java.io.IOException;
 
 import net.pixelcop.sewer.Event;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.io.WritableUtils;
 
 public class AccessLogEvent implements Event {
@@ -61,6 +62,14 @@ public class AccessLogEvent implements Event {
     this.referer = WritableUtils.readString(in);
     this.userAgent = WritableUtils.readString(in);
     this.cookies = WritableUtils.readString(in);
+  }
+
+  @Override
+  public String toString() {
+    return StringUtils.join(new String[] {
+        Long.toString(timestamp), ip, host, requestPath,
+        queryString, referer, userAgent, cookies
+    }, '\t');
   }
 
 }

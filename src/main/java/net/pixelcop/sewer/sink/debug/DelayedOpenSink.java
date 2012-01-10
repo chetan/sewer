@@ -1,4 +1,4 @@
-package net.pixelcop.sewer.sink.durable;
+package net.pixelcop.sewer.sink.debug;
 
 import java.io.IOException;
 
@@ -11,6 +11,9 @@ import org.slf4j.LoggerFactory;
 /**
  * Delays opening of the SubSink until the first {@link #append(Event)} call. This allows us to
  * avoid useless empty file creation when no Events are actually being received.
+ *
+ * <p><strong>NOTE:</strong> This can have a <strong>huge</strong> impact on performance. For this reason, it has been moved to the
+ * debug package. Use with caution!</p>
  *
  * @author chetan
  *

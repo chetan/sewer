@@ -7,8 +7,8 @@ import net.pixelcop.sewer.sink.DfsSink;
 import net.pixelcop.sewer.sink.SequenceFileSink;
 import net.pixelcop.sewer.sink.TcpWriteableEventSink;
 import net.pixelcop.sewer.sink.debug.ConsoleSink;
+import net.pixelcop.sewer.sink.debug.DelayedOpenSink;
 import net.pixelcop.sewer.sink.debug.NullSink;
-import net.pixelcop.sewer.sink.durable.DelayedOpenSink;
 import net.pixelcop.sewer.sink.durable.ReliableSink;
 import net.pixelcop.sewer.sink.durable.RollSink;
 

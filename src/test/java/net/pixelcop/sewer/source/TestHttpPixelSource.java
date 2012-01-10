@@ -40,14 +40,17 @@ public class TestHttpPixelSource extends BaseNodeTest {
       fail("error");
     }
 
-    System.out.println("starting test");
+    assertEquals(1, CountingSink.getOpenCount());
     ping(30);
-    assertEquals(30, CountingSink.getCount());
+    assertEquals(30, CountingSink.getAppendCount());
     CountingSink.reset();
 
     ping(15);
-    assertEquals(15, CountingSink.getCount());
+    assertEquals(15, CountingSink.getAppendCount());
     CountingSink.reset();
+
+    cleanupNode(node);
+    assertEquals(1, CountingSink.getCloseCount());
   }
 
   private void ping(int count) throws IOException {

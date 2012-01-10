@@ -8,25 +8,29 @@ import net.pixelcop.sewer.Sink;
 
 public class CountingSink extends Sink {
 
-  private static final AtomicInteger count = new AtomicInteger();
+  private static final AtomicInteger appendCount = new AtomicInteger();
+  private static final AtomicInteger openCount = new AtomicInteger();
+  private static final AtomicInteger closeCount = new AtomicInteger();
 
   public CountingSink(String[] args) {
   }
 
   @Override
   public void close() throws IOException {
+    closeCount.incrementAndGet();
     setStatus(CLOSED);
   }
 
   @Override
   public void append(Event event) throws IOException {
     synchronized (event) {
-      count.incrementAndGet();
+      appendCount.incrementAndGet();
     }
   }
 
   @Override
   public void open() throws IOException {
+    openCount.incrementAndGet();
     setStatus(FLOWING);
   }
 
@@ -35,12 +39,33 @@ public class CountingSink extends Sink {
    *
    * @return int Append count
    */
-  public static int getCount() {
-    return count.get();
+  public static int getAppendCount() {
+    return appendCount.get();
   }
 
+  /**
+   * Gets the open count
+   * @return
+   */
+  public static int getOpenCount() {
+    return openCount.get();
+  }
+
+  /**
+   * Get the close count
+   * @return
+   */
+  public static int getCloseCount() {
+    return closeCount.get();
+  }
+
+  /**
+   * Reset counters
+   */
   public static void reset() {
-    count.set(0);
+    appendCount.set(0);
+    openCount.set(0);
+    closeCount.set(0);
   }
 
 }

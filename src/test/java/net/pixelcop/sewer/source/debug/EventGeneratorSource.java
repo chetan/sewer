@@ -30,6 +30,16 @@ public class EventGeneratorSource extends Source {
         } catch (IOException e) {
           LOG.debug("Error appending", e);
         }
+        try {
+          Thread.sleep(delay);
+        } catch (InterruptedException e) {
+          break;
+        }
+      }
+
+      try {
+        sink.close();
+      } catch (IOException e1) {
       }
     }
   }
@@ -38,25 +48,35 @@ public class EventGeneratorSource extends Source {
 
   private static final int DEFAULT_MAX = 1000;
   private static final int DEFAULT_LENGTH = 32;
+  private static final int DEFAULT_DELAY = 0;
 
   private final AtomicInteger count = new AtomicInteger();
-  private final int max;
-  private final int length;
+
+  private int max;
+  private int length;
+  private int delay;
+
+  private GenThread thread;
 
   public EventGeneratorSource(String[] args) {
-    if (args != null && args.length >= 1) {
-      this.max = NumberUtils.toInt(args[0], DEFAULT_MAX);
-      this.length = args.length >= 2 ? NumberUtils.toInt(args[1], DEFAULT_LENGTH) : DEFAULT_LENGTH;
-
-    } else {
-      this.max = DEFAULT_MAX;
-      this.length = DEFAULT_LENGTH;
+    if (args == null || args.length == 0) {
+      return;
     }
 
+    if (args.length >= 1) {
+      this.max = NumberUtils.toInt(args[0], DEFAULT_MAX);
+    }
+    if (args.length >= 2) {
+      this.length = NumberUtils.toInt(args[1], DEFAULT_LENGTH);
+    }
+    if (args.length >= 3) {
+      this.delay = NumberUtils.toInt(args[2], DEFAULT_DELAY) * 1000;
+    }
   }
 
   @Override
   public void close() throws IOException {
+    thread.interrupt();
     setStatus(CLOSED);
   }
 
@@ -67,7 +87,8 @@ public class EventGeneratorSource extends Source {
 
   @Override
   public void open() throws IOException {
-    new GenThread().start();
+    thread = new GenThread();
+    thread.start();
     setStatus(FLOWING);
   }
 

@@ -11,6 +11,7 @@ import net.pixelcop.sewer.source.debug.FailOpenSource;
 import net.pixelcop.sewer.source.debug.NullSource;
 
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.junit.runners.BlockJUnit4ClassRunner;
@@ -18,7 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @RunWith(BlockJUnit4ClassRunner.class)
-public abstract class BaseNodeTest {
+public abstract class BaseNodeTest extends Assert {
 
   private static class NoExitSecurityManager extends SecurityManager {
     @Override
@@ -46,9 +47,11 @@ public abstract class BaseNodeTest {
   public void setup() throws Exception {
     securityManager = System.getSecurityManager();
     System.setSecurityManager(new NoExitSecurityManager());
+
     SourceRegistry.register("null", NullSource.class);
     SourceRegistry.register("gen", EventGeneratorSource.class);
     SourceRegistry.register("failopen", FailOpenSource.class);
+
     SinkRegistry.register("counting", CountingSink.class);
   }
 
@@ -59,12 +62,39 @@ public abstract class BaseNodeTest {
     cleanupNode(Node.instance);
   }
 
+  /**
+   * Configures a new node but does not start it
+   *
+   * @param source
+   * @param sink
+   * @return
+   * @throws IOException
+   */
   public TestableNode createNode(String source, String sink) throws IOException {
     NodeConfig conf = new NodeConfigurator().configure(new String[]{ "-v" });
     conf.set(NodeConfig.SOURCE, source);
     conf.set(NodeConfig.SINK, sink);
 
     TestableNode node = new TestableNode(conf);
+    return node;
+  }
+
+  /**
+   * Create a node and start it
+   *
+   * @param source
+   * @param sink
+   * @return
+   * @throws IOException
+   */
+  public TestableNode createAndStartNode(String source, String sink) throws IOException {
+    TestableNode node = createNode(source, sink);
+    node.start();
+    try {
+      node.await();
+    } catch (InterruptedException e) {
+      fail("node startup interrupted");
+    }
     return node;
   }
 

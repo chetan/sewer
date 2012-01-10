@@ -6,7 +6,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import net.pixelcop.sewer.Event;
 import net.pixelcop.sewer.Sink;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class CountingSink extends Sink {
+
+  private static final Logger LOG = LoggerFactory.getLogger(CountingSink.class);
 
   private static final AtomicInteger appendCount = new AtomicInteger();
   private static final AtomicInteger openCount = new AtomicInteger();
@@ -17,20 +22,26 @@ public class CountingSink extends Sink {
 
   @Override
   public void close() throws IOException {
-    closeCount.incrementAndGet();
+    LOG.debug("close");
+    synchronized (closeCount) {
+      closeCount.incrementAndGet();
+    }
     setStatus(CLOSED);
   }
 
   @Override
   public void append(Event event) throws IOException {
-    synchronized (event) {
+    synchronized (appendCount) {
       appendCount.incrementAndGet();
     }
   }
 
   @Override
   public void open() throws IOException {
-    openCount.incrementAndGet();
+    LOG.debug("open");
+    synchronized (openCount) {
+      openCount.incrementAndGet();
+    }
     setStatus(FLOWING);
   }
 

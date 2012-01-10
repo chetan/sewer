@@ -95,6 +95,11 @@ public class HttpPixelSource extends Source {
 
   @Override
   public void close() throws IOException {
+
+    if (getStatus() == CLOSED) {
+      return;
+    }
+
     setStatus(CLOSING);
     LOG.info("Closing " + this.getClass().getSimpleName());
     try {
@@ -140,6 +145,10 @@ public class HttpPixelSource extends Source {
   @Override
   public Class<?> getEventClass() {
     return AccessLogEvent.class;
+  }
+
+  public int getPort() {
+    return port;
   }
 
 }

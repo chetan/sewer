@@ -25,7 +25,7 @@ HTTPCLIENT = [
     "commons-httpclient:commons-httpclient:jar:3.1",
     ] + COMMONS_CODEC + COMMONS_LOGGING
 
-JUNIT = [ "junit:junit:jar:4.8.1" ]
+JUNIT = [ "junit:junit:jar:4.10" ]
 
 ANT = [ "org.apache.ant:ant:jar:1.8.0" ]
 

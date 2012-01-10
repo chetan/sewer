@@ -1,5 +1,6 @@
 package net.pixelcop.sewer.node;
 
+import java.io.IOException;
 import java.security.Permission;
 
 import net.pixelcop.sewer.SinkRegistry;
@@ -54,6 +55,31 @@ public abstract class BaseNodeTest {
   @After
   public void teardown() throws Exception {
     System.setSecurityManager(securityManager);
+    cleanupNode(TestableNode.instance);
+    cleanupNode(Node.instance);
+  }
+
+  public TestableNode createNode(String source, String sink) throws IOException {
+    NodeConfig conf = new NodeConfigurator().configure(new String[]{ "-v" });
+    conf.set(NodeConfig.SOURCE, source);
+    conf.set(NodeConfig.SINK, sink);
+
+    TestableNode node = new TestableNode(conf);
+    return node;
+  }
+
+  public void cleanupNode(Node node) {
+
+    if (node == null || node.getSource() == null) {
+      return;
+    }
+
+    try {
+      node.getSource().close();
+    } catch (IOException e) {
+      LOG.warn("error closing source", e);
+    }
+
   }
 
 }

@@ -17,11 +17,7 @@ public class TestNodeWiring extends BaseNodeTest {
   @Test
   public void testBasicSetup() throws IOException {
 
-    NodeConfig conf = new NodeConfigurator().configure(new String[]{ "-v" });
-    conf.set(NodeConfig.SOURCE, "null");
-    conf.set(NodeConfig.SINK, "null");
-
-    TestableNode node = new TestableNode(conf);
+    TestableNode node = createNode("null", "null");
 
     basicTests(node);
   }

@@ -8,7 +8,7 @@ import net.pixelcop.sewer.Sink;
 
 public class CountingSink extends Sink {
 
-  private final AtomicInteger count = new AtomicInteger();
+  private static final AtomicInteger count = new AtomicInteger();
 
   public CountingSink(String[] args) {
   }
@@ -20,7 +20,9 @@ public class CountingSink extends Sink {
 
   @Override
   public void append(Event event) throws IOException {
-    count.incrementAndGet();
+    synchronized (event) {
+      count.incrementAndGet();
+    }
   }
 
   @Override
@@ -33,8 +35,12 @@ public class CountingSink extends Sink {
    *
    * @return int Append count
    */
-  public int getCount() {
+  public static int getCount() {
     return count.get();
+  }
+
+  public static void reset() {
+    count.set(0);
   }
 
 }

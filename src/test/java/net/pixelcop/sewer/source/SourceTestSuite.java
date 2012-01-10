@@ -1,0 +1,11 @@
+package net.pixelcop.sewer.source;
+
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
+import org.junit.runners.Suite.SuiteClasses;
+
+@RunWith(Suite.class)
+@SuiteClasses({ TestHttpPixelSource.class })
+public class SourceTestSuite {
+
+}

@@ -124,4 +124,8 @@ public class RollSink extends Sink implements Runnable {
     LOG.debug("rotation complete");
   }
 
+  public int getInterval() {
+    return interval;
+  }
+
 }

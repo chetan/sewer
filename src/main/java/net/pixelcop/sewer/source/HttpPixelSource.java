@@ -27,10 +27,6 @@ import org.slf4j.LoggerFactory;
  */
 public class HttpPixelSource extends Source {
 
-  class LogBuilder {
-
-  }
-
   class PixelHandler extends AbstractHandler {
     @Override
     public void handle(String target, Request baseRequest, HttpServletRequest request,
@@ -128,6 +124,8 @@ public class HttpPixelSource extends Source {
   @Override
   public void open() throws IOException {
 
+    setStatus(OPENING);
+
     this.sink = createSink();
 
     if (LOG.isInfoEnabled()) {
@@ -139,6 +137,8 @@ public class HttpPixelSource extends Source {
     } catch (Exception e) {
       throw new IOException("Failed to start server: " + e.getMessage(), e);
     }
+
+    setStatus(FLOWING);
 
   }
 

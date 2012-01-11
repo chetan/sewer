@@ -6,7 +6,7 @@ import net.pixelcop.sewer.Sink;
 import net.pixelcop.sewer.SinkRegistry;
 import net.pixelcop.sewer.Source;
 import net.pixelcop.sewer.SourceRegistry;
-import net.pixelcop.sewer.SourceSinkFactory;
+import net.pixelcop.sewer.PlumbingFactory;
 import net.pixelcop.sewer.rpc.MasterAPI;
 import net.pixelcop.sewer.rpc.SmartRpcClient;
 import net.pixelcop.sewer.rpc.SmartRpcClientEventHandler;
@@ -42,8 +42,8 @@ public class Node extends Thread implements SmartRpcClientEventHandler {
 
   private Source source;
 
-  private SourceSinkFactory<Source> sourceFactory;
-  private SourceSinkFactory<Sink> sinkFactory;
+  private PlumbingFactory<Source> sourceFactory;
+  private PlumbingFactory<Sink> sinkFactory;
 
   public static Node getInstance() {
     return instance;
@@ -84,8 +84,8 @@ public class Node extends Thread implements SmartRpcClientEventHandler {
   protected void configure() throws IOException {
 
     try {
-      this.sourceFactory = new SourceSinkFactory<Source>(conf.get(NodeConfig.SOURCE), SourceRegistry.getRegistry());
-      this.sinkFactory = new SourceSinkFactory<Sink>(conf.get(NodeConfig.SINK), SinkRegistry.getRegistry());
+      this.sourceFactory = new PlumbingFactory<Source>(conf.get(NodeConfig.SOURCE), SourceRegistry.getRegistry());
+      this.sinkFactory = new PlumbingFactory<Sink>(conf.get(NodeConfig.SINK), SinkRegistry.getRegistry());
 
     } catch (ConfigurationException ex) {
       LOG.error("Node configuration failed: " + ex.getMessage(), ex);
@@ -165,7 +165,7 @@ public class Node extends Thread implements SmartRpcClientEventHandler {
     return source;
   }
 
-  public SourceSinkFactory<Sink> getSinkFactory() {
+  public PlumbingFactory<Sink> getSinkFactory() {
     return sinkFactory;
   }
 

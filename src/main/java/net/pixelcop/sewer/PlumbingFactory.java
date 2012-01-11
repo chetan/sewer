@@ -10,15 +10,16 @@ import net.pixelcop.sewer.node.ConfigurationException;
 
 
 @SuppressWarnings({"rawtypes", "unchecked"})
-public class SourceSinkFactory<T> {
+public class PlumbingFactory<T> {
 
   private static final Pattern configPattern = Pattern.compile("^(.*?)(\\((.*?)\\))?$");
 
-  public class SourceSinkBuilder {
+  public class Builder {
+
     private Class clazz;
     private String[] args;
 
-    public SourceSinkBuilder(Class clazz, String[] args) {
+    public Builder(Class clazz, String[] args) {
       this.clazz = clazz;
       this.args = args;
     }
@@ -54,18 +55,18 @@ public class SourceSinkFactory<T> {
   }
 
   private String config;
-  private List<SourceSinkBuilder> classes;
+  private List<Builder> classes;
 
-  private SourceSinkFactory() {
+  private PlumbingFactory() {
   }
 
-  public SourceSinkFactory(List<SourceSinkBuilder> classes) {
+  public PlumbingFactory(List<Builder> classes) {
     this.classes = classes;
   }
 
-  public SourceSinkFactory(String config, Map<String, Class> registry) throws ConfigurationException {
+  public PlumbingFactory(String config, Map<String, Class> registry) throws ConfigurationException {
     this.config = config;
-    this.classes = new ArrayList<SourceSinkBuilder>();
+    this.classes = new ArrayList<Builder>();
     parseConfig(registry);
   }
 
@@ -99,7 +100,7 @@ public class SourceSinkFactory<T> {
         }
       }
 
-      classes.add(new SourceSinkBuilder(registry.get(clazzId), args));
+      classes.add(new Builder(registry.get(clazzId), args));
     }
 
   }
@@ -117,7 +118,7 @@ public class SourceSinkFactory<T> {
       Sink sink = (Sink) classes.get(0).build();
 
       // Create a new factory minus the sink that was just created
-      SourceSinkFactory<Sink> factory = new SourceSinkFactory<Sink>();
+      PlumbingFactory<Sink> factory = new PlumbingFactory<Sink>();
       List list = new ArrayList(this.classes.size());
       list.addAll(this.classes);
       list.remove(0);
@@ -134,7 +135,7 @@ public class SourceSinkFactory<T> {
     return null; // TODO throw exception?
   }
 
-  public List<SourceSinkBuilder> getClasses() {
+  public List<Builder> getClasses() {
     return classes;
   }
 

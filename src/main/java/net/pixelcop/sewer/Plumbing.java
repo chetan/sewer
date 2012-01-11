@@ -17,7 +17,7 @@ public abstract class Plumbing implements Closeable, StatusProvider {
     STATUS_MAP.put(ERROR,   "ERROR");
   }
 
-  private SourceSinkFactory<Sink> sinkFactory;
+  private PlumbingFactory<Sink> sinkFactory;
 
   private AtomicInteger status = new AtomicInteger(CLOSED);
 
@@ -29,11 +29,11 @@ public abstract class Plumbing implements Closeable, StatusProvider {
    */
   public abstract void open() throws IOException;
 
-  public void setSinkFactory(SourceSinkFactory<Sink> sinkFactory) {
+  public void setSinkFactory(PlumbingFactory<Sink> sinkFactory) {
     this.sinkFactory = sinkFactory;
   }
 
-  public SourceSinkFactory<Sink> getSinkFactory() {
+  public PlumbingFactory<Sink> getSinkFactory() {
     return sinkFactory;
   }
 

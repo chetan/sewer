@@ -9,11 +9,11 @@ import net.pixelcop.sewer.source.debug.NullSource;
 
 import org.junit.Test;
 
-public class TestSourceSinkFactory extends BaseNodeTest {
+public class TestPlumbingFactory extends BaseNodeTest {
 
   @Test
   public void testCreateSimple() throws ConfigurationException {
-    SourceSinkFactory<Sink> factory = new SourceSinkFactory<Sink>("null", SinkRegistry.getRegistry());
+    PlumbingFactory<Sink> factory = new PlumbingFactory<Sink>("null", SinkRegistry.getRegistry());
     assertNotNull(factory);
     assertNotNull(factory.getClasses());
     assertEquals(1, factory.getClasses().size());
@@ -23,7 +23,7 @@ public class TestSourceSinkFactory extends BaseNodeTest {
   @Test
   public void testCreateChained() throws ConfigurationException {
 
-    SourceSinkFactory<Sink> factory = new SourceSinkFactory<Sink>("roll > reliable > null", SinkRegistry.getRegistry());
+    PlumbingFactory<Sink> factory = new PlumbingFactory<Sink>("roll > reliable > null", SinkRegistry.getRegistry());
     assertNotNull(factory);
     assertNotNull(factory.getClasses());
     assertEquals(3, factory.getClasses().size());
@@ -40,7 +40,7 @@ public class TestSourceSinkFactory extends BaseNodeTest {
 
   @Test
   public void testCreateWithArgs() throws ConfigurationException {
-    SourceSinkFactory<Sink> factory = new SourceSinkFactory<Sink>("roll(10) > null", SinkRegistry.getRegistry());
+    PlumbingFactory<Sink> factory = new PlumbingFactory<Sink>("roll(10) > null", SinkRegistry.getRegistry());
     assertNotNull(factory);
     assertNotNull(factory.getClasses());
     assertEquals(2, factory.getClasses().size());
@@ -52,7 +52,7 @@ public class TestSourceSinkFactory extends BaseNodeTest {
 
   @Test
   public void testCreateWithQuotedArgs() throws ConfigurationException {
-    SourceSinkFactory<Sink> factory = new SourceSinkFactory<Sink>("roll('10') > null", SinkRegistry.getRegistry());
+    PlumbingFactory<Sink> factory = new PlumbingFactory<Sink>("roll('10') > null", SinkRegistry.getRegistry());
     assertNotNull(factory);
     assertNotNull(factory.getClasses());
     assertEquals(2, factory.getClasses().size());
@@ -69,7 +69,7 @@ public class TestSourceSinkFactory extends BaseNodeTest {
   }
 
   private void testSource(String config) throws ConfigurationException {
-    SourceSinkFactory<Source> factory = new SourceSinkFactory<Source>(config, SourceRegistry.getRegistry());
+    PlumbingFactory<Source> factory = new PlumbingFactory<Source>(config, SourceRegistry.getRegistry());
     assertNotNull(factory);
     assertNotNull(factory.getClasses());
     assertEquals(1, factory.getClasses().size());

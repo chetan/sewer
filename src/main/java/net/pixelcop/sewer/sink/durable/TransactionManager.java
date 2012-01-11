@@ -12,8 +12,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import net.pixelcop.sewer.Sink;
-import net.pixelcop.sewer.SourceSinkFactory;
-import net.pixelcop.sewer.SourceSinkFactory.SourceSinkBuilder;
+import net.pixelcop.sewer.PlumbingFactory;
+import net.pixelcop.sewer.PlumbingFactory.Builder;
 import net.pixelcop.sewer.node.ExitCodes;
 import net.pixelcop.sewer.node.Node;
 import net.pixelcop.sewer.node.NodeConfig;
@@ -45,7 +45,7 @@ public class TransactionManager extends Thread {
 
   private static final String txFileExt = new SequenceFileSink(new String[]{""}).getFileExt();
 
-  private SourceSinkFactory<Sink> unreliableSinkFactory;
+  private PlumbingFactory<Sink> unreliableSinkFactory;
   protected Transaction drainingTx;
 
   protected TransactionManager() {
@@ -280,20 +280,20 @@ public class TransactionManager extends Thread {
    * @return Sink
    */
   @SuppressWarnings({ "rawtypes", "unchecked" })
-  private SourceSinkFactory<Sink> createUnreliableSinkFactory() {
+  private PlumbingFactory<Sink> createUnreliableSinkFactory() {
 
     List classes = Node.getInstance().getSinkFactory().getClasses();
     List rawSinkClasses = new ArrayList();
 
     for (Iterator iter = classes.iterator(); iter.hasNext();) {
-      SourceSinkBuilder builder = (SourceSinkBuilder) iter.next();
+      Builder builder = (Builder) iter.next();
       if (builder.getClazz() == ReliableSink.class || builder.getClazz() == RollSink.class) {
         continue;
       }
       rawSinkClasses.add(builder);
     }
 
-    return new SourceSinkFactory<Sink>(rawSinkClasses);
+    return new PlumbingFactory<Sink>(rawSinkClasses);
   }
 
 }

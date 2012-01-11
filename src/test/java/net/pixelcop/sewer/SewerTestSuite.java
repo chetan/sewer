@@ -9,7 +9,7 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
-@SuiteClasses({ TestSourceSinkFactory.class, TestNodeWiring.class, SourceTestSuite.class,
+@SuiteClasses({ TestPlumbingFactory.class, TestNodeWiring.class, SourceTestSuite.class,
     SinkTestSuite.class })
 public class SewerTestSuite {
 

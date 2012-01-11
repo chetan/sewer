@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Vector;
 
 import net.pixelcop.sewer.Sink;
-import net.pixelcop.sewer.SourceSinkFactory;
+import net.pixelcop.sewer.PlumbingFactory;
 import net.pixelcop.sewer.StatusProvider;
 
 import org.slf4j.Logger;
@@ -44,12 +44,12 @@ public abstract class TCPServerThread extends Thread {
 
   private static final Logger LOG = LoggerFactory.getLogger(TCPServerThread.class);
 
-  private SourceSinkFactory<Sink> sinkFactory;
+  private PlumbingFactory<Sink> sinkFactory;
   private ServerSocket sock;
   private List<TCPReaderThread> readers;
   private final StatusProvider statusProvider;
 
-  public TCPServerThread(String name, int port, SourceSinkFactory<Sink> sinkFactory,
+  public TCPServerThread(String name, int port, PlumbingFactory<Sink> sinkFactory,
       StatusProvider statusProvider) throws IOException {
 
     setName(name + " " + getId());

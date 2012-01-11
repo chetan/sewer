@@ -166,31 +166,35 @@ public class TransactionManager extends Thread {
    */
   protected void saveOpenTransactionsToDisk() {
 
-    LOG.debug("Saving transaction queues to disk");
+    synchronized (DEFAULT_WAL_PATH) {
 
-    List<Transaction> txList = new ArrayList<Transaction>();
+      LOG.debug("Saving transaction queues to disk");
 
-    if (drainingTx != null) {
-      LOG.debug("Found tx currently being drained");
-      txList.add(drainingTx);
-    }
+      List<Transaction> txList = new ArrayList<Transaction>();
 
-    if (!transactions.isEmpty()) {
-      LOG.debug("Found " + transactions.size() + " presently open transactions");
-      txList.addAll(transactions.values());
-    }
+      if (drainingTx != null) {
+        LOG.debug("Found tx currently being drained");
+        txList.add(drainingTx);
+      }
 
-    if (!lostTransactions.isEmpty()) {
-      LOG.debug("Found " + lostTransactions.size() + " lost transactions");
-      txList.addAll(lostTransactions);
-    }
+      if (!transactions.isEmpty()) {
+        LOG.debug("Found " + transactions.size() + " presently open transactions");
+        txList.addAll(transactions.values());
+      }
 
-    try {
-      new ObjectMapper().writeValue(getTxLog(), txList);
-      LOG.debug("save complete");
+      if (!lostTransactions.isEmpty()) {
+        LOG.debug("Found " + lostTransactions.size() + " lost transactions");
+        txList.addAll(lostTransactions);
+      }
 
-    } catch (IOException e) {
-      LOG.error("Failed to write txn.log: " + e.getMessage(), e);
+      try {
+        new ObjectMapper().writeValue(getTxLog(), txList);
+        LOG.debug("save complete");
+
+      } catch (IOException e) {
+        LOG.error("Failed to write txn.log: " + e.getMessage(), e);
+
+      }
 
     }
 

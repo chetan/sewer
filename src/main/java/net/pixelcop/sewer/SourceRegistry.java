@@ -24,14 +24,6 @@ public class SourceRegistry {
     registry.put(name.toLowerCase(), clazz);
   }
 
-  public static final Class get(String name) {
-    return registry.get(name);
-  }
-
-  public static final boolean exists(String name) {
-    return registry.containsKey(name);
-  }
-
   public static Map<String, Class> getRegistry() {
     return registry;
   }

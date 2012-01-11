@@ -5,7 +5,9 @@ import java.security.Permission;
 
 import net.pixelcop.sewer.SinkRegistry;
 import net.pixelcop.sewer.SourceRegistry;
+import net.pixelcop.sewer.sink.TxTestHelper;
 import net.pixelcop.sewer.sink.debug.CountingSink;
+import net.pixelcop.sewer.sink.debug.FailOpenSink;
 import net.pixelcop.sewer.source.debug.EventGeneratorSource;
 import net.pixelcop.sewer.source.debug.FailOpenSource;
 import net.pixelcop.sewer.source.debug.NullSource;
@@ -53,6 +55,7 @@ public abstract class BaseNodeTest extends Assert {
     SourceRegistry.register("failopen", FailOpenSource.class);
 
     SinkRegistry.register("counting", CountingSink.class);
+    SinkRegistry.register("failopen", FailOpenSink.class);
   }
 
   @After
@@ -60,6 +63,16 @@ public abstract class BaseNodeTest extends Assert {
     System.setSecurityManager(securityManager);
     cleanupNode(TestableNode.instance);
     cleanupNode(Node.instance);
+  }
+
+  @After
+  public void cleanupTxHelpers() {
+    TxTestHelper.cleanupAllHelpers();
+  }
+
+  @Before
+  public void resetCountingSink() {
+    CountingSink.reset();
   }
 
   /**

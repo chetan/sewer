@@ -1,13 +1,19 @@
 package net.pixelcop.sewer.sink.durable;
 
+import java.io.IOException;
 import java.util.Date;
 
 import net.pixelcop.sewer.Event;
+import net.pixelcop.sewer.util.HdfsUtil;
 
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.apache.hadoop.fs.Path;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Transaction {
+
+  private static final Logger LOG = LoggerFactory.getLogger(Transaction.class);
 
   private final static FastDateFormat DATE_FORMAT = FastDateFormat.getInstance("yyyyMMdd-HHmmssSSSZ");
 
@@ -36,6 +42,11 @@ public class Transaction {
    */
   private String eventClass;
 
+  /**
+   * Create new Transaction instance
+   */
+  public Transaction() {
+  }
 
   /**
    * Create new Transaction instance
@@ -46,6 +57,8 @@ public class Transaction {
   public Transaction(Class<?> clazz, String bucket, String fileExt) {
     this.eventClass = clazz.getCanonicalName();
     this.bucket = bucket;
+    this.fileExt = fileExt;
+
     this.id = generateId();
     this.startTime = System.currentTimeMillis();
   }
@@ -68,6 +81,27 @@ public class Transaction {
     return new Path("file://" +
         TransactionManager.getInstance().getWALPath() + "/" + this.id + this.getFileExt());
   }
+
+  /**
+   * Delete the files belonging to the given transaction id
+   * @param id
+   */
+  public void deleteTxFiles() {
+
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Deleting files belonging to tx " + toString());
+    }
+
+    Path path = createTxPath();
+    try {
+      HdfsUtil.deletePath(path);
+
+    } catch (IOException e) {
+      LOG.warn("Error deleting tx file: " + e.getMessage() + "\n    path:" + path.toString(), e);
+    }
+
+  }
+
 
   /**
    * Helper method for creating a new Event object from eventClass

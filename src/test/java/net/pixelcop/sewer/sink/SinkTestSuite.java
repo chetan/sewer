@@ -5,7 +5,7 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
-@SuiteClasses({ TestRollSink.class })
+@SuiteClasses({ TestRollSink.class, TestReliableSink.class })
 public class SinkTestSuite {
 
 }

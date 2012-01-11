@@ -1,5 +1,7 @@
 package net.pixelcop.sewer.sink.durable;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,9 +19,9 @@ import net.pixelcop.sewer.node.NodeConfig;
 import net.pixelcop.sewer.sink.SequenceFileSink;
 import net.pixelcop.sewer.source.TransactionSource;
 import net.pixelcop.sewer.util.BackoffHelper;
-import net.pixelcop.sewer.util.HdfsUtil;
 
-import org.apache.hadoop.fs.Path;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.type.TypeReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,22 +33,23 @@ public class TransactionManager extends Thread {
 
   private static final String DEFAULT_WAL_PATH = "/opt/sewer/wal";
 
-  private static final TransactionManager instance = new TransactionManager();
+  protected static TransactionManager instance = new TransactionManager();
   static {
     // TODO load old transactions from storage
   }
 
-  private final Map<String, Transaction> transactions = new HashMap<String, Transaction>();
+  protected final Map<String, Transaction> transactions = new HashMap<String, Transaction>();
 
-  private final LinkedBlockingQueue<Transaction> lostTransactions = new LinkedBlockingQueue<Transaction>();
+  protected final LinkedBlockingQueue<Transaction> lostTransactions = new LinkedBlockingQueue<Transaction>();
 
-  private final String txFileExt = new SequenceFileSink(new String[]{""}).getFileExt();
+  private static final String txFileExt = new SequenceFileSink(new String[]{""}).getFileExt();
 
   private SourceSinkFactory<Sink> unreliableSinkFactory;
-  private Transaction drainingTx;
+  protected Transaction drainingTx;
 
-  private TransactionManager() {
+  protected TransactionManager() {
     this.unreliableSinkFactory = createUnreliableSinkFactory();
+    this.loadTransctionsFromDisk();
     this.setName("TxMan");
     this.start();
   }
@@ -70,6 +73,8 @@ public class TransactionManager extends Thread {
     Transaction tx = new Transaction(
         Node.getInstance().getSource().getEventClass(), bucket, this.txFileExt);
 
+    LOG.debug("startTx: " + tx);
+
     transactions.put(tx.getId(), tx);
 
     return tx.getId();
@@ -82,33 +87,14 @@ public class TransactionManager extends Thread {
    */
   public void commitTx(String id) {
 
-    if (!exists(id)) {
+    LOG.debug("commitTx: " + id);
+
+    if (!transactions.containsKey(id)) {
       return;
     }
 
     Transaction tx = transactions.remove(id);
-    deleteTxFiles(tx);
-
-  }
-
-  /**
-   * Delete the files belonging to the given transaction id
-   * @param id
-   */
-  private void deleteTxFiles(Transaction tx) {
-
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Deleting files belonging to tx " + tx);
-    }
-
-    Path path = tx.createTxPath();
-    try {
-      HdfsUtil.deletePath(path);
-
-    } catch (IOException e) {
-      LOG.warn("Error deleting tx file: " + e.getMessage() + "\n    path:" + path.toString(), e);
-    }
-
+    tx.deleteTxFiles();
   }
 
   /**
@@ -120,13 +106,13 @@ public class TransactionManager extends Thread {
    */
   public void releaseTx(String id) {
 
-    if (!exists(id)) {
+    if (!transactions.containsKey(id)) {
       return;
     }
 
     try {
-      LOG.debug("tx released: " + id);
-      lostTransactions.put(transactions.get(id));
+      LOG.debug("releaseTx: " + id);
+      lostTransactions.put(transactions.remove(id));
 
     } catch (InterruptedException e) {
       LOG.warn("Failed to release transaction into queue", e);
@@ -134,10 +120,6 @@ public class TransactionManager extends Thread {
 
     // TODO start thread ??
 
-  }
-
-  private boolean exists(String id) {
-    return transactions.containsKey(id);
   }
 
   /**
@@ -151,24 +133,87 @@ public class TransactionManager extends Thread {
       drainingTx = null;
       try {
         drainingTx = lostTransactions.poll(NANO_WAIT, TimeUnit.NANOSECONDS);
+
       } catch (InterruptedException e) {
-        // means we're shutting down
-        // TODO save lostTransactions queue and exit
+        // Interrupted, must be shutting down TxMan
+        saveOpenTransactionsToDisk();
+        return;
       }
 
       if (drainingTx == null) {
         continue;
       }
 
-      drainTx();
+      if (!drainTx()) {
+        // drain failed (interrupted, tx man shutting down), stick tx at end of queue (front ??)
+        saveOpenTransactionsToDisk();
+        return;
+      }
     }
 
+  }
+
+  protected void saveOpenTransactionsToDisk() {
+
+    LOG.debug("Saving transaction queues to disk");
+
+    if (drainingTx != null) {
+      lostTransactions.add(drainingTx);
+      drainingTx = null;
+    }
+
+    List<Transaction> txList = new ArrayList<Transaction>();
+    if (!transactions.isEmpty()) {
+      LOG.debug("Found " + transactions.size() + " presently open transactions");
+      txList.addAll(transactions.values());
+    }
+
+    if (!lostTransactions.isEmpty()) {
+      LOG.debug("Found " + lostTransactions.size() + " lost transactions");
+      txList.addAll(lostTransactions);
+    }
+
+    try {
+      new ObjectMapper().writeValue(getTxLog(), txList);
+
+    } catch (IOException e) {
+      LOG.error("Failed to write txn.log: " + e.getMessage(), e);
+
+    }
+
+  }
+
+  protected void loadTransctionsFromDisk() {
+
+    LOG.debug("Loading transaction queues from disk");
+
+    File txLog = getTxLog();
+    try {
+      ArrayList<Transaction> recovered = new ObjectMapper().readValue(txLog,
+          new TypeReference<ArrayList<Transaction>>() {});
+
+      LOG.info("Recovered " + recovered.size() + " txns from disk");
+      lostTransactions.addAll(recovered);
+
+    } catch (FileNotFoundException e) {
+      LOG.debug(e.getMessage());
+      return; // no biggie, just doesn't exist yet
+
+    } catch (Exception e) {
+      LOG.error("Failed to load txn.log: " + e.getMessage());
+      System.exit(10);
+    }
+
+  }
+
+  protected File getTxLog() {
+    return new File(getWALPath() + "/txn.log");
   }
 
   /**
    * Drains the currently selected Transaction. Returns on completion or if interrupted
    */
-  private void drainTx() {
+  private boolean drainTx() {
 
     // drain this tx to sink
     LOG.debug("Draining tx " + drainingTx);
@@ -183,13 +228,14 @@ public class TransactionManager extends Thread {
         // drain failure
         txSource.open();
         commitTx(drainingTx.getId());
-        break;
+        return true; // if we get here, drain was successful
 
       } catch (IOException e) {
         try {
           backoff.handleFailure(e, LOG, "Error draining tx", false); // TODO cancel flag?
         } catch (InterruptedException e1) {
           LOG.debug("Interrupted while draining, must be shutting down?");
+          return false;
         }
 
 

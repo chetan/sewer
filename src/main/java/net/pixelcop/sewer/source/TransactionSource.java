@@ -9,7 +9,6 @@ import net.pixelcop.sewer.Source;
 import net.pixelcop.sewer.node.Node;
 import net.pixelcop.sewer.sink.BucketedSink;
 import net.pixelcop.sewer.sink.durable.Transaction;
-import net.pixelcop.sewer.sink.durable.TransactionManager;
 import net.pixelcop.sewer.util.HdfsUtil;
 
 import org.apache.hadoop.conf.Configuration;
@@ -23,7 +22,7 @@ import org.slf4j.LoggerFactory;
 
 public class TransactionSource extends Source {
 
-  private static final Logger LOG = LoggerFactory.getLogger(TransactionManager.class);
+  private static final Logger LOG = LoggerFactory.getLogger(TransactionSource.class);
 
   private Transaction tx;
 
@@ -58,7 +57,10 @@ public class TransactionSource extends Source {
 
     // before we do anything, let's delete the existing destination file so
     // we don't have any problems
-    HdfsUtil.deletePath(new Path(bucket + ext));
+    if (bucket != null) {
+      // only if bucketed sink being used
+      HdfsUtil.deletePath(new Path(bucket + ext));
+    }
 
     sink = getSinkFactory().build();
     if (sink instanceof BucketedSink && bucket != null) {

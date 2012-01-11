@@ -138,8 +138,10 @@ public class TransactionManager extends Thread {
 
       } catch (InterruptedException e) {
         // Interrupted, must be shutting down TxMan
-        lostTransactions.add(drainingTx);
-        drainingTx = null;
+        if (drainingTx != null) {
+          lostTransactions.add(drainingTx);
+          drainingTx = null;
+        }
         saveOpenTransactionsToDisk();
         return;
       }

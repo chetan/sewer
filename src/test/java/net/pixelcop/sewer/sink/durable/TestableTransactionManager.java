@@ -41,6 +41,7 @@ public class TestableTransactionManager extends TransactionManager {
     LOG.debug("Shutting down TransactionManager");
     instance.interrupt();
     instance.join();
+    LOG.debug("TransactionManager joined");
   }
 
   /**

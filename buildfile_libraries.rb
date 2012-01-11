@@ -19,6 +19,11 @@ LOGGER = [ "org.slf4j:slf4j-api:jar:1.6.4", 'org.slf4j:slf4j-log4j12:jar:1.6.4',
 
 JSON_SMART = [ 'net.minidev:json-smart:jar:1.0.9-1' ]
 
+JACKSON = [
+    "org.codehaus.jackson:jackson-core-asl:jar:1.9.3",
+    "org.codehaus.jackson:jackson-mapper-asl:jar:1.9.3"
+    ]
+
 GUAVA = [ 'com.google.guava:guava:jar:11.0' ]
 
 HTTPCLIENT = [

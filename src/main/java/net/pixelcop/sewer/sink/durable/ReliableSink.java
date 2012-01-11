@@ -61,8 +61,9 @@ public class ReliableSink extends Sink implements SinkOpenerEvents {
       // in which case, the tx will be committed anyway
     }
 
-    if (subSink.getStatus() == OPENING) {
-      // never opened, rollback!
+    LOG.debug("subSink is currently: " + subSink.getStatusString());
+    if (subSink.getStatus() == OPENING || subSink.getStatus() == ERROR) {
+      // never opened or some other error, rollback!
       TransactionManager.getInstance().releaseTx(txId);
       return;
     }

@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.pixelcop.sewer.node.ConfigurationException;
+
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class SourceSinkFactory<T> {
@@ -61,13 +63,13 @@ public class SourceSinkFactory<T> {
     this.classes = classes;
   }
 
-  public SourceSinkFactory(String config, Map<String, Class> registry) {
+  public SourceSinkFactory(String config, Map<String, Class> registry) throws ConfigurationException {
     this.config = config;
     this.classes = new ArrayList<SourceSinkBuilder>();
     parseConfig(registry);
   }
 
-  private void parseConfig(Map<String, Class> registry) {
+  private void parseConfig(Map<String, Class> registry) throws ConfigurationException {
 
     String[] pieces = config.split("\\s*>\\s*");
     for (int i = 0; i < pieces.length; i++) {
@@ -76,12 +78,12 @@ public class SourceSinkFactory<T> {
 
       Matcher matcher = configPattern.matcher(piece);
       if (!matcher.find()) {
-        // TODO throw exception
+        throw new ConfigurationException("Invalid config pattern: " + piece);
       }
 
       String clazzId = matcher.group(1).toLowerCase();
-      if (!SinkRegistry.exists(clazzId)) {
-        // TODO throw exception
+      if (!registry.containsKey(clazzId)) {
+        throw new ConfigurationException("Invalid source/sink: " + clazzId);
       }
 
       String[] args = null;

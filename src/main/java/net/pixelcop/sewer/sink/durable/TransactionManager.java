@@ -77,6 +77,7 @@ public class TransactionManager extends Thread {
 
     transactions.put(tx.getId(), tx);
 
+    saveOpenTransactionsToDisk();
     return tx.getId();
   }
 
@@ -95,6 +96,8 @@ public class TransactionManager extends Thread {
 
     Transaction tx = transactions.remove(id);
     tx.deleteTxFiles();
+
+    saveOpenTransactionsToDisk();
   }
 
   /**
@@ -118,8 +121,7 @@ public class TransactionManager extends Thread {
       LOG.warn("Failed to release transaction into queue", e);
     }
 
-    // TODO start thread ??
-
+    saveOpenTransactionsToDisk();
   }
 
   /**
@@ -136,6 +138,8 @@ public class TransactionManager extends Thread {
 
       } catch (InterruptedException e) {
         // Interrupted, must be shutting down TxMan
+        lostTransactions.add(drainingTx);
+        drainingTx = null;
         saveOpenTransactionsToDisk();
         return;
       }
@@ -146,23 +150,31 @@ public class TransactionManager extends Thread {
 
       if (!drainTx()) {
         // drain failed (interrupted, tx man shutting down), stick tx at end of queue (front ??)
+        lostTransactions.add(drainingTx);
+        drainingTx = null;
         saveOpenTransactionsToDisk();
         return;
       }
+
+      saveOpenTransactionsToDisk();
     }
 
   }
 
+  /**
+   * Save all transactions we know about to disk
+   */
   protected void saveOpenTransactionsToDisk() {
 
     LOG.debug("Saving transaction queues to disk");
 
+    List<Transaction> txList = new ArrayList<Transaction>();
+
     if (drainingTx != null) {
-      lostTransactions.add(drainingTx);
-      drainingTx = null;
+      LOG.debug("Found tx currently being drained");
+      txList.add(drainingTx);
     }
 
-    List<Transaction> txList = new ArrayList<Transaction>();
     if (!transactions.isEmpty()) {
       LOG.debug("Found " + transactions.size() + " presently open transactions");
       txList.addAll(transactions.values());
@@ -175,6 +187,7 @@ public class TransactionManager extends Thread {
 
     try {
       new ObjectMapper().writeValue(getTxLog(), txList);
+      LOG.debug("save complete");
 
     } catch (IOException e) {
       LOG.error("Failed to write txn.log: " + e.getMessage(), e);
@@ -183,6 +196,9 @@ public class TransactionManager extends Thread {
 
   }
 
+  /**
+   * Load transaction log from disk so we can restart them
+   */
   protected void loadTransctionsFromDisk() {
 
     LOG.debug("Loading transaction queues from disk");

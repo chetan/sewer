@@ -1,5 +1,6 @@
 package net.pixelcop.sewer;
 
+
 public interface StatusProvider {
 
   /**
@@ -23,7 +24,8 @@ public interface StatusProvider {
   public static final int FLOWING   = 3;
 
   /**
-   * Channel is in an error state and Events are not flowing through it
+   * Channel is in an error state and Events are not flowing through it. This state could be set
+   * during any operation: open, close, append, etc.
    */
   public static final int ERROR     = -1;
 

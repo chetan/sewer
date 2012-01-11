@@ -20,7 +20,7 @@ public class EventGeneratorSource extends Source {
     }
     @Override
     public void run() {
-      while (count.get() <= max) {
+      while (count.get() < max) {
         String str = new String("Event " + count.incrementAndGet() + " ");
         if (str.length() < length) {
           str = str + StringUtils.repeat('X', length - str.length());

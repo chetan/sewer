@@ -1,7 +1,7 @@
 package net.pixelcop.sewer;
 
-import static org.junit.Assert.*;
 import net.pixelcop.sewer.node.BaseNodeTest;
+import net.pixelcop.sewer.node.ConfigurationException;
 import net.pixelcop.sewer.sink.debug.NullSink;
 import net.pixelcop.sewer.sink.durable.ReliableSink;
 import net.pixelcop.sewer.sink.durable.RollSink;
@@ -12,17 +12,16 @@ import org.junit.Test;
 public class TestSourceSinkFactory extends BaseNodeTest {
 
   @Test
-  public void testCreateSimple() {
+  public void testCreateSimple() throws ConfigurationException {
     SourceSinkFactory<Sink> factory = new SourceSinkFactory<Sink>("null", SinkRegistry.getRegistry());
     assertNotNull(factory);
     assertNotNull(factory.getClasses());
     assertEquals(1, factory.getClasses().size());
     assertEquals(NullSink.class, factory.getClasses().get(0).getClazz());
-
   }
 
   @Test
-  public void testCreateChained() {
+  public void testCreateChained() throws ConfigurationException {
 
     SourceSinkFactory<Sink> factory = new SourceSinkFactory<Sink>("roll > reliable > null", SinkRegistry.getRegistry());
     assertNotNull(factory);
@@ -40,7 +39,7 @@ public class TestSourceSinkFactory extends BaseNodeTest {
   }
 
   @Test
-  public void testCreateWithArgs() {
+  public void testCreateWithArgs() throws ConfigurationException {
     SourceSinkFactory<Sink> factory = new SourceSinkFactory<Sink>("roll(10) > null", SinkRegistry.getRegistry());
     assertNotNull(factory);
     assertNotNull(factory.getClasses());
@@ -52,7 +51,7 @@ public class TestSourceSinkFactory extends BaseNodeTest {
   }
 
   @Test
-  public void testCreateWithQuotedArgs() {
+  public void testCreateWithQuotedArgs() throws ConfigurationException {
     SourceSinkFactory<Sink> factory = new SourceSinkFactory<Sink>("roll('10') > null", SinkRegistry.getRegistry());
     assertNotNull(factory);
     assertNotNull(factory.getClasses());
@@ -63,13 +62,13 @@ public class TestSourceSinkFactory extends BaseNodeTest {
   }
 
   @Test
-  public void testCreateSimpleSource() {
+  public void testCreateSimpleSource() throws ConfigurationException {
     testSource("null");
     testSource("null()");
     testSource("null(foobar)");
   }
 
-  private void testSource(String config) {
+  private void testSource(String config) throws ConfigurationException {
     SourceSinkFactory<Source> factory = new SourceSinkFactory<Source>(config, SourceRegistry.getRegistry());
     assertNotNull(factory);
     assertNotNull(factory.getClasses());
@@ -78,7 +77,7 @@ public class TestSourceSinkFactory extends BaseNodeTest {
   }
 
   @Test
-  public void testAcceptsUppercaseName() {
+  public void testAcceptsUppercaseName() throws ConfigurationException {
     testSource("NULL");
   }
 

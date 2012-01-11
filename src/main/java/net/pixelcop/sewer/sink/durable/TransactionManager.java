@@ -14,6 +14,7 @@ import java.util.concurrent.TimeUnit;
 import net.pixelcop.sewer.Sink;
 import net.pixelcop.sewer.SourceSinkFactory;
 import net.pixelcop.sewer.SourceSinkFactory.SourceSinkBuilder;
+import net.pixelcop.sewer.node.ExitCodes;
 import net.pixelcop.sewer.node.Node;
 import net.pixelcop.sewer.node.NodeConfig;
 import net.pixelcop.sewer.sink.SequenceFileSink;
@@ -223,7 +224,7 @@ public class TransactionManager extends Thread {
 
     } catch (Exception e) {
       LOG.error("Failed to load txn.log: " + e.getMessage());
-      System.exit(10);
+      System.exit(ExitCodes.STARTUP_ERROR);
     }
 
   }

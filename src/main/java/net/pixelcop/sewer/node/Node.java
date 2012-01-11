@@ -58,7 +58,7 @@ public class Node extends Thread implements SmartRpcClientEventHandler {
     } catch (IOException e) {
       System.err.println("Error while starting node: " + e.getMessage());
       e.printStackTrace();
-      System.exit(2);
+      System.exit(ExitCodes.IO_ERROR);
     }
 
     instance.start();
@@ -81,16 +81,23 @@ public class Node extends Thread implements SmartRpcClientEventHandler {
    *
    * @throws IOException
    */
-  public void configure() throws IOException {
+  protected void configure() throws IOException {
 
-    this.sourceFactory = new SourceSinkFactory<Source>(conf.get(NodeConfig.SOURCE), SourceRegistry.getRegistry());
-    this.sinkFactory = new SourceSinkFactory<Sink>(conf.get(NodeConfig.SINK), SinkRegistry.getRegistry());
+    try {
+      this.sourceFactory = new SourceSinkFactory<Source>(conf.get(NodeConfig.SOURCE), SourceRegistry.getRegistry());
+      this.sinkFactory = new SourceSinkFactory<Sink>(conf.get(NodeConfig.SINK), SinkRegistry.getRegistry());
+
+    } catch (ConfigurationException ex) {
+      LOG.error("Node configuration failed: " + ex.getMessage(), ex);
+      System.exit(ExitCodes.CONFIG_ERROR);
+    }
 
     this.source = sourceFactory.build();
     this.source.setSinkFactory(sinkFactory);
 
   }
 
+  @SuppressWarnings("unused")
   private void connectToMaster() {
 
     String host = "localhost";
@@ -106,10 +113,8 @@ public class Node extends Thread implements SmartRpcClientEventHandler {
           MasterAPI.class, client);
 
     } catch (Exception e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
       LOG.error("Startup failed! Bailing out");
-      System.exit(1);
+      System.exit(ExitCodes.OTHER_ERROR);
     }
 
   }
@@ -122,7 +127,7 @@ public class Node extends Thread implements SmartRpcClientEventHandler {
       this.source.open();
     } catch (IOException e) {
       LOG.error("Failed to open source: " + e.getMessage(), e);
-      System.exit(1);
+      System.exit(ExitCodes.IO_ERROR);
 
     }
 
@@ -134,7 +139,7 @@ public class Node extends Thread implements SmartRpcClientEventHandler {
   public void onConnect() {
     if (!master.handshake(nodeType)) {
       LOG.error("HANDSHAKE FAILED");
-      System.exit(1);
+      System.exit(ExitCodes.OTHER_ERROR);
     }
     LOG.debug("Handshake succeeded");
   }

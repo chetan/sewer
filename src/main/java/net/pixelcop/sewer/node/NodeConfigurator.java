@@ -50,12 +50,12 @@ public class NodeConfigurator {
 
     } catch (ParseException e) {
       System.err.println("Failed to parse command line: " + e.getMessage());
-      System.exit(2);
+      System.exit(ExitCodes.CONFIG_ERROR);
     }
 
     if (cmd.hasOption('h')) {
       new HelpFormatter().printHelp("sewer", opts);
-      System.exit(1);
+      System.exit(ExitCodes.HELP);
     }
 
     if (cmd.hasOption('v')) {
@@ -103,7 +103,7 @@ public class NodeConfigurator {
 
     } catch (IOException e) {
       System.err.println("unable to load config from classpath: " + e.getMessage());
-      System.exit(2);
+      System.exit(ExitCodes.CONFIG_ERROR);
     }
   }
 
@@ -128,19 +128,19 @@ public class NodeConfigurator {
 
     } catch (FileNotFoundException e) {
       System.err.println("file not found: " + filename);
-      System.exit(2);
+      System.exit(ExitCodes.CONFIG_ERROR);
     }
 
     if (stream == null) {
       System.err.println("unable to locate a config file. try passing -c <file>");
-      System.exit(2);
+      System.exit(ExitCodes.CONFIG_ERROR);
     }
 
     try {
       addProps(conf, stream);
     } catch (IOException e) {
       System.err.println("unable to load config from '" + filename + "': " + e.getMessage());
-      System.exit(2);
+      System.exit(ExitCodes.CONFIG_ERROR);
     }
   }
 

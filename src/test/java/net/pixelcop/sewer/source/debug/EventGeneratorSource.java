@@ -11,38 +11,14 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * A single-threaded source which simply generates the specified number of Events on open() and
+ * exits. NOTE: {@link #open()} is a blocking call.
+ *
+ * @author chetan
+ *
+ */
 public class EventGeneratorSource extends Source {
-
-  class GenThread extends Thread {
-    private Sink sink;
-    public GenThread() throws IOException {
-      this.sink = createSink();
-    }
-    @Override
-    public void run() {
-      while (count.get() < max) {
-        String str = new String("Event " + count.incrementAndGet() + " ");
-        if (str.length() < length) {
-          str = str + StringUtils.repeat('X', length - str.length());
-        }
-        try {
-          this.sink.append(new StringEvent(str));
-        } catch (IOException e) {
-          LOG.debug("Error appending", e);
-        }
-        try {
-          Thread.sleep(delay);
-        } catch (InterruptedException e) {
-          break;
-        }
-      }
-
-      try {
-        sink.close();
-      } catch (IOException e1) {
-      }
-    }
-  }
 
   private static final Logger LOG = LoggerFactory.getLogger(EventGeneratorSource.class);
 
@@ -56,7 +32,7 @@ public class EventGeneratorSource extends Source {
   private int length;
   private int delay;
 
-  private GenThread thread;
+  private Sink sink;
 
   public EventGeneratorSource(String[] args) {
     if (args == null || args.length == 0) {
@@ -76,7 +52,6 @@ public class EventGeneratorSource extends Source {
 
   @Override
   public void close() throws IOException {
-    thread.interrupt();
     setStatus(CLOSED);
   }
 
@@ -87,13 +62,42 @@ public class EventGeneratorSource extends Source {
 
   @Override
   public void open() throws IOException {
-    thread = new GenThread();
-    thread.start();
+    setStatus(OPENING);
+    this.sink = createSink();
+
     setStatus(FLOWING);
+    generateEvents();
+    setStatus(CLOSED);
   }
 
   public boolean isFinished() {
     return (count.get() == max);
+  }
+
+  public void generateEvents() {
+
+    while (count.get() < max) {
+      String str = new String("Event " + count.incrementAndGet() + " ");
+      if (str.length() < length) {
+        str = str + StringUtils.repeat('X', length - str.length());
+      }
+      try {
+        this.sink.append(new StringEvent(str));
+      } catch (IOException e) {
+        LOG.debug("Error appending", e);
+      }
+      try {
+        Thread.sleep(delay);
+      } catch (InterruptedException e) {
+        break;
+      }
+    }
+
+    try {
+      sink.close();
+    } catch (IOException e1) {
+    }
+
   }
 
 }

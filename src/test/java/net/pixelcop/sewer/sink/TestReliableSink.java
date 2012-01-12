@@ -19,12 +19,9 @@ public class TestReliableSink extends BaseNodeTest {
     TestableNode node = createNode("gen(1000)", "reliable > failopen > counting");
     TxTestHelper txHelper = new TxTestHelper(node);
 
-    // start node, opens source
+    // start node, opens source, blocks until all events sent
     node.start();
-
-    // wait for events to be sent to sink (fails)
-    Thread.sleep(1000);
-    node.getSource().close();
+    node.await();
 
     TestableTransactionManager.shutdown();
 
@@ -44,12 +41,9 @@ public class TestReliableSink extends BaseNodeTest {
     TestableNode node = createNode("gen(1000)", "reliable > failopen > counting");
     TxTestHelper txHelper = new TxTestHelper(node);
 
-    // start node, opens source
+    // start node, opens source, blocks until all events sent
     node.start();
-
-    // wait for events to be sent to sink (fails)
-    Thread.sleep(1000);
-    node.getSource().close();
+    node.await();
 
     // now check expected results (buffers on disk, no appends on ultimate subsink)
     assertEquals(0, CountingSink.getAppendCount());
@@ -59,7 +53,6 @@ public class TestReliableSink extends BaseNodeTest {
     txHelper.verifyRecordsInBuffers(1, 1000, new StringEvent());
 
 
-    System.err.println("interrupting tx man");
     TestableTransactionManager.shutdown();
     txHelper.assertTxLogExists();
 
@@ -72,7 +65,7 @@ public class TestReliableSink extends BaseNodeTest {
     node = createNode("null", "reliable > counting");
     node.getConf().set(NodeConfig.WAL_PATH, txHelper.getTmpWalPath());
     TestableTransactionManager.reset();
-    System.err.println("shoudl be loaded now..");
+
 
     // makes sure we reloaded from disk on reset()
     assertEquals(0, TestableTransactionManager.getTransactions().size());
@@ -80,8 +73,10 @@ public class TestReliableSink extends BaseNodeTest {
         || TestableTransactionManager.getDrainingTx() != null);
 
     // wait for drain
-    Thread.sleep(500);
+    while (TestableTransactionManager.getDrainingTx() != null) {
+    }
     TestableTransactionManager.shutdown();
+
     assertEquals(0, TestableTransactionManager.getTransactions().size());
     assertEquals(0, TestableTransactionManager.getLostTransactions().size());
 

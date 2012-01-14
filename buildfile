@@ -41,7 +41,7 @@ define "sewer" do
   #package(:javadoc)
 
   package(:tgz).path("#{id}-#{version}").tap do |path|
-    path.include "README"
+    path.include "README.md"
     path.include "LICENSE"
     path.include package(:jar), package(:sources)
     path.path("lib").include SEWER_JARS

@@ -33,3 +33,10 @@ Reliability is achieved by simultaneously sending each event to both HDFS and th
 ### Performance
 
 For maximum I/O performance, both the local buffers and HDFS writes are compressed using the best available compressor (currently defaults to GZIP when hadoop-native is available).
+
+### Benchmarks
+
+#### EC2
+
+* m1.small:  3,532 reqs/sec
+* m1.large: 13,293 reqs/sec

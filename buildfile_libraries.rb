@@ -55,7 +55,7 @@ HADOOP_DEPS = [
     "xmlenc:xmlenc:jar:0.52"
     ]
 
-HADOOP_VERSION = "0.20.2-cdh3u1"
+HADOOP_VERSION = "0.20.2-cdh3u0"
 HADOOP = [
     "org.apache.hadoop:hadoop-core:jar:#{HADOOP_VERSION}",
     "org.apache.hadoop:hadoop-tools:jar:#{HADOOP_VERSION}"

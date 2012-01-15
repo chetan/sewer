@@ -7,9 +7,8 @@ import net.pixelcop.sewer.node.Node;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.compress.CompressionCodec;
-import org.apache.hadoop.io.compress.DeflateCodec;
+import org.apache.hadoop.io.compress.DefaultCodec;
 import org.apache.hadoop.io.compress.GzipCodec;
-import org.apache.hadoop.io.compress.SnappyCodec;
 import org.apache.hadoop.util.NativeCodeLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,14 +68,15 @@ public class HdfsUtil {
   public static CompressionCodec createCodec(boolean ipc) {
 
     if (NativeCodeLoader.isNativeCodeLoaded()) {
-      if (ipc) {
-        return new SnappyCodec();
-      }
+      // this codec is only available in newer versions of Hadoop
+      // if (ipc) {
+      // return new SnappyCodec();
+      // }
 
       return new GzipCodec();
 
     } else {
-      return new DeflateCodec();
+      return new DefaultCodec();
     }
 
   }

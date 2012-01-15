@@ -12,6 +12,7 @@ import net.pixelcop.sewer.Source;
 
 import org.apache.commons.lang3.math.NumberUtils;
 import org.eclipse.jetty.server.Connector;
+import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
@@ -27,6 +28,27 @@ import org.slf4j.LoggerFactory;
  */
 public class HttpPixelSource extends Source {
 
+  /**
+   * Simple handler that always returns HTTP/1.1 200 and does <em>not</em> log the request
+   *
+   * @author chetan
+   *
+   */
+  class StatusHandler extends AbstractHandler {
+    @Override
+    public void handle(String target, Request baseRequest, HttpServletRequest request,
+        HttpServletResponse response) throws IOException, ServletException {
+
+      response.setStatus(HttpServletResponse.SC_OK);
+      baseRequest.setHandled(true);
+    }
+  }
+
+  /**
+   * Simple handler that always returns HTTP/1.1 204 and logs the request
+   * @author chetan
+   *
+   */
   class PixelHandler extends AbstractHandler {
     @Override
     public void handle(String target, Request baseRequest, HttpServletRequest request,
@@ -48,6 +70,7 @@ public class HttpPixelSource extends Source {
 
   private final int port;
   private Server server;
+  private Server statusServer;
 
   private Sink sink;
 
@@ -62,31 +85,39 @@ public class HttpPixelSource extends Source {
   }
 
   private void initServer() {
-    this.server = new Server(port);
+    this.server = createServer(port, createConnector(port, true), new PixelHandler());
+    this.statusServer = createServer(port, createConnector(port+1, false), new StatusHandler());
+  }
 
-    this.server.setGracefulShutdown(1000);
-    this.server.setStopAtShutdown(false);
-    this.server.setSendServerVersion(false);
-    this.server.setSendDateHeader(false);
+  private Server createServer(int port, Connector conn, Handler handler) {
+    Server server = new Server(port);
 
+    server.setGracefulShutdown(1000);
+    server.setStopAtShutdown(false);
+    server.setSendServerVersion(false);
+    server.setSendDateHeader(false);
+
+    server.setConnectors(new Connector[]{ conn });
+    server.setHandler(handler);
+
+    return server;
+  }
+
+  private Connector createConnector(int port, boolean checkForwardHeaders) {
     SelectChannelConnector conn = new SelectChannelConnector();
 
     conn.setPort(port);
-    // conn.setAcceptors(4);
+    // conn.setAcceptors(4); // default seems good enough
     conn.setAcceptQueueSize(100);
     conn.setReuseAddress(true);
     conn.setSoLingerTime(1000);
+    conn.setResolveNames(false);
 
-    this.server.setConnectors(new Connector[]{ conn });
+    if (checkForwardHeaders) {
+      conn.setForwarded(true);
+    }
 
-
-
-    // Create pixel handler & logger (event generator)
-//    RequestLogHandler requestLogHandler = new RequestLogHandler();
-//    requestLogHandler.setHandler(new PixelHandler());
-//    requestLogHandler.setRequestLog(new NCSARequestLog());
-//    this.server.setHandler(requestLogHandler);
-    this.server.setHandler(new PixelHandler());
+    return conn;
   }
 
   @Override
@@ -129,11 +160,13 @@ public class HttpPixelSource extends Source {
     this.sink = createSink();
 
     if (LOG.isInfoEnabled()) {
-      LOG.info("Opening " + this.getClass().getSimpleName() + " on port " + port);
+      LOG.info("Opening " + this.getClass().getSimpleName() + " on port " + port + " (status on "
+          + (port + 1) + ")");
     }
 
     try {
       this.server.start();
+      this.statusServer.start();
     } catch (Exception e) {
       throw new IOException("Failed to start server: " + e.getMessage(), e);
     }

@@ -1,7 +1,5 @@
 package net.pixelcop.sewer.source;
 
-import static org.junit.Assert.*;
-
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -53,6 +51,31 @@ public class TestHttpPixelSource extends BaseNodeTest {
     assertEquals(1, CountingSink.getCloseCount());
   }
 
+  @Test
+  public void testStatusPortReturns200() throws IOException {
+
+    TestableNode node = createNode("pixel", "counting");
+    assertNotNull(node);
+    node.start();
+    try {
+      node.await();
+    } catch (InterruptedException e) {
+      fail("error");
+    }
+
+    assertEquals(1, CountingSink.getOpenCount());
+    assertEquals(0, CountingSink.getAppendCount());
+
+    // ping status port
+    URL url = new URL("http://localhost:8081/foobar");
+    URLConnection conn = openUrl(url);
+
+    assertTrue(conn.getHeaderField(0).contains("200"));
+    assertEquals(0, CountingSink.getAppendCount()); // should still be zero
+
+    cleanupNode(node);
+  }
+
   private void ping(int count) throws IOException {
     URL url = new URL("http://localhost:8080/foobar");
     for (int i = 0; i < count; i++) {
@@ -60,10 +83,10 @@ public class TestHttpPixelSource extends BaseNodeTest {
     }
   }
 
-  private void openUrl(URL url) throws IOException {
+  private URLConnection openUrl(URL url) throws IOException {
     URLConnection conn = url.openConnection();
     conn.connect();
-    conn.getHeaderField(0);
+    return conn;
   }
 
 }

@@ -14,7 +14,6 @@ public class TestableNode extends Node {
 
   public TestableNode(NodeConfig config) throws IOException {
     super(config);
-    instance = this;
   }
 
   @Override

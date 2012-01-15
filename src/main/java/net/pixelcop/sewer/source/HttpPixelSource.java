@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletResponse;
 import net.pixelcop.sewer.Event;
 import net.pixelcop.sewer.Sink;
 import net.pixelcop.sewer.Source;
+import net.pixelcop.sewer.node.Node;
 
 import org.apache.commons.lang3.math.NumberUtils;
 import org.eclipse.jetty.server.Connector;
@@ -66,6 +67,10 @@ public class HttpPixelSource extends Source {
 
   private static final Logger LOG = LoggerFactory.getLogger(HttpPixelSource.class);
 
+  private static final String CONFIG_GRACEFUL = "sewer.source.pixel.graceful";
+  private static final String CONFIG_ACCEPT_QUEUE = "sewer.source.pixel.accept_queue";
+  private static final String CONFIG_STATUS_PORT = "sewer.source.pixel.status.port";
+
   private static final int DEFAULT_HTTP_PORT = 8080;
 
   private final int port;
@@ -85,14 +90,14 @@ public class HttpPixelSource extends Source {
   }
 
   private void initServer() {
-    this.server = createServer(port, createConnector(port, true), new PixelHandler());
-    this.statusServer = createServer(port, createConnector(port+1, false), new StatusHandler());
+    this.server = createServer(createConnector(getPort(), true), new PixelHandler());
+    this.statusServer = createServer(createConnector(getStatusPort(), false), new StatusHandler());
   }
 
-  private Server createServer(int port, Connector conn, Handler handler) {
-    Server server = new Server(port);
+  private Server createServer(Connector conn, Handler handler) {
+    Server server = new Server();
 
-    server.setGracefulShutdown(1000);
+    server.setGracefulShutdown(Node.getInstance().getConf().getInt(CONFIG_GRACEFUL, 1000));
     server.setStopAtShutdown(false);
     server.setSendServerVersion(false);
     server.setSendDateHeader(false);
@@ -108,7 +113,7 @@ public class HttpPixelSource extends Source {
 
     conn.setPort(port);
     // conn.setAcceptors(4); // default seems good enough
-    conn.setAcceptQueueSize(100);
+    conn.setAcceptQueueSize(Node.getInstance().getConf().getInt(CONFIG_ACCEPT_QUEUE, 100));
     conn.setReuseAddress(true);
     conn.setSoLingerTime(1000);
     conn.setResolveNames(false);
@@ -132,6 +137,7 @@ public class HttpPixelSource extends Source {
     try {
       LOG.debug("stopping server gracefully");
       this.server.stop();
+      this.statusServer.stop();
       LOG.debug("server stopped");
     } catch (Exception e) {
       LOG.warn("Exception while stopping server: " + e.getMessage(), e);
@@ -139,6 +145,7 @@ public class HttpPixelSource extends Source {
     try {
       LOG.debug("waiting for server thread to join");
       this.server.join();
+      this.statusServer.join();
       LOG.debug("server thread has joined");
     } catch (InterruptedException e) {
       LOG.error("Interrupted waiting for server thread to join", e);
@@ -161,7 +168,7 @@ public class HttpPixelSource extends Source {
 
     if (LOG.isInfoEnabled()) {
       LOG.info("Opening " + this.getClass().getSimpleName() + " on port " + port + " (status on "
-          + (port + 1) + ")");
+          + getStatusPort() + ")");
     }
 
     try {
@@ -182,6 +189,15 @@ public class HttpPixelSource extends Source {
 
   public int getPort() {
     return port;
+  }
+
+  /**
+   * Return the configured status port. Defaults to {@link #getPort()} + 1
+   *
+   * @return
+   */
+  public int getStatusPort() {
+    return Node.getInstance().getConf().getInt(CONFIG_STATUS_PORT, port + 1);
   }
 
 }

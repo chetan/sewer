@@ -2,11 +2,11 @@ package net.pixelcop.sewer.node;
 
 import java.io.IOException;
 
+import net.pixelcop.sewer.PlumbingFactory;
 import net.pixelcop.sewer.Sink;
 import net.pixelcop.sewer.SinkRegistry;
 import net.pixelcop.sewer.Source;
 import net.pixelcop.sewer.SourceRegistry;
-import net.pixelcop.sewer.PlumbingFactory;
 import net.pixelcop.sewer.rpc.MasterAPI;
 import net.pixelcop.sewer.rpc.SmartRpcClient;
 import net.pixelcop.sewer.rpc.SmartRpcClientEventHandler;
@@ -65,6 +65,8 @@ public class Node extends Thread implements SmartRpcClientEventHandler {
   }
 
   public Node(NodeConfig config) throws IOException {
+
+    instance = this;
 
     setName("Node " + getId());
     this.setNodeType(null); // TODO set node type

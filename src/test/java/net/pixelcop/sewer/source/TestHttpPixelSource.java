@@ -29,7 +29,7 @@ public class TestHttpPixelSource extends BaseNodeTest {
 
   @Test
   public void testAppend() throws IOException {
-    TestableNode node = createNode("pixel", "counting");
+    TestableNode node = createNode("pixel(8080)", "counting");
     assertNotNull(node);
     node.start();
     try {
@@ -39,6 +39,12 @@ public class TestHttpPixelSource extends BaseNodeTest {
     }
 
     assertEquals(1, CountingSink.getOpenCount());
+
+    URLConnection conn = openUrl(new URL("http://localhost:8080/foobar"));
+    assertTrue(conn.getHeaderField(0).contains("204"));
+    assertEquals(1, CountingSink.getAppendCount());
+    CountingSink.reset();
+
     ping(30);
     assertEquals(30, CountingSink.getAppendCount());
     CountingSink.reset();
@@ -86,6 +92,7 @@ public class TestHttpPixelSource extends BaseNodeTest {
   private URLConnection openUrl(URL url) throws IOException {
     URLConnection conn = url.openConnection();
     conn.connect();
+    conn.getHeaderField(0); // forces the connection to actually open. conn.connect() is lazy
     return conn;
   }
 

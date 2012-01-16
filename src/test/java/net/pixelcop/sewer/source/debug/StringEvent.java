@@ -28,5 +28,10 @@ public class StringEvent implements Event {
   public void readFields(DataInput in) throws IOException {
     this.string = WritableUtils.readString(in);
   }
+  
+  @Override
+  public String toString() {
+    return string;
+  }
 
 }

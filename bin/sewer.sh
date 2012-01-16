@@ -1,7 +1,6 @@
 #!/bin/bash
 
-ROOT=$(dirname $(readlink -f $0))
-ROOT=`readlink -f $ROOT/..`
+ROOT=$(readlink -f $(dirname $0)/..)
 TMP=$ROOT/tmp
 PID_FILE=$TMP/sewer.pid
 OUT_FILE=$TMP/sewer.out

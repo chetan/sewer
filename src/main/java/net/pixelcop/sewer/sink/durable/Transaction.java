@@ -72,14 +72,35 @@ public class Transaction {
     return String.format("%s.%012d.%08d", formattedDate, System.nanoTime(), tid);
   }
 
+  public void rollback() {
+    TransactionManager.getInstance().rollbackTx(this.id);
+  }
+
+  public void commit() {
+    TransactionManager.getInstance().commitTx(this.id);
+  }
+
   /**
    * Path that local buffer will be written to
    *
    * @return Path
    */
   public Path createTxPath() {
-    return new Path("file://" +
-        TransactionManager.getInstance().getWALPath() + "/" + this.id + this.getFileExt());
+    return new Path(createTxPath(true));
+  }
+
+  /**
+   * Create Transaction path string with optional file extension
+   *
+   * @param includeExt Whether or not to include the file extension
+   * @return String
+   */
+  public String createTxPath(boolean includeExt) {
+    String path = "file://" + TransactionManager.getInstance().getWALPath() + "/" + this.id;
+    if (includeExt) {
+      path = path + this.getFileExt();
+    }
+    return path;
   }
 
   /**

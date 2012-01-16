@@ -22,10 +22,7 @@ public class ReliableSink extends Sink implements SinkOpenerEvents {
 
   private static final Logger LOG = LoggerFactory.getLogger(ReliableSink.class);
 
-  private String durableDirPath;
-  private String durablePath;
-
-  private String txId;
+  private Transaction tx;
   private SequenceFileSink durableSink;
 
   private SinkOpenerThread opener;
@@ -33,7 +30,6 @@ public class ReliableSink extends Sink implements SinkOpenerEvents {
   private AsyncBufferSink delayedSink;
 
   public ReliableSink(String[] args) {
-    this.durableDirPath = TransactionManager.getInstance().getWALPath();
   }
 
   @Override
@@ -64,7 +60,7 @@ public class ReliableSink extends Sink implements SinkOpenerEvents {
     LOG.debug("subSink is currently: " + subSink.getStatusString());
     if (subSink.getStatus() == OPENING || subSink.getStatus() == ERROR) {
       // never opened or some other error, rollback!
-      TransactionManager.getInstance().releaseTx(txId);
+      tx.rollback();
       return;
     }
 
@@ -74,14 +70,14 @@ public class ReliableSink extends Sink implements SinkOpenerEvents {
 
     } catch (IOException e) {
       // release tx
-      LOG.error("subsink failed to close for txid " + txId);
-      TransactionManager.getInstance().releaseTx(txId);
+      LOG.error("subsink failed to close for txid " + tx.getId());
+      tx.rollback();
       return;
 
     }
 
     // closed cleanly, commit tx
-    TransactionManager.getInstance().commitTx(txId);
+    tx.commit();
   }
 
   @Override
@@ -95,8 +91,8 @@ public class ReliableSink extends Sink implements SinkOpenerEvents {
     if (subSink instanceof BucketedSink) {
       nextBucket = ((BucketedSink) subSink).generateNextBucket();
     }
-    this.txId = TransactionManager.getInstance().startTx(nextBucket);
-    this.durablePath = "file://" + durableDirPath + "/" + txId;
+    this.tx = TransactionManager.getInstance().startTx(nextBucket);
+    String durablePath = tx.createTxPath(false);
     this.durableSink = new SequenceFileSink(new String[] { durablePath });
 
     try {

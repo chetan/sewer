@@ -11,9 +11,9 @@ import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import net.pixelcop.sewer.Sink;
 import net.pixelcop.sewer.PlumbingFactory;
 import net.pixelcop.sewer.PlumbingFactory.Builder;
+import net.pixelcop.sewer.Sink;
 import net.pixelcop.sewer.node.ExitCodes;
 import net.pixelcop.sewer.node.Node;
 import net.pixelcop.sewer.node.NodeConfig;
@@ -67,9 +67,9 @@ public class TransactionManager extends Thread {
    * Begin a new transaction
    *
    * @param bucket subsink bucket
-   * @return Transaction ID
+   * @return Transaction
    */
-  public String startTx(String bucket) {
+  public Transaction startTx(String bucket) {
 
     Transaction tx = new Transaction(
         Node.getInstance().getSource().getEventClass(), bucket, this.txFileExt);
@@ -77,9 +77,9 @@ public class TransactionManager extends Thread {
     LOG.debug("startTx: " + tx);
 
     transactions.put(tx.getId(), tx);
-
     saveOpenTransactionsToDisk();
-    return tx.getId();
+
+    return tx;
   }
 
   /**
@@ -108,7 +108,7 @@ public class TransactionManager extends Thread {
    *
    * @param id Transaction ID
    */
-  public void releaseTx(String id) {
+  public void rollbackTx(String id) {
 
     if (!transactions.containsKey(id)) {
       return;

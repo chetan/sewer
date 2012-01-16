@@ -1,7 +1,23 @@
 #!/bin/bash
 
-CMD=$1
+ROOT=$(dirname $(readlink -f $0))
+ROOT=`readlink -f $ROOT/..`
+TMP=$ROOT/tmp
+PID_FILE=$TMP/sewer.pid
+OUT_FILE=$TMP/sewer.out
 
+RUN="java"
+RUN="$RUN -XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=80 -Xms512m -Xmx1g"
+
+MAIN="net.pixelcop.sewer.node.Node"
+
+# load hadoop native libs, if avail
+NATIVE=`find /usr/lib /usr/local/lib -name 'libhadoop.so*' | head -n 1`
+if [ "$NATIVE" != "" ]; then
+  export LD_LIBRARY_PATH=`dirname $NATIVE`
+fi
+
+# start server
 start () {
 
   echo -n "starting sewer... "
@@ -41,7 +57,7 @@ start () {
 
   # start
   mkdir -p $TMP
-  $RUN 2>$ERROR_FILE >$LOG_FILE &
+  $RUN 2>>$OUT_FILE >>$OUT_FILE &
 
   # write pid
   PID=$!
@@ -51,6 +67,7 @@ start () {
 
 }
 
+# stop server
 stop () {
   echo -n "stopping sewer... "
 
@@ -72,19 +89,9 @@ stop () {
 
 }
 
-ROOT=$(dirname $(readlink -f $0))
-ROOT=`readlink -f $ROOT/..`
-TMP=$ROOT/tmp
-PID_FILE=$TMP/sewer.pid
-ERROR_FILE=$TMP/error.log
-LOG_FILE=$TMP/sewer.log
+# process command
 
-RUN="java"
-RUN="$RUN -XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=80 -Xms512m -Xmx1g"
-
-MAIN="net.pixelcop.sewer.node.Node"
-
-
+CMD=$1
 if [ "$CMD" == "start" ]; then
   start
 
@@ -96,4 +103,3 @@ else
   exit -1
 
 fi
-

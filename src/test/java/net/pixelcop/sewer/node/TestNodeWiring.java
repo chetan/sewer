@@ -12,7 +12,7 @@ import net.pixelcop.sewer.source.debug.NullSource;
 
 import org.junit.Test;
 
-public class TestNodeWiring extends BaseNodeTest {
+public class TestNodeWiring extends AbstractNodeTest {
 
   @Test
   public void testBasicSetup() throws IOException {

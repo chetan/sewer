@@ -4,13 +4,13 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
 
-import net.pixelcop.sewer.node.BaseNodeTest;
+import net.pixelcop.sewer.node.AbstractNodeTest;
 import net.pixelcop.sewer.node.TestableNode;
 import net.pixelcop.sewer.sink.debug.CountingSink;
 
 import org.junit.Test;
 
-public class TestHttpPixelSource extends BaseNodeTest {
+public class TestHttpPixelSource extends AbstractNodeTest {
 
   @Test
   public void testCreateSourceArgs() throws IOException {

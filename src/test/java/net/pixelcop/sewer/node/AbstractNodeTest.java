@@ -21,7 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @RunWith(BlockJUnit4ClassRunner.class)
-public abstract class BaseNodeTest extends Assert {
+public abstract class AbstractNodeTest extends Assert {
 
   private static class NoExitSecurityManager extends SecurityManager {
     @Override
@@ -41,7 +41,7 @@ public abstract class BaseNodeTest extends Assert {
     }
   }
 
-  protected static final Logger LOG = LoggerFactory.getLogger(BaseNodeTest.class);
+  protected static final Logger LOG = LoggerFactory.getLogger(AbstractNodeTest.class);
 
   private SecurityManager securityManager;
 

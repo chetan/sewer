@@ -1,6 +1,6 @@
 package net.pixelcop.sewer;
 
-import net.pixelcop.sewer.node.BaseNodeTest;
+import net.pixelcop.sewer.node.AbstractNodeTest;
 import net.pixelcop.sewer.node.ConfigurationException;
 import net.pixelcop.sewer.sink.debug.NullSink;
 import net.pixelcop.sewer.sink.durable.ReliableSink;
@@ -9,7 +9,7 @@ import net.pixelcop.sewer.source.debug.NullSource;
 
 import org.junit.Test;
 
-public class TestPlumbingFactory extends BaseNodeTest {
+public class TestPlumbingFactory extends AbstractNodeTest {
 
   @Test
   public void testCreateSimple() throws ConfigurationException {

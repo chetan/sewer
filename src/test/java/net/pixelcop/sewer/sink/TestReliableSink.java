@@ -2,7 +2,7 @@ package net.pixelcop.sewer.sink;
 
 import java.io.IOException;
 
-import net.pixelcop.sewer.node.BaseNodeTest;
+import net.pixelcop.sewer.node.AbstractNodeTest;
 import net.pixelcop.sewer.node.NodeConfig;
 import net.pixelcop.sewer.node.TestableNode;
 import net.pixelcop.sewer.sink.debug.CountingSink;
@@ -11,7 +11,7 @@ import net.pixelcop.sewer.source.debug.StringEvent;
 
 import org.junit.Test;
 
-public class TestReliableSink extends BaseNodeTest {
+public class TestReliableSink extends AbstractNodeTest {
 
   @Test
   public void testFailureBuffersToDisk() throws IOException, InterruptedException {

@@ -2,13 +2,13 @@ package net.pixelcop.sewer.sink;
 
 import java.io.IOException;
 
-import net.pixelcop.sewer.node.BaseNodeTest;
+import net.pixelcop.sewer.node.AbstractNodeTest;
 import net.pixelcop.sewer.node.TestableNode;
 import net.pixelcop.sewer.sink.debug.CountingSink;
 
 import org.junit.Test;
 
-public class TestRollSink extends BaseNodeTest {
+public class TestRollSink extends AbstractNodeTest {
 
   @Test
   public void testSimpleRollCount() throws IOException, InterruptedException {

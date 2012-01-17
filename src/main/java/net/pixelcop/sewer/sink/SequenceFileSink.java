@@ -33,14 +33,14 @@ public class SequenceFileSink extends BucketedSink {
   /**
    * Configured DFS path to write to
    */
-  private String configPath;
+  protected String configPath;
 
   /**
    * Reference to DFS Path object
    */
-  private Path dstPath;
+  protected Path dstPath;
 
-  private Writer writer;
+  protected Writer writer;
 
   public SequenceFileSink(String[] args) {
     this.configPath = args[0];
@@ -73,7 +73,7 @@ public class SequenceFileSink extends BucketedSink {
     setStatus(FLOWING);
   }
 
-  private void createWriter() throws IOException {
+  protected void createWriter() throws IOException {
 
     Configuration conf = Node.getInstance().getConf();
 

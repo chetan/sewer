@@ -41,6 +41,7 @@ public abstract class Plumbing implements Closeable, StatusProvider {
     this.status.set(status);
   }
 
+  @Override
   public int getStatus() {
     return status.get();
   }

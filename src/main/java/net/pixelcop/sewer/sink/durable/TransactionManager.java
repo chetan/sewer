@@ -12,8 +12,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import net.pixelcop.sewer.PlumbingBuilder;
 import net.pixelcop.sewer.PlumbingFactory;
-import net.pixelcop.sewer.PlumbingFactory.Builder;
 import net.pixelcop.sewer.Sink;
 import net.pixelcop.sewer.node.ExitCodes;
 import net.pixelcop.sewer.node.Node;
@@ -156,6 +156,7 @@ public class TransactionManager extends Thread {
 
     while (!isShutdown()) {
 
+      // look for tx to drain
       drainingTx = null;
       try {
         drainingTx = lostTransactions.poll(NANO_WAIT, TimeUnit.NANOSECONDS);
@@ -175,6 +176,7 @@ public class TransactionManager extends Thread {
         continue;
       }
 
+      // drain it
       if (!drainTx()) {
         // drain failed (interrupted, tx man shutting down), stick tx at end of queue (front ??)
         lostTransactions.add(drainingTx);
@@ -183,6 +185,8 @@ public class TransactionManager extends Thread {
         return;
       }
 
+      drainingTx.deleteTxFiles();
+      drainingTx = null;
       saveOpenTransactionsToDisk();
     }
 
@@ -285,14 +289,13 @@ public class TransactionManager extends Thread {
         LOG.debug("Successfully drained tx " + drainingTx);
         return true; // if we get here, drain was successful
 
-      } catch (IOException e) {
+      } catch (Throwable t) {
         try {
-          backoff.handleFailure(e, LOG, "Error draining tx", isShutdown());
-        } catch (InterruptedException e1) {
+          backoff.handleFailure(t, LOG, "Error draining tx", isShutdown());
+        } catch (InterruptedException e) {
           LOG.debug("Interrupted while draining, must be shutting down?");
           return false;
         }
-
 
       } finally {
         try {
@@ -319,8 +322,14 @@ public class TransactionManager extends Thread {
     List rawSinkClasses = new ArrayList();
 
     for (Iterator iter = classes.iterator(); iter.hasNext();) {
-      Builder builder = (Builder) iter.next();
+      PlumbingBuilder builder = (PlumbingBuilder) iter.next();
       if (builder.getClazz() == ReliableSink.class || builder.getClazz() == RollSink.class) {
+        // skip
+        continue;
+      }
+      if (builder.getClazz() == ReliableSequenceFileSink.class) {
+        // replace with SequenceFileSink
+        rawSinkClasses.add(new PlumbingBuilder<Sink>(SequenceFileSink.class, builder.getArgs()));
         continue;
       }
       rawSinkClasses.add(builder);

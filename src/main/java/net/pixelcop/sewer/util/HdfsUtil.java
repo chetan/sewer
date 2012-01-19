@@ -70,6 +70,12 @@ public class HdfsUtil {
     }
   }
 
+  /**
+   * Wrapper around Path.toString() to catch random NPE
+   *
+   * @param path
+   * @return String
+   */
   public static String pathToString(Path path) {
     try {
       return path.toString();

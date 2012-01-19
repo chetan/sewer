@@ -49,7 +49,7 @@ public class SequenceFileSink extends BucketedSink {
   @Override
   public void close() throws IOException {
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Closing SequenceFileSink: " + dstPath.toString());
+      LOG.debug("Closing: " + HdfsUtil.pathToString(dstPath));
     }
 
     if (writer != null) {
@@ -59,7 +59,7 @@ public class SequenceFileSink extends BucketedSink {
     setStatus(CLOSED);
 
     if (LOG.isInfoEnabled()) {
-      LOG.info("Closed SequenceFileSink: " + HdfsUtil.pathToString(dstPath));
+      LOG.info("Closed: " + HdfsUtil.pathToString(dstPath));
     }
   }
 
@@ -87,7 +87,7 @@ public class SequenceFileSink extends BucketedSink {
         CompressionType.BLOCK, codec);
 
     if (LOG.isInfoEnabled()) {
-      LOG.info("Opened SequenceFileSink: " + dstPath.toString());
+      LOG.info("Opened: " + HdfsUtil.pathToString(dstPath));
     }
 
     nextBucket = null;

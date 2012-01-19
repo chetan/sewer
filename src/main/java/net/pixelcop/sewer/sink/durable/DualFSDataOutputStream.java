@@ -95,13 +95,11 @@ public class DualFSDataOutputStream extends FSDataOutputStream implements Status
         ((DualOutputStream) out).setRemoteOut(newOut);
 
       } catch (Throwable t) {
-        System.err.println("hi t");
         LOG.warn("Error opening remote output stream: " + t.getMessage(), t);
         markFailed();
 
       }
 
-      System.err.println("countdown");
       this.latch.countDown();
     }
 
@@ -133,15 +131,18 @@ public class DualFSDataOutputStream extends FSDataOutputStream implements Status
     // replace out with local buffer stream / remote stream pair
     this.out = new DualOutputStream(localPath.getFileSystem(conf).create(localPath, true), null);
 
+
     // we try to asynchronously open the remote stream, but block for (default) 5 seconds
     // waiting for it to open. if it does not open, we return to caller but do not mark an error
     // state. error state will be marked as soon as a write occurs and the remote stream has not
     // yet opened. (this will generally be almost immediately, as we are going to write sequence
     // file headers as soon as we return)
+
     thread = new RemoteOutputOpenerThread(remotePath, conf);
     thread.start();
     long timeout = conf.getLong(CONFIG_TIMEOUT, 5);
     try {
+      LOG.debug("Going to try opening for " + timeout + " seconds");
       if (!thread.await(timeout)) {
         LOG.warn("Remote stream didn't open within " + timeout
             + " seconds; continuing with local buffer only");

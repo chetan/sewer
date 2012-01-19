@@ -115,7 +115,11 @@ public class Transaction {
 
     Path path = createTxPath();
     try {
-      HdfsUtil.deletePath(path);
+      try {
+        HdfsUtil.deletePath(path);
+      } catch (InterruptedException e) {
+        LOG.error("Interrupted while trying to delete local buffers for tx " + toString());
+      }
 
     } catch (IOException e) {
       LOG.warn("Error deleting tx file: " + e.getMessage() + "\n    path:" + path.toString(), e);

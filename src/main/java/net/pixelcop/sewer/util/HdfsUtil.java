@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import net.pixelcop.sewer.node.Node;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.compress.CompressionCodec;
@@ -15,6 +16,33 @@ import org.slf4j.LoggerFactory;
 
 public class HdfsUtil {
 
+  static class AsyncFSOpener extends Thread {
+
+    private Path path;
+    private Configuration conf;
+
+    private FileSystem fs;
+
+    public AsyncFSOpener(Path path, Configuration conf) {
+      this.path = path;
+      this.conf = conf;
+    }
+
+    @Override
+    public void run() {
+      try {
+        fs = path.getFileSystem(conf);
+      } catch (IOException e) {
+        LOG.warn("Error opening " + pathToString(path), e);
+      }
+    }
+
+    public FileSystem getFS() {
+      return fs;
+    }
+
+  }
+
   private static final Logger LOG = LoggerFactory.getLogger(HdfsUtil.class);
 
   /**
@@ -24,14 +52,15 @@ public class HdfsUtil {
    *
    * @param path
    * @throws IOException
+   * @throws InterruptedException
    */
-  public static void deletePath(Path path) throws IOException {
-
-    FileSystem hdfs = path.getFileSystem(Node.getInstance().getConf());
+  public static void deletePath(Path path) throws IOException, InterruptedException {
 
     if (LOG.isDebugEnabled()) {
       LOG.debug("Deleting path: " + pathToString(path));
     }
+
+    FileSystem hdfs = getFilesystemAsync(path, null);
 
     if (hdfs.exists(path)) {
       hdfs.delete(path, false);
@@ -79,6 +108,45 @@ public class HdfsUtil {
       return new DefaultCodec();
     }
 
+  }
+
+  /**
+   * Asynchronously creates a {@link FileSystem} for the given {@link Path}
+   *
+   * @param path
+   * @return {@link FileSystem}
+   * @throws InterruptedException If open is interrupted
+   */
+  public static FileSystem getFilesystemAsync(Path path)
+      throws InterruptedException {
+
+    AsyncFSOpener afso = new AsyncFSOpener(path, Node.getInstance().getConf());
+    afso.start();
+    afso.join();
+
+    return afso.getFS();
+  }
+
+  /**
+   * Asynchronously creates a {@link FileSystem} for the given {@link Path}
+   *
+   * @param path
+   * @param conf
+   * @return {@link FileSystem}
+   * @throws InterruptedException If open is interrupted
+   */
+  public static FileSystem getFilesystemAsync(Path path, Configuration conf)
+      throws InterruptedException {
+
+    if (conf == null) {
+      conf = Node.getInstance().getConf();
+    }
+
+    AsyncFSOpener afso = new AsyncFSOpener(path, conf);
+    afso.start();
+    afso.join();
+
+    return afso.getFS();
   }
 
 

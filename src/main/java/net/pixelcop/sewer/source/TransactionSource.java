@@ -54,12 +54,19 @@ public class TransactionSource extends Source {
   public void open() throws IOException {
 
     LOG.debug("Going to drain " + path.toString() + " to bucket " + bucket);
+    setStatus(OPENING);
 
     // before we do anything, let's delete the existing destination file so
     // we don't have any problems
     if (bucket != null) {
       // only if bucketed sink being used
-      HdfsUtil.deletePath(new Path(bucket + ext));
+      Path dst = new Path(bucket + ext);
+      try {
+        HdfsUtil.deletePath(dst);
+      } catch (InterruptedException e) {
+        setStatus(ERROR);
+        throw new IOException("Interrupted trying to delete " + dst, e);
+      }
     }
 
     sink = getSinkFactory().build();
@@ -71,6 +78,7 @@ public class TransactionSource extends Source {
     Reader reader = null;
     try {
       reader = createReader();
+      setStatus(FLOWING);
 
       NullWritable nil = NullWritable.get();
       Event event = null;
@@ -95,6 +103,7 @@ public class TransactionSource extends Source {
       }
     }
 
+    setStatus(CLOSED);
   }
 
   public Reader createReader() throws IOException {

@@ -59,6 +59,10 @@ public class TestableNode extends Node {
   }
 
   public static void cleanup(Node node) {
+    if (node == null) {
+      return;
+    }
+
     try {
       node.getSource().close();
     } catch (IOException e) {

@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import net.pixelcop.sewer.PlumbingBuilder;
 import net.pixelcop.sewer.PlumbingFactory;
@@ -35,6 +36,10 @@ public class TransactionManager extends Thread {
 
   private static final String DEFAULT_WAL_PATH = "/opt/sewer/wal";
 
+  public static final int STOPPED = 0;
+  public static final int IDLE = 1;
+  public static final int DRAINING = 2;
+
   /**
    * Singleton instance
    */
@@ -52,12 +57,15 @@ public class TransactionManager extends Thread {
   protected PlumbingFactory<Sink> unreliableSinkFactory;
   protected Transaction drainingTx;
 
-  protected AtomicBoolean shutdown = new AtomicBoolean(false);
+  protected AtomicInteger status;
+  protected AtomicBoolean shutdown;
 
   protected TransactionManager(String walPath) {
     if (LOG.isDebugEnabled()) {
       LOG.debug("Initializing TransactionManager " + this.getId());
     }
+    this.status = new AtomicInteger();
+    this.shutdown = new AtomicBoolean(false);
     this.walPath = walPath;
     this.unreliableSinkFactory = createUnreliableSinkFactory();
     this.loadTransctionsFromDisk();
@@ -154,6 +162,8 @@ public class TransactionManager extends Thread {
   @Override
   public void run() {
 
+    setStatus(IDLE);
+
     while (!isShutdown()) {
 
       // look for tx to drain
@@ -176,6 +186,8 @@ public class TransactionManager extends Thread {
         continue;
       }
 
+      setStatus(DRAINING);
+
       // drain it
       if (!drainTx()) {
         // drain failed (interrupted, tx man shutting down), stick tx at end of queue (front ??)
@@ -188,6 +200,7 @@ public class TransactionManager extends Thread {
       drainingTx.deleteTxFiles();
       drainingTx = null;
       saveOpenTransactionsToDisk();
+      setStatus(IDLE);
     }
 
   }
@@ -208,23 +221,29 @@ public class TransactionManager extends Thread {
       List<Transaction> txList = new ArrayList<Transaction>();
 
       if (drainingTx != null) {
-        LOG.debug("Found tx currently being drained");
+        if (LOG.isTraceEnabled()) {
+          LOG.trace("Found tx currently being drained");
+        }
         txList.add(drainingTx);
       }
 
       if (!transactions.isEmpty()) {
-        LOG.debug("Found " + transactions.size() + " presently open transactions");
+        if (LOG.isTraceEnabled()) {
+          LOG.trace("Found " + transactions.size() + " presently open transactions");
+        }
         txList.addAll(transactions.values());
       }
 
       if (!lostTransactions.isEmpty()) {
-        LOG.debug("Found " + lostTransactions.size() + " lost transactions");
+        if (LOG.isTraceEnabled()) {
+          LOG.trace("Found " + lostTransactions.size() + " lost transactions");
+        }
         txList.addAll(lostTransactions);
       }
 
       try {
         new ObjectMapper().writeValue(txLog, txList);
-        LOG.debug("save complete");
+        LOG.trace("save complete");
 
       } catch (IOException e) {
         LOG.error("Failed to write txn.log: " + e.getMessage(), e);
@@ -336,6 +355,14 @@ public class TransactionManager extends Thread {
     }
 
     return new PlumbingFactory<Sink>(rawSinkClasses);
+  }
+
+  public int getStatus() {
+    return status.get();
+  }
+
+  private void setStatus(int status) {
+    this.status.set(status);
   }
 
 }

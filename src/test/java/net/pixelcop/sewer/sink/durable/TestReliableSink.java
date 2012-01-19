@@ -1,11 +1,10 @@
-package net.pixelcop.sewer.sink;
+package net.pixelcop.sewer.sink.durable;
 
 import java.io.IOException;
 
 import net.pixelcop.sewer.node.AbstractNodeTest;
 import net.pixelcop.sewer.node.TestableNode;
 import net.pixelcop.sewer.sink.debug.CountingSink;
-import net.pixelcop.sewer.sink.durable.TestableTransactionManager;
 import net.pixelcop.sewer.source.debug.StringEvent;
 
 import org.junit.Test;

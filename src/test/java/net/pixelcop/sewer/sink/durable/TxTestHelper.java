@@ -1,4 +1,4 @@
-package net.pixelcop.sewer.sink;
+package net.pixelcop.sewer.sink.durable;
 
 import static org.junit.Assert.*;
 

@@ -1,6 +1,8 @@
 package net.pixelcop.sewer.sink;
 
 import net.pixelcop.sewer.sink.durable.TestReliableSequenceFileSink;
+import net.pixelcop.sewer.sink.durable.TestReliableSink;
+import net.pixelcop.sewer.sink.durable.TestRollSink;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;

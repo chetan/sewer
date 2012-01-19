@@ -5,11 +5,11 @@ import java.security.Permission;
 
 import net.pixelcop.sewer.SinkRegistry;
 import net.pixelcop.sewer.SourceRegistry;
-import net.pixelcop.sewer.sink.TxTestHelper;
 import net.pixelcop.sewer.sink.debug.CountingSink;
 import net.pixelcop.sewer.sink.debug.FailOpenSink;
 import net.pixelcop.sewer.sink.durable.TestableTransactionManager;
 import net.pixelcop.sewer.sink.durable.TransactionManager;
+import net.pixelcop.sewer.sink.durable.TxTestHelper;
 import net.pixelcop.sewer.source.debug.EventGeneratorSource;
 import net.pixelcop.sewer.source.debug.FailOpenSource;
 import net.pixelcop.sewer.source.debug.NullSource;

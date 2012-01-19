@@ -14,59 +14,19 @@ public class PlumbingFactory<T> {
 
   private static final Pattern configPattern = Pattern.compile("^(.*?)(\\((.*?)\\))?$");
 
-  public class Builder {
-
-    private Class clazz;
-    private String[] args;
-
-    public Builder(Class clazz, String[] args) {
-      this.clazz = clazz;
-      this.args = args;
-    }
-
-    public Object build() throws Exception {
-      return (T) clazz.getConstructor(String[].class).newInstance((Object) args);
-    }
-
-    @Override
-    public String toString() {
-      StringBuilder sb = new StringBuilder();
-      sb.append(clazz.getSimpleName());
-      sb.append("(");
-      if (args != null) {
-        for (int i = 0; i < args.length; i++) {
-          if (i > 0) {
-            sb.append(", ");
-          }
-          sb.append(args[i]);
-        }
-      }
-      sb.append(")");
-      return sb.toString();
-    }
-
-    public Class getClazz() {
-      return clazz;
-    }
-
-    public String[] getArgs() {
-      return args;
-    }
-  }
-
   private String config;
-  private List<Builder> classes;
+  private List<PlumbingBuilder<T>> classes;
 
   private PlumbingFactory() {
   }
 
-  public PlumbingFactory(List<Builder> classes) {
+  public PlumbingFactory(List<PlumbingBuilder<T>> classes) {
     this.classes = classes;
   }
 
   public PlumbingFactory(String config, Map<String, Class> registry) throws ConfigurationException {
     this.config = config;
-    this.classes = new ArrayList<Builder>();
+    this.classes = new ArrayList<PlumbingBuilder<T>>();
     parseConfig(registry);
   }
 
@@ -100,7 +60,7 @@ public class PlumbingFactory<T> {
         }
       }
 
-      classes.add(new Builder(registry.get(clazzId), args));
+      classes.add(new PlumbingBuilder<T>(registry.get(clazzId), args));
     }
 
   }
@@ -135,7 +95,7 @@ public class PlumbingFactory<T> {
     return null; // TODO throw exception?
   }
 
-  public List<Builder> getClasses() {
+  public List<PlumbingBuilder<T>> getClasses() {
     return classes;
   }
 

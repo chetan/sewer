@@ -44,6 +44,15 @@ JETTY = [
   "org.eclipse.jetty:jetty-util:jar:#{JETTY_VERSION}"
   ]
 
+JETTY_VERSION_6 = "6.1.14" # 6.1.26
+JETTY_6 = [
+    "org.mortbay.jetty:servlet-api:jar:2.5-20081211",
+    "org.mortbay.jetty:jetty-util:jar:#{JETTY_VERSION_6}",
+    "org.mortbay.jetty:jetty:jar:#{JETTY_VERSION_6}",
+    "org.mortbay.jetty:jsp-2.1:jar:#{JETTY_VERSION_6}",
+    "org.mortbay.jetty:jsp-api-2.1:jar:#{JETTY_VERSION_6}",
+    ]
+
 HADOOP_DEPS = [
     "hsqldb:hsqldb:jar:1.8.0.10",
     "net.java.dev.jets3t:jets3t:jar:0.7.1",
@@ -61,8 +70,16 @@ HADOOP = [
     "org.apache.hadoop:hadoop-tools:jar:#{HADOOP_VERSION}"
 ] + ANT + COMMONS_CLI + COMMONS_CODEC + COMMONS_EL + COMMONS_LOGGING + COMMONS_NET + JETTY + JUNIT + HADOOP_DEPS + HTTPCLIENT
 
+HADOOP_TEST = [
+  "org.apache.hadoop:hadoop-test:jar:#{HADOOP_VERSION}"
+] + JETTY_6
+
 class Buildr::Artifact
   def <=>(other)
     self.id <=> other.id
   end
+end
+
+def add_artifacts(*args)
+  artifacts( [ args ].flatten.sort.uniq ).sort
 end

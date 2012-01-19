@@ -11,6 +11,7 @@ import net.pixelcop.sewer.rpc.MasterAPI;
 import net.pixelcop.sewer.rpc.SmartRpcClient;
 import net.pixelcop.sewer.rpc.SmartRpcClientEventHandler;
 import net.pixelcop.sewer.rpc.SmartRpcServer;
+import net.pixelcop.sewer.sink.durable.TransactionManager;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,6 +74,9 @@ public class Node extends Thread implements SmartRpcClientEventHandler {
 
     this.conf = config;
     configure();
+
+    // Boot TransactionManager
+    TransactionManager.init(conf);
 
     // connectToMaster();
   }

@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import net.pixelcop.sewer.PlumbingFactory;
 import net.pixelcop.sewer.PlumbingFactory.Builder;
@@ -34,33 +35,55 @@ public class TransactionManager extends Thread {
 
   private static final String DEFAULT_WAL_PATH = "/opt/sewer/wal";
 
-  protected static TransactionManager instance = new TransactionManager();
-  static {
-    // TODO load old transactions from storage
-  }
+  /**
+   * Singleton instance
+   */
+  protected static TransactionManager instance;
 
   protected final Map<String, Transaction> transactions = new HashMap<String, Transaction>();
 
   protected final LinkedBlockingQueue<Transaction> lostTransactions = new LinkedBlockingQueue<Transaction>();
 
+  // TODO fix this ickiness
   private static final String txFileExt = new SequenceFileSink(new String[]{""}).getFileExt();
 
-  private PlumbingFactory<Sink> unreliableSinkFactory;
+  protected String walPath;
+
+  protected PlumbingFactory<Sink> unreliableSinkFactory;
   protected Transaction drainingTx;
 
-  protected TransactionManager() {
+  protected AtomicBoolean shutdown = new AtomicBoolean(false);
+
+  protected TransactionManager(String walPath) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Initializing TransactionManager " + this.getId());
+    }
+    this.walPath = walPath;
     this.unreliableSinkFactory = createUnreliableSinkFactory();
     this.loadTransctionsFromDisk();
-    this.setName("TxMan");
+    this.setName("TxMan " + this.getId());
     this.start();
+  }
+
+  public static void init(NodeConfig conf) {
+    instance = new TransactionManager(conf.get(NodeConfig.WAL_PATH, DEFAULT_WAL_PATH));
   }
 
   public static TransactionManager getInstance() {
     return instance;
   }
 
+  public void shutdown() {
+    this.shutdown.set(true);
+    this.interrupt();
+  }
+
+  public boolean isShutdown() {
+    return this.shutdown.get();
+  }
+
   public String getWALPath() {
-    return Node.getInstance().getConf().get(NodeConfig.WAL_PATH, DEFAULT_WAL_PATH);
+    return walPath;
   }
 
   /**
@@ -115,7 +138,7 @@ public class TransactionManager extends Thread {
     }
 
     try {
-      LOG.debug("releaseTx: " + id);
+      LOG.debug("rollbackTx: " + id);
       lostTransactions.put(transactions.remove(id));
 
     } catch (InterruptedException e) {
@@ -131,7 +154,7 @@ public class TransactionManager extends Thread {
   @Override
   public void run() {
 
-    while (true) {
+    while (!isShutdown()) {
 
       drainingTx = null;
       try {
@@ -139,6 +162,7 @@ public class TransactionManager extends Thread {
 
       } catch (InterruptedException e) {
         // Interrupted, must be shutting down TxMan
+        LOG.debug("Interrupted while waiting for next tx to drain");
         if (drainingTx != null) {
           lostTransactions.add(drainingTx);
           drainingTx = null;
@@ -171,7 +195,11 @@ public class TransactionManager extends Thread {
 
     synchronized (DEFAULT_WAL_PATH) {
 
-      LOG.debug("Saving transaction queues to disk");
+      File txLog = getTxLog();
+
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Saving transaction queues to disk " + txLog.toString());
+      }
 
       List<Transaction> txList = new ArrayList<Transaction>();
 
@@ -191,7 +219,7 @@ public class TransactionManager extends Thread {
       }
 
       try {
-        new ObjectMapper().writeValue(getTxLog(), txList);
+        new ObjectMapper().writeValue(txLog, txList);
         LOG.debug("save complete");
 
       } catch (IOException e) {
@@ -208,9 +236,12 @@ public class TransactionManager extends Thread {
    */
   protected void loadTransctionsFromDisk() {
 
-    LOG.debug("Loading transaction queues from disk");
-
     File txLog = getTxLog();
+
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Loading transaction queues from disk " + txLog.toString());
+    }
+
     try {
       ArrayList<Transaction> recovered = new ObjectMapper().readValue(txLog,
           new TypeReference<ArrayList<Transaction>>() {});
@@ -241,9 +272,9 @@ public class TransactionManager extends Thread {
     // drain this tx to sink
     LOG.debug("Draining tx " + drainingTx);
     BackoffHelper backoff = new BackoffHelper();
-    while (true) {
-      TransactionSource txSource = new TransactionSource(drainingTx);
+    while (!isShutdown()) {
 
+      TransactionSource txSource = new TransactionSource(drainingTx);
       txSource.setSinkFactory(this.unreliableSinkFactory);
 
       try {
@@ -251,11 +282,12 @@ public class TransactionManager extends Thread {
         // drain failure
         txSource.open();
         commitTx(drainingTx.getId());
+        LOG.debug("Successfully drained tx " + drainingTx);
         return true; // if we get here, drain was successful
 
       } catch (IOException e) {
         try {
-          backoff.handleFailure(e, LOG, "Error draining tx", false); // TODO cancel flag?
+          backoff.handleFailure(e, LOG, "Error draining tx", isShutdown());
         } catch (InterruptedException e1) {
           LOG.debug("Interrupted while draining, must be shutting down?");
           return false;
@@ -272,6 +304,7 @@ public class TransactionManager extends Thread {
       }
     }
 
+    return false;
   }
 
   /**

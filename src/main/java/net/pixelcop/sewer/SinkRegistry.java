@@ -9,6 +9,7 @@ import net.pixelcop.sewer.sink.TcpWriteableEventSink;
 import net.pixelcop.sewer.sink.debug.ConsoleSink;
 import net.pixelcop.sewer.sink.debug.DelayedOpenSink;
 import net.pixelcop.sewer.sink.debug.NullSink;
+import net.pixelcop.sewer.sink.durable.ReliableSequenceFileSink;
 import net.pixelcop.sewer.sink.durable.ReliableSink;
 import net.pixelcop.sewer.sink.durable.RollSink;
 
@@ -21,6 +22,7 @@ public class SinkRegistry {
     // endpoints
     register("dfs", DfsSink.class);
     register("seqfile", SequenceFileSink.class);
+    register("reliableseq", ReliableSequenceFileSink.class);
     register("tcpwrite", TcpWriteableEventSink.class);
 
     // decorators

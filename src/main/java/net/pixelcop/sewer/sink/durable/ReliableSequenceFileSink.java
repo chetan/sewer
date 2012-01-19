@@ -82,6 +82,10 @@ public class ReliableSequenceFileSink extends SequenceFileSink {
 
     if (reliableOut.getStatus() == Plumbing.ERROR) {
       tx.rollback();
+
+    } else {
+      // closed cleanly, commit tx
+      tx.commit();
     }
 
     nextBucket = null;

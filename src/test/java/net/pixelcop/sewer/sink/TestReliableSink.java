@@ -70,16 +70,11 @@ public class TestReliableSink extends AbstractNodeTest {
 
     // wait for drain, at most 1 sec
     long stop = System.currentTimeMillis() + 1000;
-    while (TestableTransactionManager.getLostTransactions().size() > 0
-        || TestableTransactionManager.getDrainingTx() != null
-        || System.currentTimeMillis() < stop) {
+    while (TestableTransactionManager.hasTransactions() && System.currentTimeMillis() < stop) {
     }
     TestableTransactionManager.kill();
 
-    assertEquals(0, TestableTransactionManager.getTransactions().size());
-    assertEquals(0, TestableTransactionManager.getLostTransactions().size());
-    assertNull(TestableTransactionManager.getDrainingTx());
-
+    assertFalse(TestableTransactionManager.hasTransactions());
     assertEquals(1000, CountingSink.getAppendCount());
   }
 

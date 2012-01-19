@@ -13,6 +13,12 @@ public class TestReliableSequenceFileSink extends AbstractHadoopTest {
 
   private static final NullWritable NULL = NullWritable.get();
 
+  /**
+   * Test a simulated failure (HDFS not yet started)
+   *
+   * @throws IOException
+   * @throws InterruptedException
+   */
   @Test
   public void testFailureBuffersToDisk() throws IOException, InterruptedException {
 
@@ -21,6 +27,7 @@ public class TestReliableSequenceFileSink extends AbstractHadoopTest {
     // start node, opens source, blocks until all events sent
     node.start();
     node.await();
+    node.cleanup();
 
     TestableTransactionManager.kill();
 
@@ -33,41 +40,55 @@ public class TestReliableSequenceFileSink extends AbstractHadoopTest {
     node.getTxTestHelper().assertTxLogExists();
   }
 
-  /*
+  /**
+   * Test a simulated failure and recovery
+   *
+   * @throws IOException
+   * @throws InterruptedException
+   */
   @Test
-  public void testWriter() throws IOException {
+  public void testTxManagerDrainsFailedBatch() throws IOException, InterruptedException {
 
-    TestableNode node = createNode("gen", "null");
+    TestableNode node = createNode("gen(1000)", "reliableseq('" + getConnectionString() + "/test/data')");
 
-    String bucket = BucketPath.escapeString(
-        "hdfs://localhost:9000/test/collect/%Y-%m-%d/%H00/data-%{host}-%Y%m%d-%k%M%S", null);
+    // start node, opens source, blocks until all events sent
+    node.start();
+    node.await();
+    node.cleanup();
 
-    Transaction tx = new Transaction(StringEvent.class, bucket, ".seq.deflate");
+    // check count of events written to disk
+    node.getTxTestHelper().verifyRecordsInBuffers(1, 1000, new StringEvent());
+
+    TestableTransactionManager.kill();
+    node.getTxTestHelper().assertTxLogExists();
+
+    // now we should still have 1 lost tx, but 0 in progress
+    assertEquals(0, TestableTransactionManager.getTransactions().size());
+    assertEquals(1, TestableTransactionManager.getLostTransactions().size());
 
 
-    Path hdfsPath = new Path(tx.getBucket() + ".seq.deflate");
+    System.err.println("starting node again");
+    setupHdfs();
 
-    System.err.println("creating dualout");
-    DualFSDataOutputStream dualOut = new DualFSDataOutputStream(tx.createTxPath(), hdfsPath,
-        node.getConf());
-    System.err.println("dualout created....");
+    // now lets try to restart the txman and drain this thing
+    // create a new node & txman using the old tmp path
+    node = createNode("gen(0)", "reliableseq('" + getConnectionString() + "/test/data')", node.getTxTestHelper().getTmpWalPath());
+    Thread.sleep(100);
 
-    Writer w = SequenceFile.createWriter(node.getConf(), dualOut, NullWritable.class, StringEvent.class,
-        CompressionType.BLOCK, HdfsUtil.createCodec());
+    // makes sure we reloaded from disk on reset()
+    assertEquals(0, TestableTransactionManager.getTransactions().size());
+    assertTrue("txns loaded from disk", TestableTransactionManager.getLostTransactions().size() >= 1
+        || TestableTransactionManager.getDrainingTx() != null);
 
-    //TransactionWriter w = new TransactionWriter(tx, hdfsPath, new Configuration());
-    assertNotNull(w);
+    // wait for drain, at most 2 sec
+    long stop = System.currentTimeMillis() + 2000;
+    while (TestableTransactionManager.hasTransactions() && System.currentTimeMillis() < stop) {
+    }
+    TestableTransactionManager.kill();
 
-    w.append(NULL, new StringEvent("foobar1"));
-    w.append(NULL, new StringEvent("foobar2"));
-    w.append(NULL, new StringEvent("foobar3"));
-    w.close();
-
-    dualOut.flush();
-    dualOut.close();
-
+    assertFalse(TestableTransactionManager.hasTransactions());
+    node.getTxTestHelper().verifyRecordsInBuffers(0, 0, new StringEvent());
 
   }
-  */
 
 }

@@ -1,10 +1,11 @@
 package net.pixelcop.sewer.node;
 
 import java.io.IOException;
+import java.net.ServerSocket;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
-import org.apache.hadoop.mapred.JobConf;
 import org.junit.After;
 
 public class AbstractHadoopTest extends AbstractNodeTest {
@@ -12,12 +13,10 @@ public class AbstractHadoopTest extends AbstractNodeTest {
   private MiniDFSCluster dfsCluster;
   private FileSystem fileSystem;
 
-  private int dataNodes = 1;
+  private int namenodePort = 0;
 
-
-  //@Before
   public void setupHdfs() throws IOException {
-    dfsCluster = new MiniDFSCluster(new JobConf(), dataNodes, true, null);
+    dfsCluster = new MiniDFSCluster(getNamenodePort(), new Configuration(), 1, true, true, null, null);
     fileSystem = dfsCluster.getFileSystem();
   }
 
@@ -34,14 +33,40 @@ public class AbstractHadoopTest extends AbstractNodeTest {
   }
 
   public String getConnectionString() {
-    if (dfsCluster == null) {
-      return "hdfs://localhost:30000/";
-    }
-    return "hdfs://localhost:" + dfsCluster.getNameNodePort() + "/";
+    return "hdfs://localhost:" + getNamenodePort() + "/";
   }
 
   public FileSystem getFileSystem() {
     return fileSystem;
+  }
+
+  public int getNamenodePort() {
+    if (namenodePort == 0) {
+      namenodePort = findOpenPort();
+    }
+    return namenodePort;
+  }
+
+  public int findOpenPort() {
+
+    int port = 30000;
+
+    while (true) {
+
+      try {
+        ServerSocket s = new ServerSocket(port);
+        s.setReuseAddress(true);
+        s.close();
+        return port;
+
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+
+      port += 1;
+
+    }
+
   }
 
 }

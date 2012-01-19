@@ -58,21 +58,36 @@ public class TxTestHelper {
     File[] files = new File(tmpWalPath).listFiles(new FilenameFilter() {
       @Override
       public boolean accept(File dir, String name) {
-        return (name.charAt(0) != '.'); // ignore .crc file for this test
+        // ignore .crc files and txn.log for this test
+        return (name.charAt(0) != '.' && !name.equalsIgnoreCase("txn.log"));
       }
     });
-    assertTrue(files.length >= filesExpected);
 
-    Path path = new Path("file://" + files[0].getAbsolutePath());
-    FileSystem fs = path.getFileSystem(conf);
-    Reader reader = new SequenceFile.Reader(fs, path, conf);
+    if (filesExpected == 0) {
+      assertEquals(0, files.length);
+      return;
 
-    NullWritable nil = NullWritable.get();
+    } else {
+      assertTrue(files.length >= filesExpected);
+    }
 
     int rowCount = 0;
-    while (reader.next(nil, event)) {
-      rowCount++;
+
+    for (int i = 0; i < files.length; i++) {
+      File file = files[i];
+
+      Path path = new Path(file.toURI());
+      FileSystem fs = path.getFileSystem(conf);
+      Reader reader = new SequenceFile.Reader(fs, path, conf);
+
+      NullWritable nil = NullWritable.get();
+
+      while (reader.next(nil, event)) {
+        rowCount++;
+      }
     }
+
+
 
     assertEquals(rowCountExpected, rowCount); // TODO change to >= ?
   }

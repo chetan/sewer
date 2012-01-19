@@ -32,6 +32,11 @@ public class TestableTransactionManager extends TransactionManager {
     return getInstance().drainingTx;
   }
 
+  public static boolean hasTransactions() {
+    return (getTransactions().size() > 0 || getLostTransactions().size() > 0
+        || getDrainingTx() != null);
+  }
+
   /**
    * Kill the existing {@link TransactionManager}
    * @throws InterruptedException

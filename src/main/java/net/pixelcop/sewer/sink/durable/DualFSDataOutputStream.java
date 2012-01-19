@@ -190,4 +190,8 @@ public class DualFSDataOutputStream extends FSDataOutputStream implements Status
     return this.failCount.get();
   }
 
+  public boolean isRemoteOpen() {
+    return ((DualOutputStream) out).getRemoteOut() != null;
+  }
+
 }

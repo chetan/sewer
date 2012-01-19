@@ -53,7 +53,7 @@ public class TestHttpPixelSource extends AbstractNodeTest {
     assertEquals(15, CountingSink.getAppendCount());
     CountingSink.reset();
 
-    cleanupNode(node);
+    node.cleanup();
     assertEquals(1, CountingSink.getCloseCount());
   }
 
@@ -79,7 +79,7 @@ public class TestHttpPixelSource extends AbstractNodeTest {
     assertTrue(conn.getHeaderField(0).contains("200"));
     assertEquals(0, CountingSink.getAppendCount()); // should still be zero
 
-    cleanupNode(node);
+    node.cleanup();
   }
 
   private void ping(int count) throws IOException {

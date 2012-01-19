@@ -16,10 +16,9 @@ public class TestableTransactionManager extends TransactionManager {
 
   private static final Logger LOG = LoggerFactory.getLogger(TestableTransactionManager.class);
 
-  protected TestableTransactionManager() {
-    super();
+  protected TestableTransactionManager(String walPath) {
+    super(walPath);
   }
-
 
   public static Map<String, Transaction> getTransactions() {
     return getInstance().transactions;
@@ -37,20 +36,11 @@ public class TestableTransactionManager extends TransactionManager {
    * Kill the existing {@link TransactionManager}
    * @throws InterruptedException
    */
-  public static void shutdown() throws InterruptedException {
-    LOG.debug("Shutting down TransactionManager");
-    instance.interrupt();
-    instance.join();
-    LOG.debug("TransactionManager joined");
-  }
-
-  /**
-   * Replace the existing {@link TransactionManager} with a new instance.
-   * The old one should first be {@link #shutdown}!
-   */
-  public static void reset() {
-    LOG.debug("Resetting TransactionManager");
-    instance = new TransactionManager();
+  public static void kill() throws InterruptedException {
+    LOG.debug("Shutting down TransactionManager " + getInstance().getId());
+    getInstance().shutdown();
+    getInstance().join();
+    LOG.debug("TransactionManager joined " + getInstance().getId());
   }
 
 }

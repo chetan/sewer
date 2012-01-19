@@ -13,7 +13,9 @@ import org.slf4j.LoggerFactory;
 
 /**
  * A single-threaded source which simply generates the specified number of Events on open() and
- * exits. NOTE: {@link #open()} is a blocking call.
+ * exits.
+ *
+ * <p><strong>NOTE:</strong> {@link #open()} is a <em>blocking</em> call.
  *
  * @author chetan
  *
@@ -66,7 +68,9 @@ public class EventGeneratorSource extends Source {
     this.sink = createSink();
 
     setStatus(FLOWING);
+    LOG.debug("Generating " + max + " events");
     generateEvents();
+    LOG.debug("Done");
     setStatus(CLOSED);
   }
 

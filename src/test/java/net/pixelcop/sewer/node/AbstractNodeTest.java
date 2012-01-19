@@ -8,6 +8,8 @@ import net.pixelcop.sewer.SourceRegistry;
 import net.pixelcop.sewer.sink.TxTestHelper;
 import net.pixelcop.sewer.sink.debug.CountingSink;
 import net.pixelcop.sewer.sink.debug.FailOpenSink;
+import net.pixelcop.sewer.sink.durable.TestableTransactionManager;
+import net.pixelcop.sewer.sink.durable.TransactionManager;
 import net.pixelcop.sewer.source.debug.EventGeneratorSource;
 import net.pixelcop.sewer.source.debug.FailOpenSource;
 import net.pixelcop.sewer.source.debug.NullSource;
@@ -58,11 +60,27 @@ public abstract class AbstractNodeTest extends Assert {
     SinkRegistry.register("failopen", FailOpenSink.class);
   }
 
+  @Before
+  public void resetCountingSink() {
+    CountingSink.reset();
+  }
+
+  @Before
+  public void teardownExistingTxMan() {
+    if (TestableTransactionManager.getInstance() != null) {
+      LOG.debug("Found existing TxMan, shutting it down");
+      try {
+        TestableTransactionManager.kill();
+      } catch (InterruptedException e) {
+      }
+    }
+  }
+
+
   @After
   public void teardown() throws Exception {
     System.setSecurityManager(securityManager);
-    cleanupNode(TestableNode.instance);
-    cleanupNode(Node.instance);
+    TestableNode.cleanup(TestableNode.instance);
   }
 
   @After
@@ -70,25 +88,43 @@ public abstract class AbstractNodeTest extends Assert {
     TxTestHelper.cleanupAllHelpers();
   }
 
-  @Before
-  public void resetCountingSink() {
-    CountingSink.reset();
+  @After
+  public void cleanupNodes() {
+    TestableNode.cleanupAllNodes();
   }
 
   /**
-   * Configures a new node but does not start it
+   * Configures a new node but does not start it. The newly created node will also create a new
+   * {@link TransactionManager} with a new temp WAL path.
    *
    * @param source
    * @param sink
-   * @return
+   * @return {@link TestableNode}
    * @throws IOException
    */
   public TestableNode createNode(String source, String sink) throws IOException {
+    return createNode(source, sink, null);
+  }
+
+  /**
+   * Configures a new node but does not start it. The newly created node will also create a new
+   * {@link TransactionManager} with the given WAL path.
+   *
+   * @param source
+   * @param sink
+   * @param tmpWalPath
+   * @return {@link TestableNode}
+   * @throws IOException
+   */
+  public TestableNode createNode(String source, String sink, String tmpWalPath) throws IOException {
     NodeConfig conf = new NodeConfigurator().configure(new String[]{ "-v" });
     conf.set(NodeConfig.SOURCE, source);
     conf.set(NodeConfig.SINK, sink);
 
+    TxTestHelper helper = new TxTestHelper(conf, tmpWalPath);
     TestableNode node = new TestableNode(conf);
+    node.setTxTestHelper(helper);
+
     return node;
   }
 
@@ -109,20 +145,6 @@ public abstract class AbstractNodeTest extends Assert {
       fail("node startup interrupted");
     }
     return node;
-  }
-
-  public void cleanupNode(Node node) {
-
-    if (node == null || node.getSource() == null) {
-      return;
-    }
-
-    try {
-      node.getSource().close();
-    } catch (IOException e) {
-      LOG.warn("error closing source", e);
-    }
-
   }
 
 }

@@ -9,9 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.pixelcop.sewer.Event;
-import net.pixelcop.sewer.node.Node;
 import net.pixelcop.sewer.node.NodeConfig;
-import net.pixelcop.sewer.sink.durable.TestableTransactionManager;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.hadoop.fs.FileSystem;
@@ -26,16 +24,14 @@ public class TxTestHelper {
   private static final List<TxTestHelper> helpers = new ArrayList<TxTestHelper>();
 
   private final String tmpWalPath;
-  private Node node;
+  private NodeConfig conf;
 
-  public TxTestHelper(Node node) throws IOException {
+  public TxTestHelper(NodeConfig conf, String tmpWalPath) throws IOException {
     helpers.add(this);
-    this.node = node;
-    tmpWalPath = "/tmp/sewer/" + RandomStringUtils.randomAlphabetic(8);
-
-    TestableTransactionManager.reset();
+    this.tmpWalPath = tmpWalPath != null ? tmpWalPath : "/tmp/sewer/" + RandomStringUtils.randomAlphabetic(8);
+    this.conf = conf;
+    conf.set(NodeConfig.WAL_PATH, this.tmpWalPath);
     reset();
-    node.getConf().set(NodeConfig.WAL_PATH, tmpWalPath);
   }
 
   public void cleanup() throws IOException {
@@ -43,7 +39,6 @@ public class TxTestHelper {
   }
 
   public void reset() throws IOException {
-    cleanup();
     new File(tmpWalPath).mkdirs();
   }
 
@@ -69,8 +64,8 @@ public class TxTestHelper {
     assertTrue(files.length >= filesExpected);
 
     Path path = new Path("file://" + files[0].getAbsolutePath());
-    FileSystem fs = path.getFileSystem(node.getConf());
-    Reader reader = new SequenceFile.Reader(fs, path, node.getConf());
+    FileSystem fs = path.getFileSystem(conf);
+    Reader reader = new SequenceFile.Reader(fs, path, conf);
 
     NullWritable nil = NullWritable.get();
 

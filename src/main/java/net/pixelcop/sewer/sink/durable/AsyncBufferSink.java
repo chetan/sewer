@@ -16,10 +16,14 @@ public class AsyncBufferSink extends Sink implements Runnable {
 
   private static final long NANO_WAIT = TimeUnit.SECONDS.toNanos(3);
 
+  private static final String DEFAULT_THREAD_NAME = "AsyncBuffer";
+
   private LinkedBlockingQueue<Event> buffer;
   private final String name;
 
   private final Thread thread;
+
+  private boolean ownSubSink = false;
 
   /**
    * Buffering sink which will close when the parent sink closes and the queue is empty
@@ -31,6 +35,10 @@ public class AsyncBufferSink extends Sink implements Runnable {
 
     this.thread = new Thread(this);
     this.thread.setName(this.name);
+  }
+
+  public AsyncBufferSink(String[] args) {
+    this(DEFAULT_THREAD_NAME);
   }
 
   @Override
@@ -49,6 +57,11 @@ public class AsyncBufferSink extends Sink implements Runnable {
       LOG.error("Interrupted while waiting for " + name + " thread to join");
     }
 
+    if (ownSubSink) {
+      // close only if we opened it ourselves
+      subSink.close();
+    }
+
     if (LOG.isDebugEnabled()) {
       LOG.debug(name + " closed with " + buffer.size() + " events left in buffer");
     }
@@ -59,6 +72,10 @@ public class AsyncBufferSink extends Sink implements Runnable {
   public void open() throws IOException {
     setStatus(OPENING);
     buffer = new LinkedBlockingQueue<Event>(100000);
+    if (createSubSink()) {
+      ownSubSink = true;
+      subSink.open();
+    }
     setStatus(FLOWING);
     thread.start();
   }
@@ -68,7 +85,7 @@ public class AsyncBufferSink extends Sink implements Runnable {
     try {
       this.buffer.put(event);
     } catch (InterruptedException e) {
-      LOG.error("interrupted while putting event in persist queue");
+      LOG.error("interrupted while putting event in buffer queue");
     }
   }
 

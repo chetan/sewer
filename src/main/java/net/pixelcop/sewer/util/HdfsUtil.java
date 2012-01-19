@@ -16,6 +16,11 @@ import org.slf4j.LoggerFactory;
 
 public class HdfsUtil {
 
+  /**
+   * Helper class for asynchronously opening HDFS {@link FileSystem}'s
+   * @author chetan
+   *
+   */
   static class AsyncFSOpener extends Thread {
 
     private Path path;

@@ -53,7 +53,12 @@ public class ReliableSequenceFileSink extends SequenceFileSink {
 
     if (LOG.isInfoEnabled()) {
       LOG.info("Opened: " + HdfsUtil.pathToString(localPath));
-      LOG.info("Opened: " + HdfsUtil.pathToString(dstPath));
+
+      if (reliableOut.isRemoteOpen()) {
+        LOG.info("Opened: " + HdfsUtil.pathToString(dstPath));
+      } else {
+        LOG.info("Still opening: " + HdfsUtil.pathToString(dstPath));
+      }
     }
   }
 
@@ -61,9 +66,11 @@ public class ReliableSequenceFileSink extends SequenceFileSink {
   public void close() throws IOException {
 
     if (LOG.isDebugEnabled()) {
+      LOG.debug("close() called; currently: " + getStatusString());
       LOG.debug("Closing: " + HdfsUtil.pathToString(localPath));
       LOG.debug("Closing: " + HdfsUtil.pathToString(dstPath));
     }
+    setStatus(CLOSING);
 
     if (writer != null) {
       writer.close();

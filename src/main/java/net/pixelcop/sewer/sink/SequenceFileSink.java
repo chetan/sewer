@@ -49,6 +49,7 @@ public class SequenceFileSink extends BucketedSink {
   @Override
   public void close() throws IOException {
     if (LOG.isDebugEnabled()) {
+      LOG.debug("close() called; currently: " + getStatusString());
       LOG.debug("Closing: " + HdfsUtil.pathToString(dstPath));
     }
 
@@ -65,6 +66,7 @@ public class SequenceFileSink extends BucketedSink {
 
   @Override
   public void open() throws IOException {
+    LOG.debug("open");
     setStatus(OPENING);
     if (nextBucket == null) {
       generateNextBucket();

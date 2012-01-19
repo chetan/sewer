@@ -2,6 +2,7 @@ package net.pixelcop.sewer.sink.durable;
 
 import java.io.IOException;
 
+import net.pixelcop.sewer.Plumbing;
 import net.pixelcop.sewer.node.Node;
 import net.pixelcop.sewer.sink.SequenceFileSink;
 import net.pixelcop.sewer.util.HdfsUtil;
@@ -11,7 +12,6 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.SequenceFile.CompressionType;
-import org.apache.hadoop.io.SequenceFile.Writer;
 import org.apache.hadoop.io.compress.CompressionCodec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,10 +22,16 @@ public class ReliableSequenceFileSink extends SequenceFileSink {
 
   protected Transaction tx;
 
+  private DualFSDataOutputStream reliableOut;
+  private Path localPath;
+
   public ReliableSequenceFileSink(String[] args) {
     super(args);
   }
 
+  /**
+   * Override createWriter from super() to create a reliable instance
+   */
   @Override
   protected void createWriter() throws IOException {
 
@@ -34,18 +40,50 @@ public class ReliableSequenceFileSink extends SequenceFileSink {
     Configuration conf = Node.getInstance().getConf();
 
     CompressionCodec codec = HdfsUtil.createCodec();
+
+    localPath = tx.createTxPath();
     dstPath = new Path(nextBucket + ".seq" + codec.getDefaultExtension());
 
-    DualFSDataOutputStream dualOut = new DualFSDataOutputStream(tx.createTxPath(), dstPath, conf);
+    reliableOut = new DualFSDataOutputStream(localPath, dstPath, conf);
 
-    Writer w = SequenceFile.createWriter(conf, dualOut, NullWritable.class,
+    this.writer = SequenceFile.createWriter(conf, reliableOut, NullWritable.class,
         Node.getInstance().getSource().getEventClass(), CompressionType.BLOCK, codec);
 
+    nextBucket = null;
+
     if (LOG.isInfoEnabled()) {
-      LOG.info("Opened ReliableSequenceFileSink: " + dstPath.toString());
+      LOG.info("Opened: " + HdfsUtil.pathToString(localPath));
+      LOG.info("Opened: " + HdfsUtil.pathToString(dstPath));
+    }
+  }
+
+  @Override
+  public void close() throws IOException {
+
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Closing: " + HdfsUtil.pathToString(localPath));
+      LOG.debug("Closing: " + HdfsUtil.pathToString(dstPath));
+    }
+
+    if (writer != null) {
+      writer.close();
+    }
+
+    if (reliableOut != null) {
+      reliableOut.close();
+    }
+
+    if (reliableOut.getStatus() == Plumbing.ERROR) {
+      tx.rollback();
     }
 
     nextBucket = null;
+    setStatus(CLOSED);
+
+    if (LOG.isInfoEnabled()) {
+      LOG.info("Closed: " + HdfsUtil.pathToString(localPath));
+      LOG.info("Closed: " + HdfsUtil.pathToString(dstPath));
+    }
   }
 
 }

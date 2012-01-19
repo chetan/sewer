@@ -73,7 +73,7 @@ public class TestReliableSink extends AbstractNodeTest {
     }
     TestableTransactionManager.kill();
 
-    assertFalse(TestableTransactionManager.hasTransactions());
+    TestableTransactionManager.assertNoTransactions();
     assertEquals(1000, CountingSink.getAppendCount());
   }
 

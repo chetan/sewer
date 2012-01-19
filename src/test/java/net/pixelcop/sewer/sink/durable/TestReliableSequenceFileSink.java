@@ -14,6 +14,39 @@ public class TestReliableSequenceFileSink extends AbstractHadoopTest {
   private static final NullWritable NULL = NullWritable.get();
 
   /**
+   * HDFS up and running, "all green" case test
+   *
+   * @throws IOException
+   * @throws InterruptedException
+   */
+  @Test
+  public void testSinkDrainsNormally() throws IOException, InterruptedException {
+
+    setupHdfs();
+
+    // now lets try to restart the txman and drain this thing
+    // create a new node & txman using the old tmp path
+    TestableNode node = createNode("gen(1000)", "reliableseq('" + getConnectionString() + "/test/data')");
+    Thread.sleep(100);
+    TestableTransactionManager.assertNoTransactions();
+
+
+    node.start();
+    node.await();
+    node.cleanup();
+
+
+    // wait for drain, at most 2 sec
+    long stop = System.currentTimeMillis() + 2000;
+    while (TestableTransactionManager.hasTransactions() && System.currentTimeMillis() < stop) {
+    }
+    TestableTransactionManager.kill();
+
+    TestableTransactionManager.assertNoTransactions();
+    node.getTxTestHelper().verifyRecordsInBuffers(0, 0, new StringEvent());
+  }
+
+  /**
    * Test a simulated failure (HDFS not yet started)
    *
    * @throws IOException
@@ -67,7 +100,6 @@ public class TestReliableSequenceFileSink extends AbstractHadoopTest {
     assertEquals(1, TestableTransactionManager.getLostTransactions().size());
 
 
-    System.err.println("starting node again");
     setupHdfs();
 
     // now lets try to restart the txman and drain this thing
@@ -86,7 +118,7 @@ public class TestReliableSequenceFileSink extends AbstractHadoopTest {
     }
     TestableTransactionManager.kill();
 
-    assertFalse(TestableTransactionManager.hasTransactions());
+    TestableTransactionManager.assertNoTransactions();
     node.getTxTestHelper().verifyRecordsInBuffers(0, 0, new StringEvent());
 
   }

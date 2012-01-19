@@ -1,5 +1,7 @@
 package net.pixelcop.sewer.sink.durable;
 
+import static org.junit.Assert.*;
+
 import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -35,6 +37,12 @@ public class TestableTransactionManager extends TransactionManager {
   public static boolean hasTransactions() {
     return (getTransactions().size() > 0 || getLostTransactions().size() > 0
         || getDrainingTx() != null);
+  }
+
+  public static void assertNoTransactions() {
+    assertEquals(0, getTransactions().size());
+    assertEquals(0, getTransactions().size());
+    assertNull(getDrainingTx());
   }
 
   /**

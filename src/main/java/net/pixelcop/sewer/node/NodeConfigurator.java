@@ -32,8 +32,12 @@ public class NodeConfigurator {
   private String filename;
 
   public NodeConfig configure(String[] args) {
+    return configure(args, true);
+  }
+
+  public NodeConfig configure(String[] args, boolean loadHadoopConfigs) {
     processCommandLine(args);
-    return createConfig(filename);
+    return createConfig(filename, loadHadoopConfigs);
   }
 
   private void processCommandLine(String[] args) {
@@ -71,11 +75,15 @@ public class NodeConfigurator {
    * Create the NodeConfig
    *
    * @param filename
+   * @param loadHadoopConfigs
    * @return
    */
-  private NodeConfig createConfig(String filename) {
+  private NodeConfig createConfig(String filename, boolean loadHadoopConfigs) {
     NodeConfig conf = new NodeConfig();
-    loadHadoopConfigs(conf);
+
+    if (loadHadoopConfigs) {
+      loadHadoopConfigs(conf);
+    }
 
     // Load config.properties from Classpath as well as command line, if passed
     addPropsFromClasspath(conf);
@@ -107,7 +115,6 @@ public class NodeConfigurator {
     }
   }
 
-  @SuppressWarnings("static-access")
   private void addPropsFromUrl(NodeConfig conf, URL props) throws IOException {
 
     if (verbose) {

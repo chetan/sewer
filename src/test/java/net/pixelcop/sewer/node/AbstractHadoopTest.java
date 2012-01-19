@@ -5,6 +5,7 @@ import java.net.ServerSocket;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
 import org.junit.After;
 
@@ -16,12 +17,29 @@ public class AbstractHadoopTest extends AbstractNodeTest {
   private int namenodePort = 0;
 
   public void setupHdfs() throws IOException {
-    dfsCluster = new MiniDFSCluster(getNamenodePort(), new Configuration(), 1, true, true, null, null);
+    FileUtil.fullyDelete(MiniDFSCluster.getBaseDir());
+    dfsCluster = new MiniDFSCluster(getNamenodePort(), createConfig(), 1, true, true, null, null);
     fileSystem = dfsCluster.getFileSystem();
   }
 
+  private Configuration createConfig() {
+    return new NodeConfigurator().configure(null, false);
+  }
+
   @After
-  public void teardownHdfs() {
+  public void teardownHdfs() throws IOException {
+
+    FileSystem.closeAll();
+
+    try {
+      if (fileSystem != null) {
+        fileSystem.close();
+      }
+    }
+    catch (Exception e) {
+      LOG.debug("Error shutting down HDFS: " + e.getMessage(), e);
+    }
+
     try {
       if (dfsCluster != null) {
         dfsCluster.shutdown();
@@ -30,6 +48,9 @@ public class AbstractHadoopTest extends AbstractNodeTest {
     catch (Exception e) {
       LOG.debug("Error shutting down HDFS: " + e.getMessage(), e);
     }
+
+    fileSystem = null;
+    dfsCluster = null;
   }
 
   public String getConnectionString() {

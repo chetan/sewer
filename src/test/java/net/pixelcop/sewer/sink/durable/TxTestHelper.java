@@ -26,20 +26,21 @@ public class TxTestHelper {
   private final String tmpWalPath;
   private NodeConfig conf;
 
+  private TransactionManager txMan;
+
   public TxTestHelper(NodeConfig conf, String tmpWalPath) throws IOException {
     helpers.add(this);
     this.tmpWalPath = tmpWalPath != null ? tmpWalPath : "/tmp/sewer/" + RandomStringUtils.randomAlphabetic(8);
     this.conf = conf;
     conf.set(NodeConfig.WAL_PATH, this.tmpWalPath);
-    reset();
+    new File(this.tmpWalPath).mkdirs();
   }
 
   public void cleanup() throws IOException {
     FileUtil.fullyDelete(new File(tmpWalPath));
-  }
-
-  public void reset() throws IOException {
-    new File(tmpWalPath).mkdirs();
+    if (txMan != null) {
+      txMan.shutdown();
+    }
   }
 
   public void assertTxLogExists() {
@@ -104,6 +105,10 @@ public class TxTestHelper {
       }
     }
     helpers.clear();
+  }
+
+  public void addTxMan() {
+    this.txMan = TransactionManager.getInstance();
   }
 
 }

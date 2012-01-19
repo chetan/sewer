@@ -19,6 +19,7 @@ public class TestReliableSink extends AbstractNodeTest {
     // start node, opens source, blocks until all events sent
     node.start();
     node.await();
+    node.cleanup();
 
     TestableTransactionManager.kill();
 
@@ -40,6 +41,7 @@ public class TestReliableSink extends AbstractNodeTest {
     // start node, opens source, blocks until all events sent
     node.start();
     node.await();
+    node.cleanup();
 
     // now check expected results (buffers on disk, no appends on ultimate subsink)
     assertEquals(0, CountingSink.getAppendCount());
@@ -61,16 +63,11 @@ public class TestReliableSink extends AbstractNodeTest {
     // create a new node & txman using the old tmp path
     node = createNode("null", "reliable > counting", node.getTxTestHelper().getTmpWalPath());
 
-
     // makes sure we reloaded from disk on reset()
     assertEquals(0, TestableTransactionManager.getTransactions().size());
-    assertTrue("txns loaded from disk", TestableTransactionManager.getLostTransactions().size() >= 1
-        || TestableTransactionManager.getDrainingTx() != null);
+    assertTrue("txns loaded from disk", TestableTransactionManager.hasTransactions());
 
-    // wait for drain, at most 1 sec
-    long stop = System.currentTimeMillis() + 1000;
-    while (TestableTransactionManager.hasTransactions() && System.currentTimeMillis() < stop) {
-    }
+    TestableTransactionManager.await();
     TestableTransactionManager.kill();
 
     TestableTransactionManager.assertNoTransactions();

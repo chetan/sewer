@@ -56,4 +56,21 @@ public class TestableTransactionManager extends TransactionManager {
     LOG.debug("TransactionManager joined " + getInstance().getId());
   }
 
+  public static boolean isIdle() {
+    return getInstance().getStatus() == IDLE;
+  }
+
+  public static boolean isDraining() {
+    return getInstance().getStatus() == DRAINING;
+  }
+
+  /**
+   * Wait for the TransactionManager to drain, max 2 seconds
+   */
+  public static void await() {
+    long stop = System.currentTimeMillis() + 2000;
+    while (!isDraining()) {}
+    while (hasTransactions() && isDraining() && System.currentTimeMillis() < stop) {}
+  }
+
 }

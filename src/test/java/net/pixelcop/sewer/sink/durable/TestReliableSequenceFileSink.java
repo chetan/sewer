@@ -112,10 +112,7 @@ public class TestReliableSequenceFileSink extends AbstractHadoopTest {
     assertTrue("txns loaded from disk", TestableTransactionManager.getLostTransactions().size() >= 1
         || TestableTransactionManager.getDrainingTx() != null);
 
-    // wait for drain, at most 2 sec
-    long stop = System.currentTimeMillis() + 2000;
-    while (TestableTransactionManager.hasTransactions() && System.currentTimeMillis() < stop) {
-    }
+    TestableTransactionManager.await();
     TestableTransactionManager.kill();
 
     TestableTransactionManager.assertNoTransactions();

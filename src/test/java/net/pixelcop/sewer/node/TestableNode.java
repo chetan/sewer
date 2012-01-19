@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
+import net.pixelcop.sewer.sink.durable.TestableTransactionManager;
 import net.pixelcop.sewer.sink.durable.TxTestHelper;
 
 import org.slf4j.Logger;
@@ -66,7 +67,13 @@ public class TestableNode extends Node {
     try {
       node.getSource().close();
     } catch (IOException e) {
-      LOG.warn("error closing source", e);
+      LOG.warn("error during cleanup", e);
+    }
+
+    try {
+      TestableTransactionManager.kill();
+    } catch (InterruptedException e) {
+      LOG.warn("error during cleanup", e);
     }
   }
 

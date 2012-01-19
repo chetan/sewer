@@ -66,6 +66,7 @@ public abstract class AbstractNodeTest extends Assert {
   }
 
   @Before
+  @After
   public void teardownExistingTxMan() {
     if (TestableTransactionManager.getInstance() != null) {
       LOG.debug("Found existing TxMan, shutting it down");
@@ -80,6 +81,7 @@ public abstract class AbstractNodeTest extends Assert {
   @After
   public void teardown() throws Exception {
     System.setSecurityManager(securityManager);
+    securityManager = null;
     TestableNode.cleanup(TestableNode.instance);
   }
 
@@ -124,6 +126,7 @@ public abstract class AbstractNodeTest extends Assert {
     TxTestHelper helper = new TxTestHelper(conf, tmpWalPath);
     TestableNode node = new TestableNode(conf);
     node.setTxTestHelper(helper);
+    helper.addTxMan();
 
     return node;
   }

@@ -5,8 +5,9 @@ TMP=$ROOT/tmp
 PID_FILE=$TMP/sewer.pid
 OUT_FILE=$TMP/sewer.out
 
-RUN="java"
-RUN="$RUN -XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=80 -Xms512m -Xmx1g"
+JOPTS="-XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=80 -Xms512m -Xmx1g"
+
+# AggressiveOpts seems to be pretty good under OpenJDK 7
 
 # might be good for jetty headers?
 # -XX:+UseCompressedStrings
@@ -53,22 +54,25 @@ start () {
 
   else
     # dist path
-    JARS=""
+    CP=""
     for jar in `find $ROOT -name '*.jar' | sort -r`; do
-      if [ "$JARS" != "" ]; then
-        JARS="$JARS:"
+      if [ "$CP" != "" ]; then
+        CP="$CP:"
       fi
-      JARS="$JARS$jar"
+      CP="$CP$jar"
     done
-    RUN="$RUN -classpath $JARS"
-    RUN="$RUN $MAIN"
+
   fi
 
   if [ -f $ROOT/conf/config.properties ]; then
-    RUN="$RUN -c $ROOT/conf/config.properties"
+    CP="$ROOT/conf/config.properties:$CP"
   fi
+  if [ -f $ROOT/conf/log4j.properties ]; then
+    CP="$ROOT/conf/log4j.properties:$CP"
+  fi
+  CP="-cp $CP"
 
-  RUN="$RUN -v"
+  RUN="java $JOPTS $CP $MAIN -v"
 
   # start
   mkdir -p $TMP

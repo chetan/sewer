@@ -49,8 +49,7 @@ public class TransactionManager extends Thread {
 
   protected final LinkedBlockingQueue<Transaction> lostTransactions = new LinkedBlockingQueue<Transaction>();
 
-  // TODO fix this ickiness
-  private static final String txFileExt = new SequenceFileSink(new String[]{""}).getFileExt();
+  private final String txFileExt;
 
   protected String walPath;
 
@@ -67,6 +66,7 @@ public class TransactionManager extends Thread {
     this.status = new AtomicInteger();
     this.shutdown = new AtomicBoolean(false);
     this.walPath = walPath;
+    this.txFileExt = new SequenceFileSink(new String[]{""}).getFileExt(); // TODO fix this ickiness
     this.unreliableSinkFactory = createUnreliableSinkFactory();
     this.loadTransctionsFromDisk();
     this.setName("TxMan " + this.getId());

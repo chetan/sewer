@@ -51,7 +51,7 @@ public class DfsSink extends Sink {
 
   @Override
   public void open() throws IOException {
-    String fullPath = BucketPath.escapeString(configPath, null);
+    String fullPath = BucketPath.escapeString(configPath);
     createWriter(fullPath);
   }
 

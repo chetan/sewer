@@ -102,7 +102,7 @@ public class SequenceFileSink extends BucketedSink {
 
   @Override
   public String generateNextBucket() {
-    nextBucket = BucketPath.escapeString(configPath, null);
+    nextBucket = BucketPath.escapeString(configPath);
     return nextBucket;
   }
 

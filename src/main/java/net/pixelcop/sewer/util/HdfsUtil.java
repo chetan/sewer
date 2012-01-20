@@ -1,6 +1,7 @@
 package net.pixelcop.sewer.util;
 
 import java.io.IOException;
+import java.util.List;
 
 import net.pixelcop.sewer.node.Node;
 
@@ -8,9 +9,8 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.compress.CompressionCodec;
+import org.apache.hadoop.io.compress.CompressionCodecFactory;
 import org.apache.hadoop.io.compress.DefaultCodec;
-import org.apache.hadoop.io.compress.GzipCodec;
-import org.apache.hadoop.util.NativeCodeLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,6 +49,11 @@ public class HdfsUtil {
   }
 
   private static final Logger LOG = LoggerFactory.getLogger(HdfsUtil.class);
+
+  public static final String CONFIG_COMPRESSION = "sewer.sink.compression";
+  public static final String DEFAULT_COMPRESSION = "default";
+
+  private static CompressionCodec codec = null;
 
   /**
    * Delete the given Path if it exists.
@@ -91,34 +96,51 @@ public class HdfsUtil {
   }
 
   /**
-   * Return the best available codec for this system
+   * Return the configured {@link CompressionCodec} (via sewer.sink.compression setting)
    *
    * @return {@link CompressionCodec}
    */
   public static CompressionCodec createCodec() {
-    return createCodec(false);
+    if (codec == null) {
+      codec = selectCodec(Node.getInstance().getConf());
+    }
+    return codec;
   }
 
   /**
-   * Return the best available codec for this system
-   *
-   * @param ipc Codec will be used for inter-process communication
+   * Creates and returns the configured {@link CompressionCodec}
+   * @param conf Hadoop {@link Configuration} to use
    * @return {@link CompressionCodec}
    */
-  public static CompressionCodec createCodec(boolean ipc) {
+  public static CompressionCodec selectCodec(Configuration conf) {
 
-    if (NativeCodeLoader.isNativeCodeLoaded()) {
-      // this codec is only available in newer versions of Hadoop
-      // if (ipc) {
-      // return new SnappyCodec();
-      // }
-
-      return new GzipCodec();
-
-    } else {
-      return new DefaultCodec();
+    String target = conf.get(CONFIG_COMPRESSION, DEFAULT_COMPRESSION);
+    if (target.equalsIgnoreCase("deflate")) {
+      // older versions don't have the DeflateCodec alias class
+      target = DEFAULT_COMPRESSION;
     }
 
+    List<Class<? extends CompressionCodec>> codecClasses =
+      CompressionCodecFactory.getCodecClasses(new Configuration());
+
+    for (Class<? extends CompressionCodec> c : codecClasses) {
+
+      System.out.println(c.getSimpleName());
+
+      if (c.getCanonicalName().equalsIgnoreCase(target)
+          || c.getSimpleName().toLowerCase().contains(target.toLowerCase())) {
+
+        try {
+          return c.newInstance();
+        } catch (Exception e) {
+          LOG.warn("Error creating codec: " + e.getMessage());
+          return new DefaultCodec();
+        }
+      }
+    }
+
+    LOG.warn("No match for '" + target + "'; selecting DefaultCodec (deflate)");
+    return new DefaultCodec();
   }
 
   /**

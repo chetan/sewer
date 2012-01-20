@@ -1,6 +1,7 @@
 target/
 reports/
 tmp/
+build/
 
 .classpath
 .project

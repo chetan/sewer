@@ -8,6 +8,22 @@ OUT_FILE=$TMP/sewer.out
 RUN="java"
 RUN="$RUN -XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=80 -Xms512m -Xmx1g"
 
+# might be good for jetty headers?
+# -XX:+UseCompressedStrings
+# -XX:+UseStringCache
+# -XX:+OptimizeStringConcat
+
+# -XX:+DoEscapeAnalysis
+
+# -XX:+AggressiveOpts =
+
+# -XX:+EliminateAutoBox
+# -XX:AutoBoxCacheMax=20000
+# -XX:BiasedLockingStartupDelay=500
+# -XX:+DoEscapeAnalysis
+# -XX:+OptimizeStringConcat
+# -XX:+OptimizeFill
+
 MAIN="net.pixelcop.sewer.node.Node"
 
 # load hadoop native libs, if avail

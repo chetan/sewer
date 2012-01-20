@@ -11,6 +11,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.compress.CompressionCodec;
 import org.apache.hadoop.io.compress.CompressionCodecFactory;
 import org.apache.hadoop.io.compress.DefaultCodec;
+import org.apache.hadoop.util.NativeCodeLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +52,7 @@ public class HdfsUtil {
   private static final Logger LOG = LoggerFactory.getLogger(HdfsUtil.class);
 
   public static final String CONFIG_COMPRESSION = "sewer.sink.compression";
-  public static final String DEFAULT_COMPRESSION = "default";
+  public static final String DEFAULT_COMPRESSION = NativeCodeLoader.isNativeCodeLoaded() ? "gzip" : "default";
 
   private static CompressionCodec codec = null;
 

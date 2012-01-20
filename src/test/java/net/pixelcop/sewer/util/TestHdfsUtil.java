@@ -6,6 +6,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.compress.BZip2Codec;
 import org.apache.hadoop.io.compress.DefaultCodec;
 import org.apache.hadoop.io.compress.GzipCodec;
+import org.apache.hadoop.util.NativeCodeLoader;
 import org.junit.Test;
 
 public class TestHdfsUtil extends AbstractHadoopTest {
@@ -14,6 +15,12 @@ public class TestHdfsUtil extends AbstractHadoopTest {
   public void testSelectCodec() {
 
     Configuration conf = new Configuration();
+    if (!NativeCodeLoader.isNativeCodeLoaded()) {
+      assertEquals(DefaultCodec.class, HdfsUtil.selectCodec(conf).getClass());
+    } else {
+      assertEquals(GzipCodec.class, HdfsUtil.selectCodec(conf).getClass());
+    }
+
     conf.set(HdfsUtil.CONFIG_COMPRESSION, "default");
     assertEquals(DefaultCodec.class, HdfsUtil.selectCodec(conf).getClass());
 

@@ -26,11 +26,11 @@ Events are written in batches which are rotated on a timer; e.g., every 30 secon
 
 #### Stopping
 
-When Sewer is stopped or receives a kill signal, it will try to cleanly shutdown. First the source is closed so no more events will be received. Then it tries to cleanly close down the current event batch. If there is a downstream failure, then any open batches will be drained automatically when Sewer is started again. 
+When Sewer is stopped or receives a kill signal, it will try to cleanly shutdown. First the source is closed so no more events will be received. Then it tries to cleanly close down the current event batch. If there is a downstream failure, then any open batches will be drained automatically when Sewer is started again.
 
 #### Performance Tradeoffs
 
-For maximum I/O performance, in-memory buffers are used in several locations. Thus, if the server were to suffer a hard crash (or a kill -9) it is possible that some events will be lost. This is considered to be an acceptable tradeoff as it would be impossible to guarantee zero event loss in such a case since at a minimum, there would be some number of active HTTP requests which would not complete. These lost connections would typically outnumber those lost due to internal buffering in any case. 
+For maximum I/O performance, in-memory buffers are used in several locations. Thus, if the server were to suffer a hard crash (or a kill -9) it is possible that some events will be lost. This is considered to be an acceptable tradeoff as it would be impossible to guarantee zero event loss in such a case since at a minimum, there would be some number of active HTTP requests which would not complete. These lost connections would typically outnumber those lost due to internal buffering in any case.
 
 ### Log Format
 
@@ -45,7 +45,7 @@ Sewer is built on Hadoop's *Writable* data format. Access log events look like t
     String userAgent;
     String cookies;
 
-It can be easily extended to write additional headers or handle other types of requests such as POST. 
+It can be easily extended to write additional headers or handle other types of requests such as POST.
 
 ### Benchmarks
 
@@ -66,6 +66,6 @@ Tests run January, 2012
 
 ### Not Quite a Flume Replacement
 
-While Sewer uses the same source/sink pattern under the hood, it is not designed to be a drop-in Flume replacement. Flume was designed to be extremely flexible whereas Sewer has been heavily tuned and tested for a single scenario: writing pixels to hdfs. It may be possible to read/write events from/to different systems, however these modes are generally not natively supported (even if the code exists internally :).
+While Sewer uses the same source/sink pattern under the hood, it is not designed to be a drop-in Flume replacement. There is currently no master/server implementation for centrally controlling Sewer nodes, nor is there support for multiple flows or on-the-fly reconfiguration of nodes. Reconfiguration requires modifying the config file and bouncing the Sewer process.
 
-And while the code is fairly modular and flexible, there is currently no "Master" server to centrally command and control your nodes; instead, each node is locally configured via a simple properties file. Thus, if you want to reconfigure a node, you must start and stop the Sewer process.
+That said, while Sewer was built for pixel serving, it should be relatively trivial to add more sources and sinks and build some of this extra functionality if so desired. In fact, there is already a basic IPC implementation modeled after Hadoop that is currently unused.

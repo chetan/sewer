@@ -7,7 +7,9 @@ Sewer was heavily inspired by [Apache Flume](https://cwiki.apache.org/FLUME/).
 
 ### Reliability
 
-Sewer is designed to write directly to HDFS from the node which generates the event. As such, it is capable of surviving a *single downstream failure* and automatically retrying when the downstream issue has been resolved.
+Sewer is designed to be extremely reliable for a number of different failure scenarios with minimal impact on performance.
+
+It is designed to write directly to HDFS from the node which generates the event. As such, it is capable of surviving a *single downstream failure* and automatically retrying when the downstream issue has been resolved.
 
 Types of errors that will be recovered from include:
 
@@ -18,12 +20,32 @@ Types of errors that will be recovered from include:
 * HDFS create/close fails
 * etc
 
-Reliability is achieved by simultaneously sending each event to both HDFS and the local disk. When an event batch is successfully flushed and closed, the local buffer is deleted. On failure, the buffer remains and moves into a retry queue.
+#### How it works
 
+Events are written in batches which are rotated on a timer; e.g., every 30 seconds by default. When an event is received, it is first written to disk before attempting a write to HDFS. If a batch is successfully flushed and closed, the local buffer is deleted. On failure, the buffer remains and moves into a retry queue where it will be retried asynchronously until the downstream error is resolved and the batch closes cleanly.
 
-### Performance
+#### Stopping
 
-For maximum I/O performance, both the local buffers and HDFS writes are compressed using the best available compressor (currently defaults to GZIP when hadoop-native is available).
+When Sewer is stopped or receives a kill signal, it will try to cleanly shutdown. First the source is closed so no more events will be received. Then it tries to cleanly close down the current event batch. If there is a downstream failure, then any open batches will be drained automatically when Sewer is started again. 
+
+#### Performance Tradeoffs
+
+For maximum I/O performance, in-memory buffers are used in several locations. Thus, if the server were to suffer a hard crash (or a kill -9) it is possible that some events will be lost. This is considered to be an acceptable tradeoff as it would be impossible to guarantee zero event loss in such a case since at a minimum, there would be some number of active HTTP requests which would not complete. These lost connections would typically outnumber those lost due to internal buffering in any case. 
+
+### Log Format
+
+Sewer is built on Hadoop's *Writable* data format. Access log events look like the following:
+
+    long timestamp;
+    String ip;
+    String host;
+    String requestPath;
+    String queryString;
+    String referer;
+    String userAgent;
+    String cookies;
+
+It can be easily extended to write additional headers or handle other types of requests such as POST. 
 
 ### Benchmarks
 
@@ -41,12 +63,6 @@ Methodology: 2x m1.large load generators running 'ab' twice each with the follow
     LONG_UA = 800 byte user agent header to simulate a large payload
 
 Tests run January, 2012
-
-### Log Format
-
-
-### Configuration
-
 
 ### Not Quite a Flume Replacement
 

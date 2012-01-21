@@ -1,7 +1,6 @@
 package net.pixelcop.sewer.node;
 
 import java.io.IOException;
-import java.net.ServerSocket;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -66,28 +65,6 @@ public class AbstractHadoopTest extends AbstractNodeTest {
       namenodePort = findOpenPort();
     }
     return namenodePort;
-  }
-
-  public int findOpenPort() {
-
-    int port = 30000;
-
-    while (true) {
-
-      try {
-        ServerSocket s = new ServerSocket(port);
-        s.setReuseAddress(true);
-        s.close();
-        return port;
-
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-
-      port += 1;
-
-    }
-
   }
 
 }

@@ -1,6 +1,7 @@
 package net.pixelcop.sewer.node;
 
 import java.io.IOException;
+import java.net.ServerSocket;
 import java.security.Permission;
 
 import net.pixelcop.sewer.SinkRegistry;
@@ -148,6 +149,28 @@ public abstract class AbstractNodeTest extends Assert {
       fail("node startup interrupted");
     }
     return node;
+  }
+
+  public int findOpenPort() {
+
+    int port = 30000;
+
+    while (true) {
+
+      try {
+        ServerSocket s = new ServerSocket(port);
+        s.setReuseAddress(true);
+        s.close();
+        return port;
+
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+
+      port += 1;
+
+    }
+
   }
 
 }

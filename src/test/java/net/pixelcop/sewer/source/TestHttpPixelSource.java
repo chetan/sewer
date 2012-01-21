@@ -29,7 +29,8 @@ public class TestHttpPixelSource extends AbstractNodeTest {
 
   @Test
   public void testAppend() throws IOException {
-    TestableNode node = createNode("pixel(8080)", "counting");
+    int port = findOpenPort();
+    TestableNode node = createNode("pixel(" + port + ")", "counting");
     assertNotNull(node);
     node.start();
     try {
@@ -40,16 +41,16 @@ public class TestHttpPixelSource extends AbstractNodeTest {
 
     assertEquals(1, CountingSink.getOpenCount());
 
-    URLConnection conn = openUrl(new URL("http://localhost:8080/foobar"));
+    URLConnection conn = openUrl(new URL("http://localhost:" + port + "/foobar"));
     assertTrue(conn.getHeaderField(0).contains("204"));
     assertEquals(1, CountingSink.getAppendCount());
     CountingSink.reset();
 
-    ping(30);
+    ping(30, port);
     assertEquals(30, CountingSink.getAppendCount());
     CountingSink.reset();
 
-    ping(15);
+    ping(15, port);
     assertEquals(15, CountingSink.getAppendCount());
     CountingSink.reset();
 
@@ -60,7 +61,8 @@ public class TestHttpPixelSource extends AbstractNodeTest {
   @Test
   public void testStatusPortReturns200() throws IOException {
 
-    TestableNode node = createNode("pixel", "counting");
+    int port = findOpenPort();
+    TestableNode node = createNode("pixel(" + port + ")", "counting");
     assertNotNull(node);
     node.start();
     try {
@@ -73,17 +75,15 @@ public class TestHttpPixelSource extends AbstractNodeTest {
     assertEquals(0, CountingSink.getAppendCount());
 
     // ping status port
-    URL url = new URL("http://localhost:8081/foobar");
+    URL url = new URL("http://localhost:" + (port+1) + "/foobar");
     URLConnection conn = openUrl(url);
 
     assertTrue(conn.getHeaderField(0).contains("200"));
     assertEquals(0, CountingSink.getAppendCount()); // should still be zero
-
-    node.cleanup();
   }
 
-  private void ping(int count) throws IOException {
-    URL url = new URL("http://localhost:8080/foobar");
+  private void ping(int count, int port) throws IOException {
+    URL url = new URL("http://localhost:" + port + "/foobar");
     for (int i = 0; i < count; i++) {
       openUrl(url);
     }

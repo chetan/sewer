@@ -29,12 +29,18 @@ For maximum I/O performance, both the local buffers and HDFS writes are compress
 
 #### EC2
 
-* m1.small:  3,532 reqs/sec
-* m1.large: 13,293 reqs/sec
-
+* m1.small:   3,622 reqs/sec
+* m1.large:  13,293 reqs/sec
+* c1.medium: 16,556 reqs/sec
 * m1.small via elb:  3,205 reqs/sec
 * m1.large via elb:
 
+Methodology: 2x m1.large load generators running 'ab' twice each with the following params:
+
+        ab #{LONG_UA} -k -r -t 600 -n 500000 -c 400 #{URL}
+        LONG_UA = 800 byte user agent header to simulate a large payload
+
+Tests run January, 2012
 
 ### Log Format
 

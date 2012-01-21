@@ -126,8 +126,6 @@ public class HdfsUtil {
 
     for (Class<? extends CompressionCodec> c : codecClasses) {
 
-      System.out.println(c.getSimpleName());
-
       if (c.getCanonicalName().equalsIgnoreCase(target)
           || c.getSimpleName().toLowerCase().contains(target.toLowerCase())) {
 

@@ -32,7 +32,15 @@ public class BufferPoolSink extends Sink {
 
   @Override
   public void close() throws IOException {
-
+    setStatus(CLOSING);
+    subSink.close();
+    try {
+      bufferPool.close();
+    } catch (Exception e) {
+      setStatus(ERROR);
+      throw new IOException("Error closing buffer pool", e);
+    }
+    setStatus(CLOSED);
   }
 
   @Override

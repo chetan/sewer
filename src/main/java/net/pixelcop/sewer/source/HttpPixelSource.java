@@ -1,6 +1,8 @@
 package net.pixelcop.sewer.source;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -12,12 +14,22 @@ import net.pixelcop.sewer.Source;
 import net.pixelcop.sewer.node.Node;
 
 import org.apache.commons.lang3.math.NumberUtils;
+import org.eclipse.jetty.http.HttpFields;
+import org.eclipse.jetty.http.HttpHeaders;
+import org.eclipse.jetty.http.HttpStatus;
+import org.eclipse.jetty.io.Buffer;
+import org.eclipse.jetty.io.ByteArrayBuffer;
+import org.eclipse.jetty.io.WriterOutputStream;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.HttpConnection;
 import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
+import org.eclipse.jetty.util.IO;
+import org.eclipse.jetty.util.resource.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,11 +63,34 @@ public class HttpPixelSource extends Source {
    *
    */
   class PixelHandler extends AbstractHandler {
+
+    private final Buffer crossdomainBuffer;
+    private final long crossdomainLength;
+    private final long crossdomainLastModified;
+
+    private final Buffer gzCrossdomainBuffer;
+    private final long gzCrossdomainLength;
+
+    public PixelHandler() throws IOException {
+      Resource crossdomainResource = Resource.newSystemResource("crossdomain.xml");
+      crossdomainBuffer = new ByteArrayBuffer(IO.readBytes(crossdomainResource.getInputStream()));
+      crossdomainLength = crossdomainBuffer.length();
+      crossdomainLastModified = crossdomainResource.lastModified();
+
+      Resource gz = Resource.newSystemResource("crossdomain.xml.gz");
+      gzCrossdomainBuffer = new ByteArrayBuffer(IO.readBytes(gz.getInputStream()));
+      gzCrossdomainLength = gzCrossdomainBuffer.length();
+    }
+
     @Override
     public void handle(String target, Request baseRequest, HttpServletRequest request,
         HttpServletResponse response) throws IOException, ServletException {
 
-      // handle response
+      if (handleCrossDomainXml(baseRequest, request, response)) {
+        return; // no logging needed
+      }
+
+      // handle response (204)
       response.setStatus(HttpServletResponse.SC_NO_CONTENT);
       baseRequest.setHandled(true);
 
@@ -63,9 +98,75 @@ public class HttpPixelSource extends Source {
       Event event = AccessLogExtractor.extractAccessLogEvent(baseRequest);
       sink.append(event);
     }
+
+    /**
+     * Serve the crossdomain.xml file
+     *
+     * @param baseRequest
+     * @param request
+     * @param response
+     * @return boolean True if request was for crossdomain.xml
+     * @throws IOException
+     */
+    protected boolean handleCrossDomainXml(Request baseRequest, HttpServletRequest request,
+        HttpServletResponse response) throws IOException {
+
+      if (request.getPathInfo().intern() != CROSSDOMAIN) {
+        return false;
+      }
+
+      baseRequest.setHandled(true);
+
+      if (request.getDateHeader(HttpHeaders.IF_MODIFIED_SINCE) > 0) {
+        // always respond that it hasn't been modified
+        response.setStatus(HttpStatus.NOT_MODIFIED_304);
+        return true;
+      }
+
+
+      Buffer buff = null;
+      long length = 0;
+
+      // check gzip support
+      String accept = request.getHeader(HttpHeaders.ACCEPT_ENCODING);
+      if (accept != null && accept.indexOf(GZIP) >= 0) {
+        response.setHeader(HttpHeaders.CONTENT_ENCODING, GZIP);
+        buff = gzCrossdomainBuffer;
+        length = gzCrossdomainLength;
+
+      } else {
+        buff = crossdomainBuffer;
+        length = crossdomainLength;
+      }
+
+
+      // set headers
+      response.setContentType(APPXML);
+      HttpFields fields = ((Response) response).getHttpFields();
+      fields.putLongField(HttpHeaders.CONTENT_LENGTH_BUFFER, length);
+      fields.put(HttpHeaders.CACHE_CONTROL_BUFFER, CACHECONTROL);
+      response.setDateHeader(HttpHeaders.LAST_MODIFIED, crossdomainLastModified);
+
+      // send response
+      OutputStream out = null;
+      try {
+        out = response.getOutputStream();
+      } catch (IllegalStateException e) {
+        out = new WriterOutputStream(response.getWriter());
+      }
+
+      ((HttpConnection.Output) out).sendContent(new ByteArrayInputStream(buff.array()));
+      return true;
+    }
+
   }
 
   private static final Logger LOG = LoggerFactory.getLogger(HttpPixelSource.class);
+
+  private static final String CROSSDOMAIN = "/crossdomain.xml".intern();
+  private static final String APPXML = "application/xml";
+  private static final String CACHECONTROL = "max-age=315360000, public";
+  private static final String GZIP = "gzip";
 
   private static final String CONFIG_GRACEFUL = "sewer.source.pixel.graceful";
   private static final String CONFIG_ACCEPT_QUEUE = "sewer.source.pixel.accept_queue";
@@ -85,11 +186,9 @@ public class HttpPixelSource extends Source {
     } else {
       this.port = NumberUtils.toInt(args[0], DEFAULT_HTTP_PORT);
     }
-
-    initServer();
   }
 
-  private void initServer() {
+  private void initServer() throws IOException {
     this.server = createServer(createConnector(getPort(), true), new PixelHandler());
     this.statusServer = createServer(createConnector(getStatusPort(), false), new StatusHandler());
   }
@@ -170,6 +269,8 @@ public class HttpPixelSource extends Source {
       LOG.info("Opening " + this.getClass().getSimpleName() + " on port " + port + " (status on "
           + getStatusPort() + ")");
     }
+
+    initServer();
 
     try {
       this.server.start();

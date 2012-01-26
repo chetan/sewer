@@ -14,6 +14,7 @@ import net.pixelcop.sewer.sink.durable.BufferPoolSink;
 import net.pixelcop.sewer.sink.durable.ReliableSequenceFileSink;
 import net.pixelcop.sewer.sink.durable.ReliableSink;
 import net.pixelcop.sewer.sink.durable.RollSink;
+import net.pixelcop.sewer.sink.durable.ThreadLocalBufferSink;
 
 @SuppressWarnings("rawtypes")
 public class SinkRegistry {
@@ -33,6 +34,7 @@ public class SinkRegistry {
     register("delayed_open", DelayedOpenSink.class);
     register("buffer", AsyncBufferSink.class);
     register("buffer_pool", BufferPoolSink.class);
+    register("local_buffer", ThreadLocalBufferSink.class);
 
     // debug
     register("null", NullSink.class);

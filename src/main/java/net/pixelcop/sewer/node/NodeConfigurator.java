@@ -103,8 +103,7 @@ public class NodeConfigurator {
   private void addPropsFromClasspath(NodeConfig conf) {
 
     try {
-
-      Enumeration<URL> urls = Thread.currentThread().getContextClassLoader().getResources("config.properties");
+      Enumeration<URL> urls = ClassLoader.getSystemResources("config.properties");
       while (urls.hasMoreElements()) {
         addPropsFromUrl(conf, urls.nextElement());
       }

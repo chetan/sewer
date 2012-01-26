@@ -5,7 +5,7 @@ TMP=$ROOT/tmp
 PID_FILE=$TMP/sewer.pid
 OUT_FILE=$TMP/sewer.out
 
-JOPTS="-XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=80 -Xms512m -Xmx1g"
+JOPTS="-XX:+AggressiveOpts -XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=80 -Xms512m -Xmx1g"
 JOPTS="-javaagent:lib/jolokia-jvm-agent-1.0.2.jar=port=7777,host=localhost $JOPTS"
 
 # AggressiveOpts seems to be pretty good under OpenJDK 7

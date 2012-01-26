@@ -34,9 +34,9 @@ JUNIT = [ "junit:junit:jar:4.10" ]
 
 ANT = [ "org.apache.ant:ant:jar:1.8.0" ]
 
-JETTY_VERSION = "7.5.4.v20111024" # 8.0.4.v20111024
+JETTY_VERSION = "8.0.4.v20111024"
 JETTY = [
-  "javax.servlet:servlet-api:jar:2.5",
+  "org.mortbay.jetty:servlet-api:jar:3.0.20100224",
   "org.eclipse.jetty:jetty-continuation:jar:#{JETTY_VERSION}",
   "org.eclipse.jetty:jetty-http:jar:#{JETTY_VERSION}",
   "org.eclipse.jetty:jetty-io:jar:#{JETTY_VERSION}",
@@ -44,6 +44,12 @@ JETTY = [
   "org.eclipse.jetty:jetty-server:jar:#{JETTY_VERSION}",
   "org.eclipse.jetty:jetty-util:jar:#{JETTY_VERSION}"
   ]
+
+JOLOKIA_JVM = [
+    "com.googlecode.json-simple:json-simple:jar:1.1",
+    "org.jolokia:jolokia-jvm-agent:jar:1.0.2"
+    ]
+download(artifact("org.jolokia:jolokia-jvm-agent:jar:1.0.2") => "http://mirrors.ibiblio.org/pub/mirrors/maven2/org/jolokia/jolokia-jvm/1.0.2/jolokia-jvm-1.0.2-agent.jar")
 
 JETTY_VERSION_6 = "6.1.14" # 6.1.26
 JETTY_6 = [

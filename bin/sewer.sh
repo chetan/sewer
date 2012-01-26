@@ -6,6 +6,7 @@ PID_FILE=$TMP/sewer.pid
 OUT_FILE=$TMP/sewer.out
 
 JOPTS="-XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=80 -Xms512m -Xmx1g"
+JOPTS="-javaagent:lib/jolokia-jvm-agent-1.0.2.jar=port=7777,host=localhost $JOPTS"
 
 # AggressiveOpts seems to be pretty good under OpenJDK 7
 
@@ -55,7 +56,7 @@ start () {
   else
     # dist path
     CP=""
-    for jar in `find $ROOT -name '*.jar' | sort -r`; do
+    for jar in `find $ROOT -name '*.jar' | sort -r | grep -v sources`; do
       if [ "$CP" != "" ]; then
         CP="$CP:"
       fi
@@ -64,11 +65,8 @@ start () {
 
   fi
 
-  if [ -f $ROOT/conf/config.properties ]; then
-    CP="$ROOT/conf/config.properties:$CP"
-  fi
-  if [ -f $ROOT/conf/log4j.properties ]; then
-    CP="$ROOT/conf/log4j.properties:$CP"
+  if [ -d $ROOT/conf ]; then
+    CP="$ROOT/conf:$CP"
   fi
   CP="-cp $CP"
 

@@ -14,6 +14,7 @@ repositories.remote << "https://repository.cloudera.com/content/repositories/rel
 require "buildfile_libraries.rb"
 SEWER_JARS = add_artifacts( HADOOP, LOGGER, JSON_SMART, GUAVA, COMMONS_LANG3, JACKSON, JETTY, COMMONS_POOL )
 SEWER_TEST_JARS = SEWER_JARS + add_artifacts( HADOOP_TEST )
+RUN_JARS = add_artifacts( JOLOKIA_JVM )
 
 desc "The Sewer project"
 define "sewer" do
@@ -44,7 +45,7 @@ define "sewer" do
     path.include "README.md"
     path.include "LICENSE"
     path.include package(:jar), package(:sources)
-    path.path("lib").include SEWER_JARS
+    path.path("lib").include SEWER_JARS, RUN_JARS
     path.include "bin"
     path.include "conf"
   end

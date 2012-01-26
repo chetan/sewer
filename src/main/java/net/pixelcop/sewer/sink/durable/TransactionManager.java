@@ -13,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import net.pixelcop.sewer.DrainSink;
 import net.pixelcop.sewer.PlumbingBuilder;
 import net.pixelcop.sewer.PlumbingFactory;
 import net.pixelcop.sewer.Sink;
@@ -347,7 +348,7 @@ public class TransactionManager extends Thread {
         rawSinkClasses.add(new PlumbingBuilder<Sink>(SequenceFileSink.class, builder.getArgs()));
         continue;
 
-      } else if (builder.getClazz() != SequenceFileSink.class) {
+      } else if (!builder.getClazz().isAnnotationPresent(DrainSink.class)) {
         continue; // skip all other types
       }
       rawSinkClasses.add(builder);

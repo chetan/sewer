@@ -2,6 +2,7 @@ package net.pixelcop.sewer.sink.durable;
 
 import java.io.IOException;
 
+import net.pixelcop.sewer.DrainSink;
 import net.pixelcop.sewer.Plumbing;
 import net.pixelcop.sewer.node.Node;
 import net.pixelcop.sewer.sink.SequenceFileSink;
@@ -16,6 +17,7 @@ import org.apache.hadoop.io.compress.CompressionCodec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@DrainSink
 public class ReliableSequenceFileSink extends SequenceFileSink {
 
   private static final Logger LOG = LoggerFactory.getLogger(ReliableSequenceFileSink.class);

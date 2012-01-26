@@ -3,6 +3,7 @@ package net.pixelcop.sewer.sink;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import net.pixelcop.sewer.DrainSink;
 import net.pixelcop.sewer.Event;
 import net.pixelcop.sewer.Sink;
 import net.pixelcop.sewer.node.Node;
@@ -22,6 +23,7 @@ import org.slf4j.LoggerFactory;
  * @author chetan
  *
  */
+@DrainSink
 public class DfsSink extends Sink {
 
   private static final Logger LOG = LoggerFactory.getLogger(DfsSink.class);

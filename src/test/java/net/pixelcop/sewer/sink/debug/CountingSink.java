@@ -3,12 +3,14 @@ package net.pixelcop.sewer.sink.debug;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import net.pixelcop.sewer.DrainSink;
 import net.pixelcop.sewer.Event;
 import net.pixelcop.sewer.Sink;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@DrainSink
 public class CountingSink extends Sink {
 
   private static final Logger LOG = LoggerFactory.getLogger(CountingSink.class);

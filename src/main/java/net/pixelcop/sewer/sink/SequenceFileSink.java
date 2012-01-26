@@ -2,6 +2,7 @@ package net.pixelcop.sewer.sink;
 
 import java.io.IOException;
 
+import net.pixelcop.sewer.DrainSink;
 import net.pixelcop.sewer.Event;
 import net.pixelcop.sewer.node.Node;
 import net.pixelcop.sewer.util.HdfsUtil;
@@ -24,6 +25,7 @@ import org.slf4j.LoggerFactory;
  * @author chetan
  *
  */
+@DrainSink
 public class SequenceFileSink extends BucketedSink {
 
   private static final Logger LOG = LoggerFactory.getLogger(SequenceFileSink.class);

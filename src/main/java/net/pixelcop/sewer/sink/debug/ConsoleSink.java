@@ -2,9 +2,11 @@ package net.pixelcop.sewer.sink.debug;
 
 import java.io.IOException;
 
+import net.pixelcop.sewer.DrainSink;
 import net.pixelcop.sewer.Event;
 import net.pixelcop.sewer.Sink;
 
+@DrainSink
 public class ConsoleSink extends Sink {
 
   public ConsoleSink(String[] args) {

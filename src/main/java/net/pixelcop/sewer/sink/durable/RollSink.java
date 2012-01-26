@@ -5,6 +5,7 @@ import java.util.concurrent.BrokenBarrierException;
 
 import net.pixelcop.sewer.Event;
 import net.pixelcop.sewer.Sink;
+import net.pixelcop.sewer.node.Node;
 
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
@@ -20,10 +21,14 @@ public class RollSink extends Sink implements Runnable {
 
   private static final Logger LOG = LoggerFactory.getLogger(RollSink.class);
 
+  public static final String CONFIG_EVEN_BOUNDARIES = "sewer.sink.roll.even.boundaries";
+
   private static final int DEFAULT_ROLL_INTERVAL = 30;
 
   private Thread rollThread;
-  private final int interval;
+  private final long interval;
+
+  private final boolean useEvenRollBoundaries;
 
   public RollSink(String[] args) {
     if (args == null || args.length == 0) {
@@ -31,6 +36,8 @@ public class RollSink extends Sink implements Runnable {
     } else {
       interval = NumberUtils.toInt(args[0], DEFAULT_ROLL_INTERVAL) * 1000;
     }
+    boolean even = Node.getInstance().getConf().getBoolean(CONFIG_EVEN_BOUNDARIES, false);
+    useEvenRollBoundaries = (even && interval % 30000 == 0);
   }
 
   @Override
@@ -76,7 +83,7 @@ public class RollSink extends Sink implements Runnable {
     while (getStatus() == FLOWING) {
 
       try {
-        Thread.sleep(interval);
+        Thread.sleep(getSleepInterval());
         if (getStatus() != FLOWING) {
           LOG.debug("woke up and it looks like we aren't FLOWING anymore. quitting!");
           return;
@@ -92,7 +99,26 @@ public class RollSink extends Sink implements Runnable {
         return;
 
       }
+    }
+  }
 
+  /**
+   * Calculate how long to sleep, taking even boundaries into account
+   * @return
+   */
+  private long getSleepInterval() {
+    if (!useEvenRollBoundaries) {
+      return interval;
+    }
+
+    long r = interval % 60000 == 0 ? 60000 : 30000;
+    long m = ((System.currentTimeMillis() + interval) % r);
+    long t = interval - m;
+
+    if (m < 20000 || interval == 30000) {
+      return t;
+    } else {
+      return t + r;
     }
   }
 
@@ -124,7 +150,7 @@ public class RollSink extends Sink implements Runnable {
     LOG.debug("rotation complete");
   }
 
-  public int getInterval() {
+  public long getInterval() {
     return interval;
   }
 

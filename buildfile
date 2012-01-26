@@ -12,7 +12,7 @@ repositories.remote << "http://mirrors.ibiblio.org/pub/mirrors/maven2"
 repositories.remote << "https://repository.cloudera.com/content/repositories/releases/"
 
 require "buildfile_libraries.rb"
-SEWER_JARS = add_artifacts( HADOOP, LOGGER, JSON_SMART, GUAVA, COMMONS_LANG3, JACKSON, JETTY )
+SEWER_JARS = add_artifacts( HADOOP, LOGGER, JSON_SMART, GUAVA, COMMONS_LANG3, JACKSON, JETTY, COMMONS_POOL )
 SEWER_TEST_JARS = SEWER_JARS + add_artifacts( HADOOP_TEST )
 
 desc "The Sewer project"

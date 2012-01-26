@@ -10,6 +10,7 @@ import net.pixelcop.sewer.sink.debug.ConsoleSink;
 import net.pixelcop.sewer.sink.debug.DelayedOpenSink;
 import net.pixelcop.sewer.sink.debug.NullSink;
 import net.pixelcop.sewer.sink.durable.AsyncBufferSink;
+import net.pixelcop.sewer.sink.durable.BufferPoolSink;
 import net.pixelcop.sewer.sink.durable.ReliableSequenceFileSink;
 import net.pixelcop.sewer.sink.durable.ReliableSink;
 import net.pixelcop.sewer.sink.durable.RollSink;
@@ -31,6 +32,7 @@ public class SinkRegistry {
     register("roll", RollSink.class);
     register("delayed_open", DelayedOpenSink.class);
     register("buffer", AsyncBufferSink.class);
+    register("buffer_pool", BufferPoolSink.class);
 
     // debug
     register("null", NullSink.class);

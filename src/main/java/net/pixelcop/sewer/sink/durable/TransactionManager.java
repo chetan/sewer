@@ -342,14 +342,13 @@ public class TransactionManager extends Thread {
 
     for (Iterator iter = classes.iterator(); iter.hasNext();) {
       PlumbingBuilder builder = (PlumbingBuilder) iter.next();
-      if (builder.getClazz() == ReliableSink.class || builder.getClazz() == RollSink.class) {
-        // skip
-        continue;
-      }
       if (builder.getClazz() == ReliableSequenceFileSink.class) {
         // replace with SequenceFileSink
         rawSinkClasses.add(new PlumbingBuilder<Sink>(SequenceFileSink.class, builder.getArgs()));
         continue;
+
+      } else if (builder.getClazz() != SequenceFileSink.class) {
+        continue; // skip all other types
       }
       rawSinkClasses.add(builder);
     }

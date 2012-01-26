@@ -5,7 +5,7 @@ Sewer is built for a single purpose: serving "204 No Content" responses via an e
 Sewer was heavily inspired by [Apache Flume](https://cwiki.apache.org/FLUME/).
 
 
-### Reliability
+## Reliability
 
 Sewer is designed to be extremely reliable for a number of different failure scenarios with minimal impact on performance.
 
@@ -20,19 +20,19 @@ Types of errors that will be recovered from include:
 * HDFS create/close fails
 * etc
 
-#### How it works
+### How it works
 
 Events are written in batches which are rotated on a timer; e.g., every 30 seconds by default. When an event is received, it is first written to disk before attempting a write to HDFS. If a batch is successfully flushed and closed, the local buffer is deleted. On failure, the buffer remains and moves into a retry queue where it will be retried asynchronously until the downstream error is resolved and the batch closes cleanly.
 
-#### Stopping
+### Stopping
 
 When Sewer is stopped or receives a kill signal, it will try to cleanly shutdown. First the source is closed so no more events will be received. Then it tries to cleanly close down the current event batch. If there is a downstream failure, then any open batches will be drained automatically when Sewer is started again.
 
-#### Performance Tradeoffs
+### Performance Tradeoffs
 
 For maximum I/O performance, in-memory buffers are used in several locations. Thus, if the server were to suffer a hard crash (or a kill -9) it is possible that some events will be lost. This is considered to be an acceptable tradeoff as it would be impossible to guarantee zero event loss in such a case since at a minimum, there would be some number of active HTTP requests which would not complete. These lost connections would typically outnumber those lost due to internal buffering in any case.
 
-### Log Format
+## Log Format
 
 Sewer is built on Hadoop's *Writable* data format. Access log events look like the following:
 
@@ -47,9 +47,9 @@ Sewer is built on Hadoop's *Writable* data format. Access log events look like t
 
 It can be easily extended to write additional headers or handle other types of requests such as POST.
 
-### Benchmarks
+## Benchmarks
 
-#### EC2
+### EC2
 
 * m1.small:   3,622 reqs/sec
 * m1.large:  13,293 reqs/sec
@@ -64,7 +64,7 @@ Methodology: 2x m1.large load generators running 'ab' twice each with the follow
 
 Tests run January, 2012
 
-### Not Quite a Flume Replacement
+## Not Quite a Flume Replacement
 
 While Sewer uses the same source/sink pattern under the hood, it is not designed to be a drop-in Flume replacement. There is currently no master/server implementation for centrally controlling Sewer nodes, nor is there support for multiple flows or on-the-fly reconfiguration of nodes. Reconfiguration requires modifying the config file and bouncing the Sewer process.
 

@@ -1,6 +1,6 @@
 
 # Version number for this release
-VERSION_NUMBER = "0.3.0"
+VERSION_NUMBER = "0.4.0"
 # Group identifier for your projects
 GROUP = "net.pixelcop.sewer"
 VENDOR = "Pixelcop Research, Inc."

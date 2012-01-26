@@ -5,6 +5,43 @@ Sewer is built for a single purpose: serving "204 No Content" responses via an e
 Sewer was heavily inspired by [Apache Flume](https://cwiki.apache.org/FLUME/).
 
 
+## Getting Started
+
+1. Build or download the latest version:
+
+        $ git clone https://github.com/chetan/sewer.git
+        $ buildr test=no clean package
+        $ cp target/sewer-*.tgz /opt
+
+2. Unpack tarball:
+
+        $ tar -xzf sewer-*.tgz
+
+3. Configure Sink:
+
+        $ vim conf/config.properties
+
+4. Start
+
+        $ bin/sewer.sh start
+
+That's it! Sewer should now be up and running.
+
+    # test the pixel server
+    $ curl -v localhost:8080
+    < HTTP/1.1 204 No Content
+
+    # status is available on 8081 (e.g., for load balancer's that require a 200)
+    $ curl -v localhost:8081
+    < HTTP/1.1 200 OK
+    < Content-Length: 0
+
+    # jmx agent is on 7777
+    $ jmx4perl http://localhost:7777/jolokia read org.eclipse.jetty.server.handler:id=0,type=statisticshandler requests
+    1234
+
+See [Jolokia](http://www.jolokia.org/) and [Jmx4Perl](https://metacpan.org/module/JMX::Jmx4Perl) for more about using the built-in JMX agent for monitoring and statistics gathering.
+
 ## Reliability
 
 Sewer is designed to be extremely reliable for a number of different failure scenarios with minimal impact on performance.

@@ -6,6 +6,7 @@ import net.pixelcop.sewer.Event;
 import net.pixelcop.sewer.Sink;
 import net.pixelcop.sewer.sink.BucketedSink;
 import net.pixelcop.sewer.sink.SequenceFileSink;
+import net.pixelcop.sewer.sink.buffer.AsyncBufferSink;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

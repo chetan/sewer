@@ -6,15 +6,15 @@ import java.util.Map;
 import net.pixelcop.sewer.sink.DfsSink;
 import net.pixelcop.sewer.sink.SequenceFileSink;
 import net.pixelcop.sewer.sink.TcpWriteableEventSink;
+import net.pixelcop.sewer.sink.buffer.AsyncBufferSink;
+import net.pixelcop.sewer.sink.buffer.BufferPoolSink;
+import net.pixelcop.sewer.sink.buffer.ThreadLocalBufferSink;
 import net.pixelcop.sewer.sink.debug.ConsoleSink;
 import net.pixelcop.sewer.sink.debug.DelayedOpenSink;
 import net.pixelcop.sewer.sink.debug.NullSink;
-import net.pixelcop.sewer.sink.durable.AsyncBufferSink;
-import net.pixelcop.sewer.sink.durable.BufferPoolSink;
 import net.pixelcop.sewer.sink.durable.ReliableSequenceFileSink;
 import net.pixelcop.sewer.sink.durable.ReliableSink;
 import net.pixelcop.sewer.sink.durable.RollSink;
-import net.pixelcop.sewer.sink.durable.ThreadLocalBufferSink;
 
 @SuppressWarnings("rawtypes")
 public class SinkRegistry {

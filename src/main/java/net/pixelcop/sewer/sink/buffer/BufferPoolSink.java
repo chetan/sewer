@@ -1,4 +1,4 @@
-package net.pixelcop.sewer.sink.durable;
+package net.pixelcop.sewer.sink.buffer;
 
 import java.io.IOException;
 

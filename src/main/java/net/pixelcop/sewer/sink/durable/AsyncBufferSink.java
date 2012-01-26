@@ -31,10 +31,10 @@ public class AsyncBufferSink extends Sink implements Runnable {
    * @param name Thread name
    */
   public AsyncBufferSink(String name) {
-    this.name = name + " " + Thread.currentThread().getId();
+    this.name = name + " ";
 
     this.thread = new Thread(this);
-    this.thread.setName(this.name);
+    this.thread.setName(this.name + this.thread.getId());
   }
 
   public AsyncBufferSink(String[] args) {

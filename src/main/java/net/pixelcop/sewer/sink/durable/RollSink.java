@@ -36,7 +36,9 @@ public class RollSink extends Sink implements Runnable {
     } else {
       interval = NumberUtils.toInt(args[0], DEFAULT_ROLL_INTERVAL) * 1000;
     }
-    boolean even = Node.getInstance().getConf().getBoolean(CONFIG_EVEN_BOUNDARIES, false);
+    boolean even = Node.getInstance() != null ?
+        Node.getInstance().getConf().getBoolean(CONFIG_EVEN_BOUNDARIES, false)
+        : false;
     useEvenRollBoundaries = (even && interval % 30000 == 0);
   }
 

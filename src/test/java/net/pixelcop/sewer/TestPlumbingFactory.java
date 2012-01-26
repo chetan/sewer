@@ -34,6 +34,7 @@ public class TestPlumbingFactory extends AbstractNodeTest {
     assertEquals(NullSink.class, factory.getClasses().get(2).getClazz());
 
     RollSink sink = (RollSink) factory.build();
+    assertNotNull(sink);
     assertEquals(30*1000, sink.getInterval());
     assertEquals("RollSink()", factory.getClasses().get(0).toString());
   }
@@ -46,6 +47,7 @@ public class TestPlumbingFactory extends AbstractNodeTest {
     assertEquals(2, factory.getClasses().size());
 
     RollSink sink = (RollSink) factory.build();
+    assertNotNull(sink);
     assertEquals(10*1000, sink.getInterval());
     assertEquals("RollSink(10)", factory.getClasses().get(0).toString());
   }
@@ -58,6 +60,7 @@ public class TestPlumbingFactory extends AbstractNodeTest {
     assertEquals(2, factory.getClasses().size());
 
     RollSink sink = (RollSink) factory.build();
+    assertNotNull(sink);
     assertEquals(10*1000, sink.getInterval());
   }
 

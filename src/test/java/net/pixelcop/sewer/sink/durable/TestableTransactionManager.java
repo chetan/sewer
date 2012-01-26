@@ -50,6 +50,9 @@ public class TestableTransactionManager extends TransactionManager {
    * @throws InterruptedException
    */
   public static void kill() throws InterruptedException {
+    if (getInstance() == null) {
+      return;
+    }
     LOG.debug("Shutting down TransactionManager " + getInstance().getId());
     getInstance().shutdown();
     getInstance().join();

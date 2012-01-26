@@ -65,7 +65,9 @@ public class TestableNode extends Node {
     }
 
     try {
-      node.getSource().close();
+      if (node.getSource() != null) {
+        node.getSource().close();
+      }
     } catch (IOException e) {
       LOG.warn("error during cleanup", e);
     }

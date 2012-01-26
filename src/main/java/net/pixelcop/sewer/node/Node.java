@@ -89,6 +89,8 @@ public class Node extends Thread implements SmartRpcClientEventHandler {
    */
   protected void configure() throws IOException {
 
+    validateConfig();
+
     try {
       this.sourceFactory = new PlumbingFactory<Source>(conf.get(NodeConfig.SOURCE), SourceRegistry.getRegistry());
       this.sinkFactory = new PlumbingFactory<Sink>(conf.get(NodeConfig.SINK), SinkRegistry.getRegistry());
@@ -100,6 +102,24 @@ public class Node extends Thread implements SmartRpcClientEventHandler {
 
     this.source = sourceFactory.build();
     this.source.setSinkFactory(sinkFactory);
+
+  }
+
+  protected void validateConfig() {
+
+    boolean err = false;
+    if (conf.get(NodeConfig.SOURCE) == null) {
+      err = true;
+      LOG.error("Property " + NodeConfig.SOURCE + " cannot be null");
+    }
+    if (conf.get(NodeConfig.SINK) == null) {
+      err = true;
+      LOG.error("Property " + NodeConfig.SINK + " cannot be null");
+    }
+
+    if (err == true) {
+      System.exit(ExitCodes.CONFIG_ERROR);
+    }
 
   }
 

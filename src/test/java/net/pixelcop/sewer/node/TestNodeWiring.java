@@ -1,7 +1,5 @@
 package net.pixelcop.sewer.node;
 
-import static org.junit.Assert.*;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -110,6 +108,12 @@ public class TestNodeWiring extends AbstractNodeTest {
     Node.main(null);
     basicTests(Node.getInstance());
 
+  }
+
+  @Test(expected=ExitException.class)
+  public void testNullConfigThrowsException() throws IOException {
+    NodeConfig conf = new NodeConfig();
+    TestableNode node = new TestableNode(conf);
   }
 
 }

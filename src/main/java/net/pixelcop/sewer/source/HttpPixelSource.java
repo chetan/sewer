@@ -3,6 +3,7 @@ package net.pixelcop.sewer.source;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.management.ManagementFactory;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -20,6 +21,7 @@ import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.io.Buffer;
 import org.eclipse.jetty.io.ByteArrayBuffer;
 import org.eclipse.jetty.io.WriterOutputStream;
+import org.eclipse.jetty.jmx.MBeanContainer;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConnection;
@@ -27,8 +29,10 @@ import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.eclipse.jetty.server.handler.StatisticsHandler;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.util.IO;
+import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.resource.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -189,12 +193,22 @@ public class HttpPixelSource extends Source {
   }
 
   private void initServer() throws IOException {
-    this.server = createServer(createConnector(getPort(), true), new PixelHandler());
+    StatisticsHandler handler = new StatisticsHandler();
+    handler.setHandler(new PixelHandler());
+    this.server = createServer(createConnector(getPort(), true), handler);
     this.statusServer = createServer(createConnector(getStatusPort(), false), new StatusHandler());
   }
 
   private Server createServer(Connector conn, Handler handler) {
     Server server = new Server();
+
+    if (handler instanceof StatisticsHandler) {
+      // Setup JMX
+      MBeanContainer mbContainer = new MBeanContainer(ManagementFactory.getPlatformMBeanServer());
+      server.getContainer().addEventListener(mbContainer);
+      server.addBean(mbContainer);
+      mbContainer.addBean(Log.getRootLogger());
+    }
 
     server.setGracefulShutdown(Node.getInstance().getConf().getInt(CONFIG_GRACEFUL, 1000));
     server.setStopAtShutdown(false);

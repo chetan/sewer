@@ -34,12 +34,13 @@ JUNIT = [ "junit:junit:jar:4.10" ]
 
 ANT = [ "org.apache.ant:ant:jar:1.8.0" ]
 
-JETTY_VERSION = "7.5.4.v20111024"
+JETTY_VERSION = "7.5.4.v20111024" # 8.0.4.v20111024
 JETTY = [
   "javax.servlet:servlet-api:jar:2.5",
   "org.eclipse.jetty:jetty-continuation:jar:#{JETTY_VERSION}",
   "org.eclipse.jetty:jetty-http:jar:#{JETTY_VERSION}",
   "org.eclipse.jetty:jetty-io:jar:#{JETTY_VERSION}",
+  "org.eclipse.jetty:jetty-jmx:jar:#{JETTY_VERSION}",
   "org.eclipse.jetty:jetty-server:jar:#{JETTY_VERSION}",
   "org.eclipse.jetty:jetty-util:jar:#{JETTY_VERSION}"
   ]

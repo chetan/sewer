@@ -55,13 +55,8 @@ start () {
 
   else
     # dist path
-    CP=""
-    for jar in `find $ROOT -name '*.jar' | sort -r | grep -v sources`; do
-      if [ "$CP" != "" ]; then
-        CP="$CP:"
-      fi
-      CP="$CP$jar"
-    done
+    CP=`ls $ROOT/*.jar | grep -v sources`
+    CP="$CP:$ROOT/lib/*"
 
   fi
 

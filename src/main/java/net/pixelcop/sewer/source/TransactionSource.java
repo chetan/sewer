@@ -77,7 +77,14 @@ public class TransactionSource extends Source {
 
     Reader reader = null;
     try {
-      reader = createReader();
+      try {
+        reader = createReader();
+      } catch (IOException e) {
+        // May occur if the file wasn't found or is zero bytes (never received any data)
+        // This generally happens if the server was stopped improperly (kill -9, crash, reboot)
+        LOG.warn("Failed to read tx " + tx + " at " + tx.createTxPath().toString(), e);
+        return;
+      }
       setStatus(FLOWING);
 
       NullWritable nil = NullWritable.get();
@@ -85,7 +92,7 @@ public class TransactionSource extends Source {
       try {
         event = tx.newEvent();
       } catch (Exception e) {
-        // Should relaly never happen, since the Event class should always be available
+        // Should really never happen, since the Event class should always be available
         throw new IOException("Failed to create Event class", e);
       }
 

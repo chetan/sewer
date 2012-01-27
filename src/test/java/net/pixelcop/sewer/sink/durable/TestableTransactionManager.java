@@ -5,6 +5,9 @@ import static org.junit.Assert.*;
 import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import net.pixelcop.sewer.PlumbingFactory;
+import net.pixelcop.sewer.Sink;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +35,10 @@ public class TestableTransactionManager extends TransactionManager {
 
   public static Transaction getDrainingTx() {
     return getInstance().drainingTx;
+  }
+
+  public static PlumbingFactory<Sink> getSinkFactory() {
+    return getInstance().unreliableSinkFactory;
   }
 
   public static boolean hasTransactions() {

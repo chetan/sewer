@@ -74,20 +74,31 @@ public class ReliableSequenceFileSink extends SequenceFileSink {
     }
     setStatus(CLOSING);
 
-    if (writer != null) {
-      writer.close();
+    try {
+      if (writer != null) {
+        writer.close();
+      }
+    } catch (IOException e) {
+      LOG.warn("sequence file writer failed to close for txid " + tx.getId());
     }
 
-    if (reliableOut != null) {
-      reliableOut.close();
-    }
-
-    if (reliableOut.getStatus() == Plumbing.ERROR) {
+    try {
+      if (reliableOut != null) {
+        reliableOut.close();
+      }
+    } catch (IOException e) {
+      LOG.error("reliable outpustream failed to close for txid " + tx.getId());
       tx.rollback();
+    }
 
-    } else {
-      // closed cleanly, commit tx
-      tx.commit();
+    if (tx.isOpen()) {
+      if (reliableOut.getStatus() == Plumbing.ERROR) {
+        tx.rollback();
+
+      } else {
+        // closed cleanly, commit tx
+        tx.commit();
+      }
     }
 
     nextBucket = null;

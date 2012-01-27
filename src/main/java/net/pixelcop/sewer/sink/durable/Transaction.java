@@ -42,6 +42,8 @@ public class Transaction {
    */
   private String eventClass;
 
+  private boolean open = true;
+
   /**
    * Create new Transaction instance
    */
@@ -63,21 +65,34 @@ public class Transaction {
     this.startTime = System.currentTimeMillis();
   }
 
+  /**
+   * Create a unique ID for this Transaction
+   *
+   * <p>Formatted so that lexigraphical and chronological sorting is identical.</p>
+   * <p><code>yyyyMMdd-HHmmssSSSZ.nanosec</code></p>
+   *
+   * @return
+   */
   private String generateId() {
-    long tid = Thread.currentThread().getId();
-    String formattedDate = DATE_FORMAT.format(new Date());
-
-    // formatted so that lexigraphical and chronological can use same sort
-    // yyyyMMdd-HHmmssSSSz.0000000nanos.00000pid
-    return String.format("%s.%012d.%08d", formattedDate, System.nanoTime(), tid);
+    return String.format("%s.%012d", DATE_FORMAT.format(new Date()), System.nanoTime());
   }
 
   public void rollback() {
+    open = false;
     TransactionManager.getInstance().rollbackTx(this.id);
   }
 
   public void commit() {
+    open = false;
     TransactionManager.getInstance().commitTx(this.id);
+  }
+
+  /**
+   * Checks if this Transaction is active
+   * @return boolean True if neither commit() nor rollback() have been called
+   */
+  public boolean isOpen() {
+    return open;
   }
 
   /**

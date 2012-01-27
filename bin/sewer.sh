@@ -2,8 +2,9 @@
 
 ROOT=$(readlink -f $(dirname $0)/..)
 TMP=$ROOT/tmp
-PID_FILE=$TMP/sewer.pid
-OUT_FILE=$TMP/sewer.out
+VAR=$ROOT/var
+PID_FILE=$VAR/sewer.pid
+OUT_FILE=$VAR/sewer.out
 
 JOPTS="-XX:+AggressiveOpts -XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=80 -Xms512m -Xmx1g"
 JOPTS="-javaagent:$ROOT/lib/jolokia-jvm-agent-1.0.2.jar=port=7777,host=localhost $JOPTS"
@@ -65,10 +66,10 @@ start () {
   fi
   CP="-cp $CP"
 
-  RUN="java $JOPTS $CP $MAIN -v"
+  RUN="java -Dlog.root=$VAR $JOPTS $CP $MAIN -v"
 
   # start
-  mkdir -p $TMP
+  mkdir -p $TMP $VAR
   $RUN 2>>$OUT_FILE >>$OUT_FILE &
 
   # write pid

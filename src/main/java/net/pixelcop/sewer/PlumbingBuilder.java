@@ -1,5 +1,6 @@
 package net.pixelcop.sewer;
 
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public class PlumbingBuilder<T> {
 
   private Class clazz;

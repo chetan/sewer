@@ -75,7 +75,11 @@ public class HttpPixelSource extends Source {
     private final Buffer gzCrossdomainBuffer;
     private final long gzCrossdomainLength;
 
-    public PixelHandler() throws IOException {
+    private final AccessLogExtractor accessLogExtractor;
+
+    public PixelHandler(AccessLogExtractor extractor) throws IOException {
+      this.accessLogExtractor = extractor;
+
       Resource crossdomainResource = Resource.newSystemResource("crossdomain.xml");
       crossdomainBuffer = new ByteArrayBuffer(IO.readBytes(crossdomainResource.getInputStream()));
       crossdomainLength = crossdomainBuffer.length();
@@ -99,7 +103,7 @@ public class HttpPixelSource extends Source {
       baseRequest.setHandled(true);
 
       // log request
-      Event event = AccessLogExtractor.extractAccessLogEvent(baseRequest);
+      Event event = accessLogExtractor.extract(baseRequest);
       sink.append(event);
     }
 
@@ -172,6 +176,7 @@ public class HttpPixelSource extends Source {
   private static final String CACHECONTROL = "max-age=315360000, public";
   private static final String GZIP = "gzip";
 
+  private static final String CONFIG_EXTRACTOR = "sewer.source.pixel.extractor";
   private static final String CONFIG_GRACEFUL = "sewer.source.pixel.graceful";
   private static final String CONFIG_ACCEPT_QUEUE = "sewer.source.pixel.accept_queue";
   private static final String CONFIG_STATUS_PORT = "sewer.source.pixel.status.port";
@@ -192,9 +197,22 @@ public class HttpPixelSource extends Source {
     }
   }
 
+  private AccessLogExtractor createExtractor() throws IOException {
+    try {
+      Class<? extends AccessLogExtractor> clazz = Node.getInstance().getConf().getClass(
+          CONFIG_EXTRACTOR, DefaultAccessLogExtractor.class, AccessLogExtractor.class);
+
+      return clazz.newInstance();
+
+    } catch (Throwable t) {
+      throw new IOException("Unable to load custom extractor: "
+          + Node.getInstance().getConf().get(CONFIG_EXTRACTOR), t);
+    }
+  }
+
   private void initServer() throws IOException {
     StatisticsHandler handler = new StatisticsHandler();
-    handler.setHandler(new PixelHandler());
+    handler.setHandler(new PixelHandler(createExtractor()));
     this.server = createServer(createConnector(getPort(), true), handler);
     this.statusServer = createServer(createConnector(getStatusPort(), false), new StatusHandler());
   }

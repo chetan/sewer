@@ -1,8 +1,10 @@
 package net.pixelcop.sewer.node;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 
 import net.pixelcop.sewer.PlumbingFactory;
+import net.pixelcop.sewer.PlumbingProvider;
 import net.pixelcop.sewer.Sink;
 import net.pixelcop.sewer.SinkRegistry;
 import net.pixelcop.sewer.Source;
@@ -91,6 +93,8 @@ public class Node extends Thread implements SmartRpcClientEventHandler {
 
     validateConfig();
 
+    loadPlugins();
+
     try {
       this.sourceFactory = new PlumbingFactory<Source>(conf.get(NodeConfig.SOURCE), SourceRegistry.getRegistry());
       this.sinkFactory = new PlumbingFactory<Sink>(conf.get(NodeConfig.SINK), SinkRegistry.getRegistry());
@@ -103,6 +107,28 @@ public class Node extends Thread implements SmartRpcClientEventHandler {
     this.source = sourceFactory.build();
     this.source.setSinkFactory(sinkFactory);
 
+  }
+
+  /**
+   * Load plugin classes specified in config
+   */
+  @SuppressWarnings("unchecked")
+  protected void loadPlugins() {
+    String[] plugins = conf.getStrings(NodeConfig.PLUGINS);
+    if (plugins == null || plugins.length == 0) {
+      return;
+    }
+    for (int i = 0; i < plugins.length; i++) {
+      try {
+        Constructor con = Class.forName(plugins[i]).getConstructor(new String[]{}.getClass());
+        Object obj = con.newInstance(new Object[] { new String[]{} });
+        ((PlumbingProvider) obj).register();
+
+      } catch (Throwable t) {
+        LOG.error("Failed to load plugin class: " + plugins[i], t);
+        System.exit(ExitCodes.CONFIG_ERROR);
+      }
+    }
   }
 
   protected void validateConfig() {

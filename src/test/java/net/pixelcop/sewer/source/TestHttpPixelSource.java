@@ -7,6 +7,7 @@ import java.net.URLConnection;
 import net.pixelcop.sewer.node.AbstractNodeTest;
 import net.pixelcop.sewer.node.TestableNode;
 import net.pixelcop.sewer.sink.debug.CountingSink;
+import net.pixelcop.sewer.source.http.HttpPixelSource;
 
 import org.junit.Test;
 

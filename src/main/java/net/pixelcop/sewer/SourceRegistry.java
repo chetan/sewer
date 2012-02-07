@@ -3,10 +3,10 @@ package net.pixelcop.sewer;
 import java.util.HashMap;
 import java.util.Map;
 
-import net.pixelcop.sewer.source.HttpPixelSource;
 import net.pixelcop.sewer.source.PipeSource;
 import net.pixelcop.sewer.source.SyslogTcpSource;
 import net.pixelcop.sewer.source.TcpWriteableEventSource;
+import net.pixelcop.sewer.source.http.HttpPixelSource;
 
 @SuppressWarnings("rawtypes")
 public class SourceRegistry {

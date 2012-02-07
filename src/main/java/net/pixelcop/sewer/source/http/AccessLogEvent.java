@@ -1,4 +1,4 @@
-package net.pixelcop.sewer.source;
+package net.pixelcop.sewer.source.http;
 
 import java.io.DataInput;
 import java.io.DataOutput;

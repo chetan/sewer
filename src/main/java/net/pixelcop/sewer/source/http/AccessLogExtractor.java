@@ -1,4 +1,4 @@
-package net.pixelcop.sewer.source;
+package net.pixelcop.sewer.source.http;
 
 import net.pixelcop.sewer.ByteArrayEvent;
 import net.pixelcop.sewer.Event;

@@ -12,6 +12,7 @@ COMMONS_DISCOVERY = [ "commons-discovery:commons-discovery:jar:0.4" ]
 COMMONS_CLI = [ "commons-cli:commons-cli:jar:1.2" ]
 COMMONS_EL = [ "commons-el:commons-el:jar:1.0" ]
 COMMONS_CSV = [ "commons-csv:commons-csv:jar:1.0" ]
+COMMONS_DAEMON = [ "commons-daemon:commons-daemon:jar:1.0.8" ]
 
 SOLR_COMMONS_CSV = [ "org.apache.solr:solr-commons-csv:jar:1.4.1" ]
 

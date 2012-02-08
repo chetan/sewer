@@ -64,7 +64,6 @@ public class Node extends Thread implements SmartRpcClientEventHandler {
       System.exit(ExitCodes.IO_ERROR);
     }
 
-    instance.start();
   }
 
   public Node(NodeConfig config) throws IOException {
@@ -185,7 +184,7 @@ public class Node extends Thread implements SmartRpcClientEventHandler {
 
     }
 
-    Runtime.getRuntime().addShutdownHook(new ShutdownHook());
+    // Runtime.getRuntime().addShutdownHook(new ShutdownHook());
 
   }
 

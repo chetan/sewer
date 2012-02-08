@@ -57,7 +57,7 @@ start () {
   else
     # dist path
     CP=`ls $ROOT/*.jar | grep -v sources`
-    CP="$CP:$ROOT/lib/*"
+    CP="$CP:$ROOT/lib/*:$ROOT/lib/"
 
   fi
 
@@ -97,7 +97,7 @@ stop () {
     rm -f $PID_FILE
 
   else
-    "not running!"
+    echo "not running!"
   fi
 
 }

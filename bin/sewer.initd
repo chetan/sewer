@@ -1,0 +1,33 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides:          sewer
+# Required-Start:    $local_fs $remote_fs $syslog $named $network $time
+# Required-Stop:     $local_fs $remote_fs $syslog $named $network
+# Should-Start:
+# Should-Stop:
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Start/Stop the sewer daemon
+### END INIT INFO
+
+# processname: sewer
+# pidfile: $SEWER_HOME/var/sewer.pid
+
+# must set in order to work
+SEWER_HOME=
+SEWER_BIN="$SEWER_HOME/bin/sewer.sh"
+
+case $1 in
+start)
+        $SEWER_BIN start
+        ;;
+stop)
+        $SEWER_BIN stop
+        ;;
+restart)
+        $SEWER_BIN stop
+        echo "sleeping 5 sec..."
+        sleep 5
+        $SEWER_BIN start
+        ;;esac   exit 0

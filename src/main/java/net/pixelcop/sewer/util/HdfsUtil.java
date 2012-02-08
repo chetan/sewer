@@ -52,7 +52,8 @@ public class HdfsUtil {
   private static final Logger LOG = LoggerFactory.getLogger(HdfsUtil.class);
 
   public static final String CONFIG_COMPRESSION = "sewer.sink.compression";
-  public static final String DEFAULT_COMPRESSION = NativeCodeLoader.isNativeCodeLoaded() ? "gzip" : "default";
+  public static final String DEFAULT_COMPRESSION = "default";
+  public static final String BEST_COMPRESSION = NativeCodeLoader.isNativeCodeLoaded() ? "gzip" : DEFAULT_COMPRESSION;
 
   private static CompressionCodec codec = null;
 
@@ -115,7 +116,8 @@ public class HdfsUtil {
    */
   public static CompressionCodec selectCodec(Configuration conf) {
 
-    String target = conf.get(CONFIG_COMPRESSION, DEFAULT_COMPRESSION);
+    String target = conf.get(CONFIG_COMPRESSION, BEST_COMPRESSION);
+
     if (target.equalsIgnoreCase("deflate")) {
       // older versions don't have the DeflateCodec alias class
       target = DEFAULT_COMPRESSION;

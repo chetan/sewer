@@ -30,7 +30,7 @@ JOPTS="-javaagent:$ROOT/lib/jolokia-jvm-agent-1.0.2.jar=port=7777,host=localhost
 # -XX:+OptimizeStringConcat
 # -XX:+OptimizeFill
 
-MAIN="net.pixelcop.sewer.node.Node"
+MAIN="net.pixelcop.sewer.node.NodeDaemon"
 
 # load hadoop native libs, if avail
 NATIVE=`find /usr/lib /usr/local/lib -name 'libhadoop.so*' | head -n 1`

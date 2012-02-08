@@ -61,6 +61,7 @@ public class Node extends Thread implements SmartRpcClientEventHandler {
     } catch (IOException e) {
       System.err.println("Error while starting node: " + e.getMessage());
       e.printStackTrace();
+      LOG.error("Error while starting node: " + e.getMessage(), e);
       System.exit(ExitCodes.IO_ERROR);
     }
 

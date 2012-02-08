@@ -37,7 +37,7 @@ public class NodeDaemon implements Daemon {
       LOG.error("Source failed to close cleanly: " + e.getMessage(), e);
       return;
     }
-    LOG.debug("Shutdown complete. Goodbye!");
+    LOG.info("Shutdown complete. Goodbye!");
   }
 
   @Override

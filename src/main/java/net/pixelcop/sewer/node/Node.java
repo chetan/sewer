@@ -107,6 +107,8 @@ public class Node extends Thread implements SmartRpcClientEventHandler {
     this.source = sourceFactory.build();
     this.source.setSinkFactory(sinkFactory);
 
+    this.source.init();
+
   }
 
   /**
@@ -226,5 +228,3 @@ public class Node extends Thread implements SmartRpcClientEventHandler {
   }
 
 }
-
-

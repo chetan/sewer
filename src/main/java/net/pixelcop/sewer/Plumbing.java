@@ -2,6 +2,7 @@ package net.pixelcop.sewer;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.net.ServerSocket;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -22,7 +23,17 @@ public abstract class Plumbing implements Closeable, StatusProvider {
   private AtomicInteger status = new AtomicInteger(CLOSED);
 
   /**
-   * Open the source endpoint (file, network, etc). The source is also responsible
+   * Initialize Source/Sink. This is where any ServerSockets should be created
+   * but <strong>not</strong> started, e.g. {@link ServerSocket#accept()}, which
+   * must happen during {@link #open()}.
+   *
+   * @throws IOException
+   */
+  public void init() throws IOException {
+  }
+
+  /**
+   * Open the Source or Sink (file, network, etc). Sources are also responsible
    * for creating and opening it's associated Sink as necessary.
    *
    * @throws IOException

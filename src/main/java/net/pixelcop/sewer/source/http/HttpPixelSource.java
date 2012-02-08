@@ -200,6 +200,12 @@ public class HttpPixelSource extends Source {
     }
   }
 
+  @Override
+  public void init() throws IOException {
+    super.init();
+    initServer();
+  }
+
   private AccessLogExtractor createExtractor() throws IOException {
     try {
       Class<? extends AccessLogExtractor> clazz = Node.getInstance().getConf().getClass(
@@ -215,6 +221,11 @@ public class HttpPixelSource extends Source {
     }
   }
 
+  /**
+   * Creates the server but does not start it
+   *
+   * @throws IOException
+   */
   private void initServer() throws IOException {
     StatisticsHandler handler = new StatisticsHandler();
     handler.setHandler(new PixelHandler(createExtractor()));
@@ -244,7 +255,7 @@ public class HttpPixelSource extends Source {
     return server;
   }
 
-  private Connector createConnector(int port, boolean checkForwardHeaders) {
+  private Connector createConnector(int port, boolean checkForwardHeaders) throws IOException {
     SelectChannelConnector conn = new SelectChannelConnector();
 
     conn.setPort(port);
@@ -257,6 +268,9 @@ public class HttpPixelSource extends Source {
     if (checkForwardHeaders) {
       conn.setForwarded(true);
     }
+
+    // binds to port, but does not accept() connections
+    conn.open();
 
     return conn;
   }
@@ -306,8 +320,6 @@ public class HttpPixelSource extends Source {
       LOG.info("Opening " + this.getClass().getSimpleName() + " on port " + port + " (status on "
           + getStatusPort() + ")");
     }
-
-    initServer();
 
     try {
       this.server.start();

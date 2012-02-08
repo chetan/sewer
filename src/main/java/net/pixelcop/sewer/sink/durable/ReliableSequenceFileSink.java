@@ -44,7 +44,7 @@ public class ReliableSequenceFileSink extends SequenceFileSink {
     CompressionCodec codec = HdfsUtil.createCodec();
 
     localPath = tx.createTxPath();
-    dstPath = new Path(nextBucket + ".seq" + codec.getDefaultExtension());
+    dstPath = new Path(nextBucket + ".seq");
 
     reliableOut = new DualFSDataOutputStream(localPath, dstPath, conf);
 

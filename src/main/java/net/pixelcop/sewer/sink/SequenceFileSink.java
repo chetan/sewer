@@ -82,7 +82,7 @@ public class SequenceFileSink extends BucketedSink {
     Configuration conf = Node.getInstance().getConf();
 
     CompressionCodec codec = HdfsUtil.createCodec();
-    dstPath = new Path(nextBucket + ".seq" + codec.getDefaultExtension());
+    dstPath = new Path(nextBucket + ".seq");
     FileSystem hdfs = dstPath.getFileSystem(conf);
 
     writer = SequenceFile.createWriter(
@@ -99,7 +99,7 @@ public class SequenceFileSink extends BucketedSink {
 
   @Override
   public String getFileExt() {
-    return ".seq" + HdfsUtil.createCodec().getDefaultExtension();
+    return ".seq";
   }
 
   @Override

@@ -20,12 +20,12 @@ import org.slf4j.LoggerFactory;
 
 public class Node extends Thread implements SmartRpcClientEventHandler {
 
-  class ShutdownHook extends Thread {
+  static class ShutdownHook extends Thread {
     @Override
     public void run() {
       LOG.warn("Caught shutdown signal. Going to try to stop cleanly..");
       try {
-        getSource().close();
+        Node.getInstance().getSource().close();
       } catch (IOException e) {
         LOG.error("Source failed to close cleanly: " + e.getMessage(), e);
         return;
@@ -184,8 +184,6 @@ public class Node extends Thread implements SmartRpcClientEventHandler {
       System.exit(ExitCodes.IO_ERROR);
 
     }
-
-    // Runtime.getRuntime().addShutdownHook(new ShutdownHook());
 
   }
 

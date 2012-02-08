@@ -26,4 +26,9 @@ public class DefaultAccessLogExtractor implements AccessLogExtractor {
         req.getHeader(HttpHeaders.COOKIE));
   }
 
+  @Override
+  public Class<?> getEventClass() {
+    return AccessLogEvent.class;
+  }
+
 }

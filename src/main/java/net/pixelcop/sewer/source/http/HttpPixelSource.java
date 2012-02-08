@@ -189,6 +189,9 @@ public class HttpPixelSource extends Source {
 
   private Sink sink;
 
+  @SuppressWarnings("rawtypes")
+  private Class eventClass;
+
   public HttpPixelSource(String[] args) {
     if (args == null) {
       this.port = DEFAULT_HTTP_PORT;
@@ -202,7 +205,9 @@ public class HttpPixelSource extends Source {
       Class<? extends AccessLogExtractor> clazz = Node.getInstance().getConf().getClass(
           CONFIG_EXTRACTOR, DefaultAccessLogExtractor.class, AccessLogExtractor.class);
 
-      return clazz.newInstance();
+      AccessLogExtractor obj = clazz.newInstance();
+      this.eventClass = obj.getEventClass();
+      return obj;
 
     } catch (Throwable t) {
       throw new IOException("Unable to load custom extractor: "
@@ -317,7 +322,7 @@ public class HttpPixelSource extends Source {
 
   @Override
   public Class<?> getEventClass() {
-    return AccessLogEvent.class;
+    return eventClass;
   }
 
   public int getPort() {

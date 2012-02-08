@@ -11,6 +11,19 @@ import org.eclipse.jetty.server.Request;
  */
 public interface AccessLogExtractor {
 
+  /**
+   * Build {@link Event} from the {@link Request}
+   *
+   * @param req
+   * @return
+   */
   public Event extract(Request req);
+
+  /**
+   * Get the class of the {@link Event}s created by this Extractor
+   *
+   * @return
+   */
+  public Class<?> getEventClass();
 
 }

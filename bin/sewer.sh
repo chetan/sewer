@@ -6,6 +6,9 @@ VAR=$ROOT/var
 PID_FILE=$VAR/sewer.pid
 OUT_FILE=$VAR/sewer.out
 
+# set USER var to drop privileges to this account (only if jsvc is avail)
+USER=
+
 JOPTS="-XX:+AggressiveOpts -XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=80 -Xms512m -Xmx1g"
 JOPTS="-javaagent:$ROOT/lib/jolokia-jvm-agent-1.0.2.jar=port=7777,host=localhost $JOPTS"
 
@@ -66,10 +69,20 @@ start () {
   fi
   CP="-cp $CP"
 
-  RUN="java -Dlog.root=$VAR $JOPTS $CP $MAIN -v"
+  if [ `which jsvc` ]; then
+    RUN="jsvc"
+    if [ -n "$USER" ]; then
+      RUN="$RUN --user $USER"
+    fi
+
+  else
+    RUN="java"
+  fi
+
+  RUN="$RUN -Dlog.root=$VAR $JOPTS $CP $MAIN -v"
 
   # start
-  mkdir -p $TMP $VAR
+  mkdir -p $VAR
   $RUN 2>>$OUT_FILE >>$OUT_FILE &
 
   # write pid

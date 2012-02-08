@@ -322,6 +322,13 @@ public class HttpPixelSource extends Source {
 
   @Override
   public Class<?> getEventClass() {
+    if (eventClass == null) {
+      try {
+        createExtractor();
+      } catch (IOException e) {
+        throw new RuntimeException("Error getting event class", e);
+      }
+    }
     return eventClass;
   }
 

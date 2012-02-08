@@ -5,7 +5,7 @@
 # uncomment to override ENV
 #JAVA_HOME=
 
-# set USER var to drop privileges to this account (only if jsvc is avail)
+# set USER var to drop privileges to this account (only if jsvc 1.0.8 is avail)
 USER=
 
 # Jolokia/JMX agent port

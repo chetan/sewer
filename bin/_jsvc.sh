@@ -9,7 +9,7 @@ start () {
   # check if already running
   if [ -f $PID_FILE ]; then
     PID=`cat $PID_FILE`
-    if [ `ps auxw | grep -v grep | grep $PID | wc -l` != 0 ]; then
+    if [ `ps -p $PID` ]; then
       echo "error: already running at pid $PID!"
       exit 1
     fi
@@ -21,21 +21,7 @@ start () {
   fi
 
   # setup classpath
-  if [ -d $ROOT/target ]; then
-    # in dev env
-    echo "testing"
-
-  else
-    # dist path
-    CP=`ls $ROOT/*.jar | grep -v sources`
-    CP="$CP:$ROOT/lib/*:$ROOT/lib/"
-
-  fi
-
-  if [ -d $ROOT/conf ]; then
-    CP="$ROOT/conf:$CP"
-  fi
-  CP="-cp $CP"
+  . $ROOT/bin/_cp.sh
 
   RUN="jsvc"
   if [ -n "$USER" ]; then

@@ -16,21 +16,7 @@ start () {
   fi
 
   # setup classpath
-  if [ -d $ROOT/target ]; then
-    # in dev env
-    echo "testing"
-
-  else
-    # dist path
-    CP=`ls $ROOT/*.jar | grep -v sources`
-    CP="$CP:$ROOT/lib/*:$ROOT/lib/"
-
-  fi
-
-  if [ -d $ROOT/conf ]; then
-    CP="$ROOT/conf:$CP"
-  fi
-  CP="-cp $CP"
+  . $ROOT/bin/_cp.sh
 
   RUN="java -Dlog.root=$VAR $JOPTS $CP $MAIN -v"
 

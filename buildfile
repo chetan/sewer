@@ -1,6 +1,6 @@
 
 # Version number for this release
-VERSION_NUMBER = "0.4.1"
+VERSION_NUMBER = "0.4.3"
 # Group identifier for your projects
 GROUP = "net.pixelcop.sewer"
 VENDOR = "Pixelcop Research, Inc."
@@ -50,3 +50,8 @@ define "sewer" do
     path.include "conf"
   end
 end
+
+# Backward compatibility:  Buildr 1.4+ uses $HOME/.buildr/buildr.rb
+local_config = File.expand_path('buildr.rb', File.dirname(__FILE__))
+load local_config if File.exist? local_config
+

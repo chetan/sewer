@@ -270,7 +270,7 @@ public class TransactionManager extends Thread {
       ArrayList<Transaction> recovered = new ObjectMapper().readValue(txLog,
           new TypeReference<ArrayList<Transaction>>() {});
 
-      LOG.info("Recovered " + recovered.size() + " txns from disk");
+      LOG.info("Loaded " + recovered.size() + " txns from disk");
       lostTransactions.addAll(recovered);
 
     } catch (FileNotFoundException e) {

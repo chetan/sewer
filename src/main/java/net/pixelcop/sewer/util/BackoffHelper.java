@@ -28,11 +28,10 @@ public class BackoffHelper {
   public void handleFailure(Throwable t, Logger log, String msg, boolean retryCanceled) throws InterruptedException {
 
     failures++;
-    if (failures == 1 && log.isWarnEnabled()) {
-      log.warn(msg + ", failures = " + failures + " (" + t.getMessage() + ")");
-
-    } else if (log.isDebugEnabled()) {
-      log.debug(msg + ", failures = " + failures + " (" + t.getMessage() + ")");
+    if (log.isDebugEnabled()) {
+      log.debug(msg + ", failures = " + failures + " (" + message(t) + ")", t);
+    } else if (log.isWarnEnabled()) {
+      log.warn(msg + ", failures = " + failures + " (" + message(t) + ")");
     }
 
     if (retryCanceled) {
@@ -48,6 +47,13 @@ public class BackoffHelper {
     }
 
     Thread.sleep(backoff);
+  }
+
+  private String message(Throwable t) {
+    if (t.getMessage() != null) {
+      return t.getMessage();
+    }
+    return t.getClass().getCanonicalName();
   }
 
   /**

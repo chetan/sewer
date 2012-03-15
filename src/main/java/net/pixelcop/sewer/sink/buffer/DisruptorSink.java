@@ -27,6 +27,8 @@ public class DisruptorSink extends Sink {
     }
   }
 
+  public static final String CONF_THREADS = "sewer.sink.disruptor.threads";
+
   private static final Logger LOG = LoggerFactory.getLogger(DisruptorSink.class);
 
   protected Disruptor<Event> disruptor;
@@ -62,14 +64,11 @@ public class DisruptorSink extends Sink {
   public void open() throws IOException {
 
     LOG.debug("opening");
-
     setStatus(OPENING);
     createSubSink();
 
-    final ExecutorService executor = Executors.newFixedThreadPool(4);
-
-    //  disruptor =
-    //    new Disruptor<DisruptorEvent>(createEventFactory(), 131072, executor); // 2^17 = 131,072
+    final ExecutorService executor = Executors.newFixedThreadPool(
+        Node.getInstance().getConf().getInt(CONF_THREADS, 1));
 
     disruptor =
       new Disruptor<Event>(createEventFactory(), executor,

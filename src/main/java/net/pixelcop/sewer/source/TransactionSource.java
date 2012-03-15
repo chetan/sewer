@@ -1,5 +1,6 @@
 package net.pixelcop.sewer.source;
 
+import java.io.EOFException;
 import java.io.IOException;
 
 import net.pixelcop.sewer.ByteArrayEvent;
@@ -19,6 +20,7 @@ import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.SequenceFile.Reader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 
 public class TransactionSource extends Source {
 
@@ -82,7 +84,8 @@ public class TransactionSource extends Source {
       } catch (IOException e) {
         // May occur if the file wasn't found or is zero bytes (never received any data)
         // This generally happens if the server was stopped improperly (kill -9, crash, reboot)
-        LOG.warn("Failed to read tx " + tx + " at " + tx.createTxPath().toString(), e);
+        LOG.warn("Failed to open tx " + tx + " at " + tx.createTxPath().toString()
+            + "; this usually means the file is 0 bytes or the header is corrupted/incomplete", e);
         return;
       }
       setStatus(FLOWING);
@@ -96,9 +99,24 @@ public class TransactionSource extends Source {
         throw new IOException("Failed to create Event class", e);
       }
 
-      while (reader.next(nil, event)) {
+
+      while (true) {
+
+        try {
+          if (!reader.next(nil, event)) {
+            break;
+          }
+        } catch (IOException e) {
+          if (e instanceof EOFException) {
+            LOG.warn("Caught EOF reading from buffer; skipping to close");
+            break;
+          }
+          throw e;
+        }
+
         sink.append(event);
       }
+
 
     } finally {
       if (reader != null) {
@@ -106,6 +124,7 @@ public class TransactionSource extends Source {
           reader.close();
         } catch (IOException e) {
           // safe to ignore (hopefully :)
+          // because at this point, we only care about errors when closing the sink
         }
       }
     }

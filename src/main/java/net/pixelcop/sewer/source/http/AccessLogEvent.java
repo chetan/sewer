@@ -72,4 +72,19 @@ public class AccessLogEvent implements Event {
     }, '\t');
   }
 
+  public void copyFrom(Event event) {
+    if (!(event instanceof AccessLogEvent)) {
+      return;
+    }
+    AccessLogEvent sevent = (AccessLogEvent) event;
+    timestamp = sevent.timestamp;
+    ip = sevent.ip;
+    host = sevent.host;
+    requestPath = sevent.requestPath;
+    queryString = sevent.queryString;
+    referer = sevent.referer;
+    userAgent = sevent.userAgent;
+    cookies = sevent.cookies;
+  }
+
 }

@@ -52,6 +52,11 @@ public class Node extends Thread implements SmartRpcClientEventHandler {
     return instance;
   }
 
+  /**
+   * This main() method is not called directly, rather it is called via {@link NodeDaemon}.
+   *
+   * @param args
+   */
   public static void main(String[] args) {
 
     NodeConfig conf = new NodeConfigurator().configure(args);

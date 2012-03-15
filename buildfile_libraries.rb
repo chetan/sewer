@@ -82,6 +82,10 @@ HADOOP_TEST = [
   "org.apache.hadoop:hadoop-test:jar:#{HADOOP_VERSION}"
 ] + JETTY_6
 
+METRICS = [ 'com.yammer.metrics:metrics-core:jar:2.0.2', 'com.yammer.metrics:metrics-jetty:jar:2.0.2' ]
+
+DISRUPTOR = [ 'com.googlecode.disruptor:disruptor:jar:2.8' ]
+
 class Buildr::Artifact
   def <=>(other)
     self.id <=> other.id

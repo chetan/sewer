@@ -22,9 +22,9 @@ import org.eclipse.jetty.io.Buffer;
 import org.eclipse.jetty.io.ByteArrayBuffer;
 import org.eclipse.jetty.io.WriterOutputStream;
 import org.eclipse.jetty.jmx.MBeanContainer;
+import org.eclipse.jetty.server.AbstractHttpConnection;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
-import org.eclipse.jetty.server.HttpConnection;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.Server;
@@ -163,7 +163,7 @@ public class HttpPixelSource extends Source {
         out = new WriterOutputStream(response.getWriter());
       }
 
-      ((HttpConnection.Output) out).sendContent(new ByteArrayInputStream(buff.array()));
+      ((AbstractHttpConnection.Output) out).sendContent(new ByteArrayInputStream(buff.array()));
       return true;
     }
 

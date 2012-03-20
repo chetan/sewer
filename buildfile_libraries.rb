@@ -35,9 +35,9 @@ JUNIT = [ "junit:junit:jar:4.10" ]
 
 ANT = [ "org.apache.ant:ant:jar:1.8.0" ]
 
-JETTY_VERSION = "8.0.4.v20111024"
+JETTY_VERSION = "8.1.2.v20120308"
 JETTY = [
-  "org.mortbay.jetty:servlet-api:jar:3.0.20100224",
+  "org.eclipse.jetty.orbit:javax.servlet:jar:3.0.0.v201112011016",
   "org.eclipse.jetty:jetty-continuation:jar:#{JETTY_VERSION}",
   "org.eclipse.jetty:jetty-http:jar:#{JETTY_VERSION}",
   "org.eclipse.jetty:jetty-io:jar:#{JETTY_VERSION}",

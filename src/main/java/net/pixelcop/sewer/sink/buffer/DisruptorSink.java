@@ -7,7 +7,6 @@ import java.util.concurrent.Executors;
 import net.pixelcop.sewer.Event;
 import net.pixelcop.sewer.Sink;
 import net.pixelcop.sewer.node.Node;
-import net.pixelcop.sewer.source.http.AccessLogEvent;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,10 +19,10 @@ import com.lmax.disruptor.dsl.Disruptor;
 
 public class DisruptorSink extends Sink {
 
-  class SewerEventHandler implements EventHandler<Event> {
+  class SewerEventHandler implements EventHandler<DelegateEvent> {
     @Override
-    public void onEvent(Event event, long sequence, boolean endOfBatch) throws Exception {
-      subSink.append(event);
+    public void onEvent(DelegateEvent event, long sequence, boolean endOfBatch) throws Exception {
+      subSink.append(event.getDelegate());
     }
   }
 
@@ -31,31 +30,24 @@ public class DisruptorSink extends Sink {
 
   private static final Logger LOG = LoggerFactory.getLogger(DisruptorSink.class);
 
-  protected Disruptor<Event> disruptor;
+  protected Disruptor<DelegateEvent> disruptor;
 
   public DisruptorSink(String[] args) {
   }
 
   @Override
   public void close() throws IOException {
-
     setStatus(CLOSING);
     disruptor.shutdown(); // blocks until buffer is clear
     subSink.close();
     setStatus(CLOSED);
-
   }
 
   @Override
   public void append(Event event) throws IOException {
-
     long sequence = disruptor.getRingBuffer().next(); // get next avail seq
-    AccessLogEvent devent = (AccessLogEvent) disruptor.getRingBuffer().get(sequence); // get the placeholder object
-
-    // copy from event into devent??
-    // TODO temp hardcoded copy
-    devent.copyFrom(event);
-
+    DelegateEvent devent = disruptor.getRingBuffer().get(sequence); // get the placeholder object
+    devent.setDelegate(event);
     disruptor.getRingBuffer().publish(sequence); // tell the buffer to publish
   }
 
@@ -71,8 +63,8 @@ public class DisruptorSink extends Sink {
         Node.getInstance().getConf().getInt(CONF_THREADS, 1));
 
     disruptor =
-      new Disruptor<Event>(createEventFactory(), executor,
-          new MultiThreadedClaimStrategy(2^17+1), // 2^17 = 131,072
+      new Disruptor<DelegateEvent>(createEventFactory(), executor,
+          new MultiThreadedClaimStrategy(Double.valueOf(Math.pow(2, 17)).intValue()), // 2^17 = 131,072
           new BlockingWaitStrategy()
       );
 
@@ -84,15 +76,10 @@ public class DisruptorSink extends Sink {
     LOG.debug("flowing");
   }
 
-  private EventFactory<Event> createEventFactory() {
-    return new EventFactory<Event>() {
-      public Event newInstance() {
-        try {
-          return (Event) Node.getInstance().getSource().getEventClass().newInstance();
-        } catch (Exception e) {
-          LOG.error("Error creating new event", e);
-        }
-        return null;
+  private EventFactory<DelegateEvent> createEventFactory() {
+    return new EventFactory<DelegateEvent>() {
+      public DelegateEvent newInstance() {
+        return new DelegateEvent();
       }
     };
   }

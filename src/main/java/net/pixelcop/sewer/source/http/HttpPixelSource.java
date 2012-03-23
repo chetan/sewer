@@ -262,7 +262,7 @@ public class HttpPixelSource extends Source {
     // conn.setAcceptors(4); // default seems good enough
     conn.setAcceptQueueSize(Node.getInstance().getConf().getInt(CONFIG_ACCEPT_QUEUE, 100));
     conn.setReuseAddress(true);
-    conn.setSoLingerTime(1000);
+    // conn.setSoLingerTime(1000);
     conn.setResolveNames(false);
 
     if (checkForwardHeaders) {

@@ -312,6 +312,7 @@ public class TransactionManager extends Thread {
       } catch (Throwable t) {
         try {
           backoff.handleFailure(t, LOG, "Error draining tx", isShutdown());
+
         } catch (InterruptedException e) {
           LOG.debug("Interrupted while draining, must be shutting down?");
           return false;

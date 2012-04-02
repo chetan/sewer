@@ -10,9 +10,9 @@ import net.pixelcop.sewer.util.HdfsUtil;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.SequenceFile.CompressionType;
+import org.apache.hadoop.io.VLongWritable;
 import org.apache.hadoop.io.compress.CompressionCodec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,8 +48,10 @@ public class ReliableSequenceFileSink extends SequenceFileSink {
 
     reliableOut = new DualFSDataOutputStream(localPath, dstPath, conf);
 
-    this.writer = SequenceFile.createWriter(conf, reliableOut, NullWritable.class,
-        Node.getInstance().getSource().getEventClass(), CompressionType.BLOCK, codec);
+    this.writer = SequenceFile.createWriter(conf, reliableOut,
+        Node.getInstance().getSource().getEventClass(),
+        VLongWritable.class,
+        CompressionType.BLOCK, codec);
 
     nextBucket = null;
 

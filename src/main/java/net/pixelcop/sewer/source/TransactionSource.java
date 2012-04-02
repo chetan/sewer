@@ -15,9 +15,9 @@ import net.pixelcop.sewer.util.HdfsUtil;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.SequenceFile.Reader;
+import org.apache.hadoop.io.VLongWritable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,8 +90,8 @@ public class TransactionSource extends Source {
       }
       setStatus(FLOWING);
 
-      NullWritable nil = NullWritable.get();
       Event event = null;
+      VLongWritable lng = new VLongWritable();
       try {
         event = tx.newEvent();
       } catch (Exception e) {
@@ -103,7 +103,7 @@ public class TransactionSource extends Source {
       while (true) {
 
         try {
-          if (!reader.next(nil, event)) {
+          if (!reader.next(event, lng)) {
             break;
           }
         } catch (IOException e) {

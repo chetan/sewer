@@ -11,10 +11,10 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.SequenceFile.CompressionType;
 import org.apache.hadoop.io.SequenceFile.Writer;
+import org.apache.hadoop.io.VLongWritable;
 import org.apache.hadoop.io.compress.CompressionCodec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +30,7 @@ public class SequenceFileSink extends BucketedSink {
 
   private static final Logger LOG = LoggerFactory.getLogger(SequenceFileSink.class);
 
-  private static final NullWritable NULL = NullWritable.get();
+  private static final VLongWritable ONE = new VLongWritable(1L);
 
   /**
    * Configured DFS path to write to
@@ -86,8 +86,9 @@ public class SequenceFileSink extends BucketedSink {
     FileSystem hdfs = dstPath.getFileSystem(conf);
 
     writer = SequenceFile.createWriter(
-        hdfs, conf, dstPath, NullWritable.class,
+        hdfs, conf, dstPath,
         Node.getInstance().getSource().getEventClass(),
+        VLongWritable.class,
         CompressionType.BLOCK, codec);
 
     if (LOG.isInfoEnabled()) {
@@ -110,7 +111,7 @@ public class SequenceFileSink extends BucketedSink {
 
   @Override
   public void append(Event event) throws IOException {
-    writer.append(NULL, event);
+    writer.append(event, ONE);
   }
 
 }

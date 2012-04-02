@@ -5,13 +5,10 @@ import net.pixelcop.sewer.node.AbstractHadoopTest;
 import net.pixelcop.sewer.node.TestableNode;
 import net.pixelcop.sewer.source.debug.StringEvent;
 
-import org.apache.hadoop.io.NullWritable;
 import org.junit.Test;
 
 
 public class TestReliableSequenceFileSink extends AbstractHadoopTest {
-
-  private static final NullWritable NULL = NullWritable.get();
 
   /**
    * HDFS up and running, "all green" case test

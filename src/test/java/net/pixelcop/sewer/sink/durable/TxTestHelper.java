@@ -15,9 +15,9 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.SequenceFile.Reader;
+import org.apache.hadoop.io.VLongWritable;
 
 public class TxTestHelper {
 
@@ -81,9 +81,9 @@ public class TxTestHelper {
       FileSystem fs = path.getFileSystem(conf);
       Reader reader = new SequenceFile.Reader(fs, path, conf);
 
-      NullWritable nil = NullWritable.get();
+      VLongWritable lng = new VLongWritable();
 
-      while (reader.next(nil, event)) {
+      while (reader.next(event, lng)) {
         rowCount++;
       }
     }

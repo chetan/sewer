@@ -23,9 +23,9 @@ public class TestHttpPixelSource extends AbstractNodeTest {
     assertNotNull(node);
     assertEquals(8181, ((HttpPixelSource) node.getSource()).getPort());
 
-    node = createNode("pixel('888')", "counting");
+    node = createNode("pixel('8888')", "counting");
     assertNotNull(node);
-    assertEquals(888, ((HttpPixelSource) node.getSource()).getPort());
+    assertEquals(8888, ((HttpPixelSource) node.getSource()).getPort());
   }
 
   @Test

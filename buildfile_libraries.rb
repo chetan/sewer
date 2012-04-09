@@ -16,7 +16,12 @@ COMMONS_DAEMON = [ "commons-daemon:commons-daemon:jar:1.0.8" ]
 
 SOLR_COMMONS_CSV = [ "org.apache.solr:solr-commons-csv:jar:1.4.1" ]
 
-LOGGER = [ "org.slf4j:slf4j-api:jar:1.6.4", 'org.slf4j:slf4j-log4j12:jar:1.6.4', 'log4j:log4j:jar:1.2.16' ]
+LOGGER = [
+    'org.slf4j:slf4j-api:jar:1.6.4',
+    'org.slf4j:slf4j-log4j12:jar:1.6.4',
+    'log4j:log4j:jar:1.2.16',
+    'log4j:apache-log4j-extras:jar:1.1'
+    ]
 
 JSON_SMART = [ 'net.minidev:json-smart:jar:1.0.9-1' ]
 

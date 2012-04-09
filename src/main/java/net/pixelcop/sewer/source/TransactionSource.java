@@ -13,6 +13,7 @@ import net.pixelcop.sewer.sink.durable.Transaction;
 import net.pixelcop.sewer.util.HdfsUtil;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.ChecksumException;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.SequenceFile;
@@ -109,6 +110,9 @@ public class TransactionSource extends Source {
         } catch (IOException e) {
           if (e instanceof EOFException) {
             LOG.warn("Caught EOF reading from buffer; skipping to close");
+            break;
+          } else if (e instanceof ChecksumException) {
+            LOG.warn("Caught ChecksumException reading from buffer; skipping to close");
             break;
           }
           throw e;

@@ -179,6 +179,9 @@ public class HttpPixelSource extends Source {
   private static final String CONFIG_EXTRACTOR = "sewer.source.pixel.extractor";
   private static final String CONFIG_GRACEFUL = "sewer.source.pixel.graceful";
   private static final String CONFIG_ACCEPT_QUEUE = "sewer.source.pixel.accept_queue";
+  private static final String CONFIG_MAX_IDLE = "sewer.source.pixel.max_idle";
+  private static final String CONFIG_LOW_RESOURCE_CONNS = "sewer.source.pixel.low_resource_conns";
+  private static final String CONFIG_LOW_RESOURCE_MAX_IDLE = "sewer.source.pixel.low_resource_max_idle";
   private static final String CONFIG_STATUS_PORT = "sewer.source.pixel.status.port";
 
   private static final int DEFAULT_HTTP_PORT = 8080;
@@ -261,6 +264,15 @@ public class HttpPixelSource extends Source {
     conn.setPort(port);
     // conn.setAcceptors(4); // default seems good enough
     conn.setAcceptQueueSize(Node.getInstance().getConf().getInt(CONFIG_ACCEPT_QUEUE, 100));
+
+    // Set limits on idle keep-alive connections
+    conn.setMaxIdleTime(
+        Node.getInstance().getConf().getInt(CONFIG_MAX_IDLE, 30000));
+    conn.setLowResourcesConnections(
+        Node.getInstance().getConf().getInt(CONFIG_LOW_RESOURCE_CONNS, 500));
+    conn.setLowResourcesMaxIdleTime(
+        Node.getInstance().getConf().getInt(CONFIG_LOW_RESOURCE_MAX_IDLE, 5000));
+
     conn.setReuseAddress(true);
     // conn.setSoLingerTime(1000);
     conn.setResolveNames(false);

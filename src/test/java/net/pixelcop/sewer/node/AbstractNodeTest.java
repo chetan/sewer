@@ -120,7 +120,22 @@ public abstract class AbstractNodeTest extends Assert {
    * @throws IOException
    */
   public TestableNode createNode(String source, String sink, String tmpWalPath) throws IOException {
-    NodeConfig conf = new NodeConfigurator().configure(new String[]{ "-v" });
+    return createNode(source, sink, tmpWalPath,
+        new NodeConfigurator().configure(new String[]{ "-v" }));
+  }
+
+  /**
+   * Configures a new node but does not start it. The newly created node will also create a new
+   * {@link TransactionManager} with the given WAL path.
+   *
+   * @param source
+   * @param sink
+   * @param tmpWalPath
+   * @param conf
+   * @return
+   * @throws IOException
+   */
+  public TestableNode createNode(String source, String sink, String tmpWalPath, NodeConfig conf) throws IOException {
     conf.set(NodeConfig.SOURCE, source);
     conf.set(NodeConfig.SINK, sink);
 
@@ -131,6 +146,7 @@ public abstract class AbstractNodeTest extends Assert {
 
     return node;
   }
+
 
   /**
    * Create a node and start it

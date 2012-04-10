@@ -16,6 +16,7 @@ import net.pixelcop.sewer.node.Node;
 
 import org.apache.commons.lang3.math.NumberUtils;
 import org.eclipse.jetty.http.HttpFields;
+import org.eclipse.jetty.http.HttpHeaderValues;
 import org.eclipse.jetty.http.HttpHeaders;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.io.Buffer;
@@ -93,6 +94,10 @@ public class HttpPixelSource extends Source {
     @Override
     public void handle(String target, Request baseRequest, HttpServletRequest request,
         HttpServletResponse response) throws IOException, ServletException {
+
+      if (!useKeepalive) {
+        response.setHeader(HttpHeaders.CONNECTION, HttpHeaderValues.CLOSE);
+      }
 
       if (handleCrossDomainXml(baseRequest, request, response)) {
         return; // no logging needed
@@ -183,12 +188,18 @@ public class HttpPixelSource extends Source {
   private static final String CONFIG_LOW_RESOURCE_CONNS = "sewer.source.pixel.low_resource_conns";
   private static final String CONFIG_LOW_RESOURCE_MAX_IDLE = "sewer.source.pixel.low_resource_max_idle";
   private static final String CONFIG_STATUS_PORT = "sewer.source.pixel.status.port";
+  private static final String CONFIG_KEEPALIVE = "sewer.source.pixel.keepalive";
 
   private static final int DEFAULT_HTTP_PORT = 8080;
 
   private final int port;
   private Server server;
   private Server statusServer;
+
+  /**
+   * Whether or not to support/allow keepalive connections
+   */
+  private boolean useKeepalive;
 
   private Sink sink;
 
@@ -201,6 +212,7 @@ public class HttpPixelSource extends Source {
     } else {
       this.port = NumberUtils.toInt(args[0], DEFAULT_HTTP_PORT);
     }
+    this.useKeepalive = Node.getInstance().getConf().getBoolean(CONFIG_KEEPALIVE, true);
   }
 
   @Override

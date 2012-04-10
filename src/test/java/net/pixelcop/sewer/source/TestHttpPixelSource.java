@@ -5,6 +5,8 @@ import java.net.URL;
 import java.net.URLConnection;
 
 import net.pixelcop.sewer.node.AbstractNodeTest;
+import net.pixelcop.sewer.node.NodeConfig;
+import net.pixelcop.sewer.node.NodeConfigurator;
 import net.pixelcop.sewer.node.TestableNode;
 import net.pixelcop.sewer.sink.debug.CountingSink;
 import net.pixelcop.sewer.source.http.HttpPixelSource;
@@ -81,6 +83,32 @@ public class TestHttpPixelSource extends AbstractNodeTest {
 
     assertTrue(conn.getHeaderField(0).contains("200"));
     assertEquals(0, CountingSink.getAppendCount()); // should still be zero
+  }
+
+  @Test
+  public void testKeepaliveDisabled() throws IOException {
+
+    NodeConfig conf = new NodeConfigurator().configure(new String[]{ "-v" });
+    conf.set("sewer.source.pixel.keepalive", "false");
+
+    int port = findOpenPort();
+    TestableNode node = createNode("pixel(" + port + ")", "counting");
+    assertNotNull(node);
+    node.start();
+    try {
+      node.await();
+    } catch (InterruptedException e) {
+      fail("error");
+    }
+
+    assertEquals(1, CountingSink.getOpenCount());
+
+    URLConnection conn = openUrl(new URL("http://localhost:" + port + "/foobar"));
+    assertTrue(conn.getHeaderField(0).contains("204"));
+    assertEquals(1, CountingSink.getAppendCount());
+    assertNotNull("header missing", conn.getHeaderField("Connection"));
+    assertEquals("wrong value", "close", conn.getHeaderField("Connection"));
+
   }
 
   private void ping(int count, int port) throws IOException {

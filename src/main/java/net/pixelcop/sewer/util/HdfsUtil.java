@@ -74,6 +74,10 @@ public class HdfsUtil {
 
     FileSystem hdfs = getFilesystemAsync(path, null);
 
+    if (hdfs == null) {
+      throw new IOException("Failed to create filesystem for " + path);
+    }
+
     if (hdfs.exists(path)) {
       hdfs.delete(path, false);
 

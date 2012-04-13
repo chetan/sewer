@@ -22,6 +22,8 @@ import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.io.Buffer;
 import org.eclipse.jetty.io.ByteArrayBuffer;
 import org.eclipse.jetty.io.WriterOutputStream;
+import org.eclipse.jetty.io.nio.ClampConnection;
+import org.eclipse.jetty.io.nio.ClampConnector;
 import org.eclipse.jetty.jmx.MBeanContainer;
 import org.eclipse.jetty.server.AbstractHttpConnection;
 import org.eclipse.jetty.server.Connector;
@@ -31,7 +33,6 @@ import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.handler.StatisticsHandler;
-import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.util.IO;
 import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.resource.Resource;
@@ -95,7 +96,7 @@ public class HttpPixelSource extends Source {
     public void handle(String target, Request baseRequest, HttpServletRequest request,
         HttpServletResponse response) throws IOException, ServletException {
 
-      if (!useKeepalive) {
+      if (!useKeepalive || ((ClampConnection) baseRequest.getConnection()).getClose()) {
         response.setHeader(HttpHeaders.CONNECTION, HttpHeaderValues.CLOSE);
       }
 
@@ -189,6 +190,7 @@ public class HttpPixelSource extends Source {
   private static final String CONFIG_LOW_RESOURCE_MAX_IDLE = "sewer.source.pixel.low_resource_max_idle";
   private static final String CONFIG_STATUS_PORT = "sewer.source.pixel.status.port";
   private static final String CONFIG_KEEPALIVE = "sewer.source.pixel.keepalive";
+  private static final String CONFIG_DISABLE_KEEPALIVE_THRESHOLD = "sewer.source.pixel.disable_keepalive_threshold";
 
   private static final int DEFAULT_HTTP_PORT = 8080;
 
@@ -271,7 +273,8 @@ public class HttpPixelSource extends Source {
   }
 
   private Connector createConnector(int port, boolean checkForwardHeaders) throws IOException {
-    SelectChannelConnector conn = new SelectChannelConnector();
+
+    ClampConnector conn = new ClampConnector();
 
     conn.setPort(port);
     // conn.setAcceptors(4); // default seems good enough
@@ -284,6 +287,8 @@ public class HttpPixelSource extends Source {
         Node.getInstance().getConf().getInt(CONFIG_LOW_RESOURCE_CONNS, 500));
     conn.setLowResourcesMaxIdleTime(
         Node.getInstance().getConf().getInt(CONFIG_LOW_RESOURCE_MAX_IDLE, 5000));
+    conn.setDisableKeepaliveThreshold(
+        Node.getInstance().getConf().getInt(CONFIG_DISABLE_KEEPALIVE_THRESHOLD, 0));
 
     conn.setReuseAddress(true);
     // conn.setSoLingerTime(1000);

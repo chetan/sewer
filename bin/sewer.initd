@@ -27,7 +27,9 @@ stop)
         ;;
 restart)
         $SEWER_BIN stop
-        echo "sleeping 5 sec..."
-        sleep 5
         $SEWER_BIN start
-        ;;esac   exit 0
+        ;;
+esac
+
+exit 0
+

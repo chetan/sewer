@@ -10,14 +10,9 @@ public class DefaultAccessLogExtractor implements AccessLogExtractor {
   @Override
   public Event extract(Request req) {
 
-    String ip = req.getHeader(HttpHeaders.X_FORWARDED_FOR);
-    if (ip == null) {
-        ip = req.getRemoteAddr();
-    }
-
     return new AccessLogEvent(
         System.nanoTime(),
-        ip,
+        req.getRemoteAddr(),
         req.getServerName(),
         req.getRequestURI(),
         req.getQueryString(),

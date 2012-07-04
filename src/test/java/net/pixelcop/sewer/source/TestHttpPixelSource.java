@@ -92,7 +92,7 @@ public class TestHttpPixelSource extends AbstractNodeTest {
     conf.set("sewer.source.pixel.keepalive", "false");
 
     int port = findOpenPort();
-    TestableNode node = createNode("pixel(" + port + ")", "counting");
+    TestableNode node = createNode("pixel(" + port + ")", "counting", null, conf);
     assertNotNull(node);
     node.start();
     try {

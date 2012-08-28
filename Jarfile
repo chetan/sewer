@@ -7,7 +7,6 @@ repository "https://repository.cloudera.com/content/repositories/releases/"
 # HADOOP - Cloudera CDH distro
 HADOOP_VERSION = "2.0.0-cdh4.0.1"
 jar "org.apache.hadoop:hadoop-client:jar:#{HADOOP_VERSION}"
-jar "org.apache.hadoop:hadoop-hdfs:jar:tests:#{HADOOP_VERSION}"
 
 # LOGGING
 jar 'org.slf4j:slf4j-api:jar:1.6.4'
@@ -40,22 +39,13 @@ jar "org.eclipse.jetty:jetty-server:jar:#{JETTY_VERSION}"
 jar "org.eclipse.jetty:jetty-util:jar:#{JETTY_VERSION}"
 
 # JOLOKIA
-#jar "com.googlecode.json-simple:json-simple:jar:1.1"
-#jar "org.jolokia:jolokia-jvm-agent:jar:1.0.5"
+jar "org.jolokia:jolokia-jvm:jar:agent:1.0.5"
 
 # MISC
 jar 'com.googlecode.disruptor:disruptor:jar:2.8'
-
 jar 'com.yammer.metrics:metrics-core:jar:2.0.2'
 jar 'com.yammer.metrics:metrics-jetty:jar:2.0.2'
 
-
-JETTY_VERSION_6 = "6.1.14"
 scope 'test' do
-	# jar "org.apache.hadoop:hadoop-test:jar:#{HADOOP_VERSION}"
-  # jar "org.mortbay.jetty:servlet-api:jar:2.5-20081211"
-  # jar "org.mortbay.jetty:jetty-util:jar:#{JETTY_VERSION_6}"
-  # jar "org.mortbay.jetty:jetty:jar:#{JETTY_VERSION_6}"
-  # jar "org.mortbay.jetty:jsp-2.1:jar:#{JETTY_VERSION_6}"
-  # jar "org.mortbay.jetty:jsp-api-2.1:jar:#{JETTY_VERSION_6}"
+	jar "org.apache.hadoop:hadoop-hdfs:jar:tests:#{HADOOP_VERSION}"
 end

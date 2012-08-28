@@ -1,4 +1,6 @@
 
+require 'lock_jar/buildr'
+
 # Version number for this release
 VERSION_NUMBER = "0.4.6"
 # Group identifier for your projects
@@ -12,11 +14,10 @@ repositories.remote << "http://mirrors.ibiblio.org/pub/mirrors/maven2"
 repositories.remote << "https://repository.cloudera.com/content/repositories/releases/"
 
 require "buildfile_libraries.rb"
-SEWER_JARS = add_artifacts( HADOOP, LOGGER, JSON_SMART, GUAVA, COMMONS_LANG3,
-                            JACKSON, JETTY, COMMONS_POOL, COMMONS_DAEMON,
-                            METRICS, DISRUPTOR )
-SEWER_TEST_JARS = SEWER_JARS + add_artifacts( HADOOP_TEST )
+SEWER_JARS = add_artifacts(LockJar.list())
+SEWER_TEST_JARS = add_artifacts(LockJar.list(["compile", "runtime", "test"]))
 RUN_JARS = add_artifacts( JOLOKIA_JVM )
+
 
 desc "The Sewer project"
 define "sewer" do

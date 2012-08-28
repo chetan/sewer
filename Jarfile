@@ -7,6 +7,7 @@ repository "https://repository.cloudera.com/content/repositories/releases/"
 # HADOOP - Cloudera CDH distro
 HADOOP_VERSION = "2.0.0-cdh4.0.1"
 jar "org.apache.hadoop:hadoop-client:jar:#{HADOOP_VERSION}"
+jar "org.apache.hadoop:hadoop-hdfs:jar:tests:#{HADOOP_VERSION}"
 
 # LOGGING
 jar 'org.slf4j:slf4j-api:jar:1.6.4'

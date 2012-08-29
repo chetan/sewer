@@ -42,9 +42,9 @@ jar "org.eclipse.jetty:jetty-util:jar:#{JETTY_VERSION}"
 jar "org.jolokia:jolokia-jvm:jar:agent:1.0.5"
 
 # MISC
-jar 'com.googlecode.disruptor:disruptor:jar:2.8'
-jar 'com.yammer.metrics:metrics-core:jar:2.0.2'
-jar 'com.yammer.metrics:metrics-jetty:jar:2.0.2'
+jar 'com.googlecode.disruptor:disruptor:jar:2.10.3'
+jar 'com.yammer.metrics:metrics-core:jar:2.1.3'
+jar 'com.yammer.metrics:metrics-jetty:jar:2.1.3'
 
 scope 'test' do
 	jar "org.apache.hadoop:hadoop-hdfs:jar:tests:#{HADOOP_VERSION}"

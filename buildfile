@@ -14,15 +14,10 @@ repositories.remote << "http://mirrors.ibiblio.org/pub/mirrors/maven2"
 repositories.remote << "https://repository.cloudera.com/content/repositories/releases/"
 
 require "buildfile_libraries.rb"
-SEWER_JARS = add_artifacts(lock_jars)
-SEWER_TEST_JARS = add_artifacts(lock_jars(["compile", "runtime", "test"]))
-RUN_JARS = add_artifacts( JOLOKIA_JVM )
 
 lock_jar do
   # repos
 	local '~/.m2/repository'
-	repository 'http://mirrors.ibiblio.org/pub/mirrors/maven2'
-	repository "https://repository.cloudera.com/content/repositories/releases/"
 
 	# HADOOP - Cloudera CDH distro
 	HADOOP_VERSION = "2.0.0-cdh4.0.1"
@@ -73,6 +68,10 @@ end
 
 desc "The Sewer project"
 define "sewer" do
+
+  SEWER_JARS = add_artifacts(lock_jars)
+  SEWER_TEST_JARS = add_artifacts(lock_jars(["compile", "runtime", "test"]))
+  RUN_JARS = add_artifacts( JOLOKIA_JVM )
 
   project.version = VERSION_NUMBER
   project.group = GROUP

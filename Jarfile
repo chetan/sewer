@@ -48,4 +48,5 @@ jar 'com.yammer.metrics:metrics-jetty:jar:2.0.2'
 
 scope 'test' do
 	jar "org.apache.hadoop:hadoop-hdfs:jar:tests:#{HADOOP_VERSION}"
+	jar "org.apache.hadoop:hadoop-hdfs:jar:test-sources:#{HADOOP_VERSION}"
 end

@@ -1,5 +1,6 @@
 package net.pixelcop.sewer.node;
 
+import java.io.File;
 import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
@@ -16,7 +17,7 @@ public class AbstractHadoopTest extends AbstractNodeTest {
   private int namenodePort = 0;
 
   public void setupHdfs() throws IOException {
-    FileUtil.fullyDelete(MiniDFSCluster.getBaseDir());
+    FileUtil.fullyDelete(new File(MiniDFSCluster.getBaseDirectory()));
     dfsCluster = new MiniDFSCluster(getNamenodePort(), createConfig(), 1, true, true, null, null);
     fileSystem = dfsCluster.getFileSystem();
   }

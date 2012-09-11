@@ -24,8 +24,14 @@ jar 'org.apache.commons:commons-lang3:jar:3.1'
 jar "commons-pool:commons-pool:jar:1.6"
 jar "commons-daemon:commons-daemon:jar:1.0.8"
 
-jar "org.codehaus.jackson:jackson-core-asl:jar:1.9.3"
-jar "org.codehaus.jackson:jackson-mapper-asl:jar:1.9.3"
+# JSON
+jar "com.fasterxml.jackson.core:jackson-core:jar:2.0.6"
+jar "com.fasterxml.jackson.core:jackson-databind:jar:2.0.6"
+jar "com.fasterxml.jackson.core:jackson-annotations:jar:2.0.6"
+
+# older lib required by some deps
+jar "org.codehaus.jackson:jackson-core-asl:jar:1.9.9"
+jar "org.codehaus.jackson:jackson-mapper-asl:jar:1.9.9"
 
 
 # JETTY
@@ -47,6 +53,7 @@ jar 'com.yammer.metrics:metrics-core:jar:2.1.3'
 jar 'com.yammer.metrics:metrics-jetty:jar:2.1.3'
 
 scope 'test' do
-	jar "org.apache.hadoop:hadoop-hdfs:jar:tests:#{HADOOP_VERSION}"
-	jar "org.apache.hadoop:hadoop-hdfs:jar:test-sources:#{HADOOP_VERSION}"
+  jar "org.apache.hadoop:hadoop-common:jar:tests:#{HADOOP_VERSION}"
+  jar "org.apache.hadoop:hadoop-hdfs:jar:tests:#{HADOOP_VERSION}"
+  jar "org.apache.hadoop:hadoop-hdfs:jar:test-sources:#{HADOOP_VERSION}"
 end

@@ -1,55 +1,7 @@
---- 
-repositories: 
-- http://repo1.maven.org/maven2/
-- http://mirrors.ibiblio.org/pub/mirrors/maven2
-- https://repository.cloudera.com/content/repositories/releases/
-scopes: 
-  test: 
-    dependencies: 
-    - org.apache.hadoop:hadoop-hdfs:jar:tests:2.0.0-cdh4.0.1
-    - org.apache.hadoop:hadoop-hdfs:jar:test-sources:2.0.0-cdh4.0.1
-    resolved_dependencies: 
-    - org.apache.hadoop:hadoop-hdfs:jar:tests:2.0.0-cdh4.0.1
-    - commons-logging:commons-logging:jar:1.1.1
-    - commons-daemon:commons-daemon:jar:1.0.3
-    - log4j:log4j:jar:1.2.15
-    - com.google.protobuf:protobuf-java:jar:2.4.0a
-    - org.apache.avro:avro:jar:1.5.4
-    - org.codehaus.jackson:jackson-mapper-asl:jar:1.7.3
-    - org.codehaus.jackson:jackson-core-asl:jar:1.7.3
-    - com.thoughtworks.paranamer:paranamer:jar:2.3
-    - org.xerial.snappy:snappy-java:jar:1.0.3.2
-    - org.slf4j:slf4j-api:jar:1.6.1
-    - org.apache.zookeeper:zookeeper:jar:3.4.3-cdh4.0.1
-    - jline:jline:jar:0.9.94
-    - org.apache.hadoop:hadoop-hdfs:jar:test-sources:2.0.0-cdh4.0.1
-  compile: 
-    dependencies: 
-    - org.apache.hadoop:hadoop-client:jar:2.0.0-cdh4.0.1
-    - org.slf4j:slf4j-api:jar:1.6.4
-    - org.slf4j:slf4j-log4j12:jar:1.6.4
-    - log4j:log4j:jar:1.2.16
-    - log4j:apache-log4j-extras:jar:1.1
-    - net.minidev:json-smart:jar:1.0.9-1
-    - com.google.guava:guava:jar:11.0
-    - commons-cli:commons-cli:jar:1.2
-    - org.apache.commons:commons-lang3:jar:3.1
-    - commons-pool:commons-pool:jar:1.6
-    - commons-daemon:commons-daemon:jar:1.0.8
-    - org.codehaus.jackson:jackson-core-asl:jar:1.9.3
-    - org.codehaus.jackson:jackson-mapper-asl:jar:1.9.3
-    - org.eclipse.jetty.orbit:javax.servlet:jar:3.0.0.v201112011016
-    - org.eclipse.jetty:jetty-continuation:jar:8.1.4.v20120524
-    - org.eclipse.jetty:jetty-http:jar:8.1.4.v20120524
-    - org.eclipse.jetty:jetty-io:jar:8.1.4.v20120524
-    - org.eclipse.jetty:jetty-jmx:jar:8.1.4.v20120524
-    - org.eclipse.jetty:jetty-server:jar:8.1.4.v20120524
-    - org.eclipse.jetty:jetty-util:jar:8.1.4.v20120524
-    - org.jolokia:jolokia-jvm:jar:agent:1.0.5
-    - com.googlecode.disruptor:disruptor:jar:2.10.3
-    - com.yammer.metrics:metrics-core:jar:2.1.3
-    - com.yammer.metrics:metrics-jetty:jar:2.1.3
-    resolved_dependencies: 
+---
+scopes:
+  compile:
+    resolved_dependencies:
     - org.apache.hadoop:hadoop-client:jar:2.0.0-cdh4.0.1
     - org.apache.hadoop:hadoop-common:jar:2.0.0-cdh4.0.1
     - org.apache.commons:commons-math:jar:2.1
@@ -115,8 +67,11 @@ scopes:
     - org.apache.commons:commons-lang3:jar:3.1
     - commons-pool:commons-pool:jar:1.6
     - commons-daemon:commons-daemon:jar:1.0.8
-    - org.codehaus.jackson:jackson-core-asl:jar:1.9.3
-    - org.codehaus.jackson:jackson-mapper-asl:jar:1.9.3
+    - com.fasterxml.jackson.core:jackson-core:jar:2.0.6
+    - com.fasterxml.jackson.core:jackson-databind:jar:2.0.6
+    - com.fasterxml.jackson.core:jackson-annotations:jar:2.0.6
+    - org.codehaus.jackson:jackson-core-asl:jar:1.9.9
+    - org.codehaus.jackson:jackson-mapper-asl:jar:1.9.9
     - org.eclipse.jetty.orbit:javax.servlet:jar:3.0.0.v201112011016
     - org.eclipse.jetty:jetty-continuation:jar:8.1.4.v20120524
     - org.eclipse.jetty:jetty-http:jar:8.1.4.v20120524
@@ -130,4 +85,96 @@ scopes:
     - com.googlecode.disruptor:disruptor:jar:2.10.3
     - com.yammer.metrics:metrics-core:jar:2.1.3
     - com.yammer.metrics:metrics-jetty:jar:2.1.3
+    dependencies:
+    - org.apache.hadoop:hadoop-client:jar:2.0.0-cdh4.0.1
+    - org.slf4j:slf4j-api:jar:1.6.4
+    - org.slf4j:slf4j-log4j12:jar:1.6.4
+    - log4j:log4j:jar:1.2.16
+    - log4j:apache-log4j-extras:jar:1.1
+    - net.minidev:json-smart:jar:1.0.9-1
+    - com.google.guava:guava:jar:11.0
+    - commons-cli:commons-cli:jar:1.2
+    - org.apache.commons:commons-lang3:jar:3.1
+    - commons-pool:commons-pool:jar:1.6
+    - commons-daemon:commons-daemon:jar:1.0.8
+    - com.fasterxml.jackson.core:jackson-core:jar:2.0.6
+    - com.fasterxml.jackson.core:jackson-databind:jar:2.0.6
+    - com.fasterxml.jackson.core:jackson-annotations:jar:2.0.6
+    - org.codehaus.jackson:jackson-core-asl:jar:1.9.9
+    - org.codehaus.jackson:jackson-mapper-asl:jar:1.9.9
+    - org.eclipse.jetty.orbit:javax.servlet:jar:3.0.0.v201112011016
+    - org.eclipse.jetty:jetty-continuation:jar:8.1.4.v20120524
+    - org.eclipse.jetty:jetty-http:jar:8.1.4.v20120524
+    - org.eclipse.jetty:jetty-io:jar:8.1.4.v20120524
+    - org.eclipse.jetty:jetty-jmx:jar:8.1.4.v20120524
+    - org.eclipse.jetty:jetty-server:jar:8.1.4.v20120524
+    - org.eclipse.jetty:jetty-util:jar:8.1.4.v20120524
+    - org.jolokia:jolokia-jvm:jar:agent:1.0.5
+    - com.googlecode.disruptor:disruptor:jar:2.10.3
+    - com.yammer.metrics:metrics-core:jar:2.1.3
+    - com.yammer.metrics:metrics-jetty:jar:2.1.3
+  test:
+    resolved_dependencies:
+    - org.apache.hadoop:hadoop-common:jar:tests:2.0.0-cdh4.0.1
+    - com.google.guava:guava:jar:11.0.2
+    - com.google.code.findbugs:jsr305:jar:1.3.9
+    - commons-cli:commons-cli:jar:1.2
+    - org.apache.commons:commons-math:jar:2.1
+    - xmlenc:xmlenc:jar:0.52
+    - commons-httpclient:commons-httpclient:jar:3.1
+    - commons-codec:commons-codec:jar:1.4
+    - commons-net:commons-net:jar:3.1
+    - commons-io:commons-io:jar:2.1
+    - javax.servlet:servlet-api:jar:2.5
+    - org.mortbay.jetty:jetty:jar:6.1.26.cloudera.1
+    - org.mortbay.jetty:jetty-util:jar:6.1.26.cloudera.1
+    - asm:asm:jar:3.2
+    - com.sun.jersey:jersey-core:jar:1.8
+    - com.sun.jersey:jersey-json:jar:1.8
+    - org.codehaus.jettison:jettison:jar:1.1
+    - stax:stax-api:jar:1.0.1
+    - com.sun.xml.bind:jaxb-impl:jar:2.2.3-1
+    - javax.xml.bind:jaxb-api:jar:2.2.2
+    - javax.activation:activation:jar:1.1
+    - com.sun.jersey:jersey-server:jar:1.8
+    - tomcat:jasper-compiler:jar:5.5.23
+    - tomcat:jasper-runtime:jar:5.5.23
+    - javax.servlet.jsp:jsp-api:jar:2.1
+    - commons-el:commons-el:jar:1.0
+    - commons-logging:commons-logging:jar:1.1.1
+    - commons-logging:commons-logging-api:jar:1.1
+    - log4j:log4j:jar:1.2.15
+    - net.java.dev.jets3t:jets3t:jar:0.6.1
+    - commons-lang:commons-lang:jar:2.5
+    - commons-collections:commons-collections:jar:3.2.1
+    - commons-configuration:commons-configuration:jar:1.6
+    - commons-digester:commons-digester:jar:1.8
+    - commons-beanutils:commons-beanutils:jar:1.7.0
+    - commons-beanutils:commons-beanutils-core:jar:1.8.0
+    - org.slf4j:slf4j-api:jar:1.6.1
+    - org.slf4j:slf4j-log4j12:jar:1.6.1
+    - org.eclipse.jdt:core:jar:3.1.1
+    - oro:oro:jar:2.0.8
+    - org.aspectj:aspectjrt:jar:1.6.5
+    - org.apache.avro:avro:jar:1.5.4
+    - com.thoughtworks.paranamer:paranamer:jar:2.3
+    - org.xerial.snappy:snappy-java:jar:1.0.3.2
+    - net.sf.kosmosfs:kfs:jar:0.3
+    - com.google.protobuf:protobuf-java:jar:2.4.0a
+    - org.apache.hadoop:hadoop-auth:jar:2.0.0-cdh4.0.1
+    - com.googlecode.json-simple:json-simple:jar:1.1
+    - com.jcraft:jsch:jar:0.1.42
+    - org.apache.zookeeper:zookeeper:jar:3.4.3-cdh4.0.1
+    - jline:jline:jar:0.9.94
+    - org.apache.hadoop:hadoop-hdfs:jar:tests:2.0.0-cdh4.0.1
+    - commons-daemon:commons-daemon:jar:1.0.3
+    - org.apache.hadoop:hadoop-hdfs:jar:test-sources:2.0.0-cdh4.0.1
+    dependencies:
+    - org.apache.hadoop:hadoop-common:jar:tests:2.0.0-cdh4.0.1
+    - org.apache.hadoop:hadoop-hdfs:jar:tests:2.0.0-cdh4.0.1
+    - org.apache.hadoop:hadoop-hdfs:jar:test-sources:2.0.0-cdh4.0.1
 local_repository: ~/.m2/repository
+repositories:
+- http://repo1.maven.org/maven2/
+- http://mirrors.ibiblio.org/pub/mirrors/maven2
+- https://repository.cloudera.com/content/repositories/releases/

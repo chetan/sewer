@@ -43,9 +43,9 @@ public class TestNodeWiring extends AbstractNodeTest {
   }
 
   @Test
-  public void testBadCommandLine() {
+  public void testBadCommandLine() throws IOException {
     try {
-      new NodeConfigurator().configure(new String[]{ "-x" });
+      loadTestConfig("-x");
       fail("expected exit");
     } catch (ExitException e) {
       assertEquals(2, e.status);
@@ -53,24 +53,24 @@ public class TestNodeWiring extends AbstractNodeTest {
   }
 
   @Test
-  public void testInvalidConfigFile() {
+  public void testInvalidConfigFile() throws IOException {
     try {
-      new NodeConfigurator().configure(new String[]{ "-c", "/foo/bar/asdfxyz" });
+      loadTestConfig("-c", "/foo/bar/asdfxyz");
       fail("expected exit");
     } catch (ExitException e) {
       assertEquals(2, e.status);
     }
   }
 
-  public void testValidConfigFile() throws URISyntaxException {
+  public void testValidConfigFile() throws URISyntaxException, IOException {
     File file = new File(getClass().getClassLoader().getResource("config.properties").toURI());
-    new NodeConfigurator().configure(new String[]{ "-c", file.toString() });
+    loadTestConfig("-c", file.toString());
   }
 
   @Test
-  public void testHelpExits() {
+  public void testHelpExits() throws IOException {
     try {
-      new NodeConfigurator().configure(new String[]{ "-h" });
+      loadTestConfig("-h");
       fail("expected exit");
     } catch (ExitException e) {
       assertEquals(1, e.status);
@@ -80,7 +80,7 @@ public class TestNodeWiring extends AbstractNodeTest {
   @Test
   public void testSourceFailsToOpenCausesExit() throws IOException {
 
-    NodeConfig conf = new NodeConfigurator().configure(new String[]{ "-v" });
+    NodeConfig conf = loadTestConfig("-v");
     conf.set(NodeConfig.SOURCE, "failopen");
     conf.set(NodeConfig.SINK, "null");
 

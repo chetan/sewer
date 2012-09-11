@@ -6,7 +6,6 @@ import java.net.URLConnection;
 
 import net.pixelcop.sewer.node.AbstractNodeTest;
 import net.pixelcop.sewer.node.NodeConfig;
-import net.pixelcop.sewer.node.NodeConfigurator;
 import net.pixelcop.sewer.node.TestableNode;
 import net.pixelcop.sewer.sink.debug.CountingSink;
 import net.pixelcop.sewer.source.http.HttpPixelSource;
@@ -88,7 +87,7 @@ public class TestHttpPixelSource extends AbstractNodeTest {
   @Test
   public void testKeepaliveDisabled() throws IOException {
 
-    NodeConfig conf = new NodeConfigurator().configure(new String[]{ "-v" });
+    NodeConfig conf = loadTestConfig("-v");
     conf.set("sewer.source.pixel.keepalive", "false");
 
     int port = findOpenPort();

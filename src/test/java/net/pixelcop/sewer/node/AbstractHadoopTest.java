@@ -22,8 +22,8 @@ public class AbstractHadoopTest extends AbstractNodeTest {
     fileSystem = dfsCluster.getFileSystem();
   }
 
-  private Configuration createConfig() {
-    return new NodeConfigurator().configure(null, false);
+  private Configuration createConfig() throws IOException {
+    return loadTestConfig(false, (String[]) null);
   }
 
   @After

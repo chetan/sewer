@@ -5,7 +5,6 @@ import java.io.IOException;
 import net.pixelcop.sewer.node.AbstractNodeTest;
 import net.pixelcop.sewer.node.ExitException;
 import net.pixelcop.sewer.node.NodeConfig;
-import net.pixelcop.sewer.node.NodeConfigurator;
 import net.pixelcop.sewer.node.TestableNode;
 
 import org.junit.Test;
@@ -15,7 +14,7 @@ public class TestPlumbingProvider extends AbstractNodeTest {
     @Test(expected=ExitException.class)
     public void testRegisterFail() throws IOException {
 
-        NodeConfig conf = new NodeConfigurator().configure(new String[]{ "-v" });
+        NodeConfig conf = loadTestConfig("-v");
 
         conf.set(NodeConfig.SOURCE, "null");
         conf.set(NodeConfig.SINK, "null");
@@ -28,7 +27,7 @@ public class TestPlumbingProvider extends AbstractNodeTest {
     @Test
     public void testRegisterPass() throws IOException {
 
-        NodeConfig conf = new NodeConfigurator().configure(new String[]{ "-v" });
+        NodeConfig conf = loadTestConfig("-v");
 
         conf.set(NodeConfig.SOURCE, "foo");
         conf.set(NodeConfig.SINK, "null");
@@ -43,7 +42,7 @@ public class TestPlumbingProvider extends AbstractNodeTest {
     @Test
     public void testEmptyPluginsList() throws IOException {
 
-        NodeConfig conf = new NodeConfigurator().configure(new String[]{ "-v" });
+        NodeConfig conf = loadTestConfig("-v");
 
         conf.set(NodeConfig.SOURCE, "null");
         conf.set(NodeConfig.SINK, "null");

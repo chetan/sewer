@@ -1,5 +1,6 @@
 package net.pixelcop.sewer.node;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.security.Permission;
@@ -15,6 +16,7 @@ import net.pixelcop.sewer.source.debug.EventGeneratorSource;
 import net.pixelcop.sewer.source.debug.FailOpenSource;
 import net.pixelcop.sewer.source.debug.NullSource;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -47,6 +49,8 @@ public abstract class AbstractNodeTest extends Assert {
   protected static final Logger LOG = LoggerFactory.getLogger(AbstractNodeTest.class);
 
   private SecurityManager securityManager;
+
+  private String tempWalPath = null;
 
   @Before
   public void setup() throws Exception {
@@ -84,6 +88,9 @@ public abstract class AbstractNodeTest extends Assert {
     System.setSecurityManager(securityManager);
     securityManager = null;
     TestableNode.cleanup(TestableNode.instance);
+    if (tempWalPath != null) {
+      FileUtils.deleteQuietly(new File(tempWalPath));
+    }
   }
 
   @After
@@ -94,6 +101,19 @@ public abstract class AbstractNodeTest extends Assert {
   @After
   public void cleanupNodes() {
     TestableNode.cleanupAllNodes();
+  }
+
+  public NodeConfig loadTestConfig(String... args) throws IOException {
+    return loadTestConfig(false, args);
+  }
+
+  public NodeConfig loadTestConfig(boolean loadHadoopConfigs, String... args) throws IOException {
+    NodeConfig conf = new NodeConfigurator().configure(args, loadHadoopConfigs);
+    File dir = File.createTempFile("sewerwal", "dir");
+    dir.delete();
+    dir.mkdir();
+    conf.set(NodeConfig.WAL_PATH, dir.toString());
+    return conf;
   }
 
   /**

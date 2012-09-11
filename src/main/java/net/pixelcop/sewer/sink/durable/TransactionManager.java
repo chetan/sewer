@@ -24,10 +24,11 @@ import net.pixelcop.sewer.sink.SequenceFileSink;
 import net.pixelcop.sewer.source.TransactionSource;
 import net.pixelcop.sewer.util.BackoffHelper;
 
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.type.TypeReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class TransactionManager extends Thread {
 

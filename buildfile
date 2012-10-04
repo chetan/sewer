@@ -13,7 +13,7 @@ MAIN_CLASS = 'net.pixelcop.sewer.node.Node'
 repositories.remote << "http://mirrors.ibiblio.org/pub/mirrors/maven2"
 repositories.remote << "https://repository.cloudera.com/content/repositories/releases/"
 
-require "buildfile_libraries.rb"
+require "./buildfile_libraries"
 SEWER_JARS = add_artifacts(LockJar.list())
 SEWER_TEST_JARS = add_artifacts(LockJar.list(["compile", "runtime", "test"]))
 RUN_JARS = add_artifacts( JOLOKIA_JVM )

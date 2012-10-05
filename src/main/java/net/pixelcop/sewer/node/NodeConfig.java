@@ -12,6 +12,10 @@ public class NodeConfig extends Configuration {
   public static final String WAL_PATH = "sewer.wal.path";
   public static final String PLUGINS = "sewer.plugins";
 
+  public static final String GRAPHITE_HOST = "sewer.metrics.graphite.host";
+  public static final String GRAPHITE_PORT = "sewer.metrics.graphite.port";
+  public static final String GRAPHITE_PREFIX = "sewer.metrics.graphite.prefix";
+
   public NodeConfig() {
     super();
   }

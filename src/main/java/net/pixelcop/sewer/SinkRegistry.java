@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import net.pixelcop.sewer.sink.DfsSink;
+import net.pixelcop.sewer.sink.MeterSink;
 import net.pixelcop.sewer.sink.SequenceFileSink;
 import net.pixelcop.sewer.sink.TcpWriteableEventSink;
 import net.pixelcop.sewer.sink.buffer.AsyncBufferSink;
@@ -37,6 +38,7 @@ public class SinkRegistry {
     register("buffer_pool", BufferPoolSink.class);
     register("local_buffer", ThreadLocalBufferSink.class);
     register("disruptor", DisruptorSink.class);
+    register("meter", MeterSink.class);
 
     // debug
     register("null", NullSink.class);

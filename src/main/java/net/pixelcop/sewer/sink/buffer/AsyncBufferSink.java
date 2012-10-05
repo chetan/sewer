@@ -10,6 +10,9 @@ import net.pixelcop.sewer.Sink;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.yammer.metrics.Metrics;
+import com.yammer.metrics.core.Gauge;
+
 public class AsyncBufferSink extends Sink implements Runnable {
 
   private static final Logger LOG = LoggerFactory.getLogger(AsyncBufferSink.class);
@@ -72,6 +75,14 @@ public class AsyncBufferSink extends Sink implements Runnable {
   public void open() throws IOException {
     setStatus(OPENING);
     buffer = new LinkedBlockingQueue<Event>(100000);
+
+    Metrics.newGauge(AsyncBufferSink.class, "buffer_queue_size", new Gauge<Integer>() {
+      @Override
+      public Integer value() {
+        return buffer.size();
+      }
+    });
+
     if (createSubSink()) {
       ownSubSink = true;
       subSink.open();

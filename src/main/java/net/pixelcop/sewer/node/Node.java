@@ -2,6 +2,7 @@ package net.pixelcop.sewer.node;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
+import java.util.concurrent.TimeUnit;
 
 import net.pixelcop.sewer.PlumbingFactory;
 import net.pixelcop.sewer.PlumbingProvider;
@@ -13,10 +14,14 @@ import net.pixelcop.sewer.rpc.MasterAPI;
 import net.pixelcop.sewer.rpc.SmartRpcClient;
 import net.pixelcop.sewer.rpc.SmartRpcClientEventHandler;
 import net.pixelcop.sewer.rpc.SmartRpcServer;
+import net.pixelcop.sewer.sink.CustomGraphiteReporter;
 import net.pixelcop.sewer.sink.durable.TransactionManager;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.yammer.metrics.reporting.ConsoleReporter;
+import com.yammer.metrics.reporting.GraphiteReporter;
 
 /**
  * Primary Sewer entry point. The node is responsible for configuring a source/sink pair. It
@@ -165,6 +170,29 @@ public class Node extends Thread implements SmartRpcClientEventHandler {
 
   }
 
+  /**
+   * Setup {@link GraphiteReporter} if enabled in config
+   * @throws IOException
+   */
+  private void configureMetrics() throws IOException {
+
+    String host = conf.get(NodeConfig.GRAPHITE_HOST);
+    if (host != null) {
+      LOG.debug("Enabling graphite metrics");
+      CustomGraphiteReporter.create(
+          host,
+          conf.getInt(NodeConfig.GRAPHITE_PORT, 2003),
+          conf.get(NodeConfig.GRAPHITE_PREFIX, "")
+          ).start(60, TimeUnit.SECONDS);
+    }
+
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Enabling console metrics since DEBUG level enabled");
+      ConsoleReporter.enable(60, TimeUnit.SECONDS);
+    }
+
+  }
+
   @SuppressWarnings("unused")
   private void connectToMaster() {
 
@@ -191,6 +219,8 @@ public class Node extends Thread implements SmartRpcClientEventHandler {
   public void run() {
 
     try {
+      configureMetrics();
+
       LOG.debug("Opening source");
       this.source.open();
     } catch (IOException e) {

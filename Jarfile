@@ -64,3 +64,4 @@ jar "org.jolokia:jolokia-jvm:jar:agent:1.0.5"
 jar 'com.googlecode.disruptor:disruptor:jar:2.10.3'
 jar 'com.yammer.metrics:metrics-core:jar:2.1.3'
 jar 'com.yammer.metrics:metrics-jetty:jar:2.1.3'
+jar 'com.yammer.metrics:metrics-graphite:jar:2.1.3'

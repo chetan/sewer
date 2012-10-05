@@ -13,6 +13,7 @@ scopes:
     - com.google.guava:guava:jar:11.0
     - com.googlecode.disruptor:disruptor:jar:2.10.3
     - com.yammer.metrics:metrics-core:jar:2.1.3
+    - com.yammer.metrics:metrics-graphite:jar:2.1.3
     - com.yammer.metrics:metrics-jetty:jar:2.1.3
     - commons-cli:commons-cli:jar:1.2
     - commons-daemon:commons-daemon:jar:1.0.8
@@ -51,6 +52,7 @@ scopes:
     - com.sun.jersey:jersey-server:jar:1.8
     - com.sun.xml.bind:jaxb-impl:jar:2.2.3-1
     - com.yammer.metrics:metrics-core:jar:2.1.3
+    - com.yammer.metrics:metrics-graphite:jar:2.1.3
     - com.yammer.metrics:metrics-jetty:jar:2.1.3
     - commons-cli:commons-cli:jar:1.2
     - commons-codec:commons-codec:jar:1.4

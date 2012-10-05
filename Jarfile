@@ -4,9 +4,22 @@ local '~/.m2/repository'
 repository 'http://mirrors.ibiblio.org/pub/mirrors/maven2'
 repository "https://repository.cloudera.com/content/repositories/releases/"
 
-# HADOOP - Cloudera CDH distro
-HADOOP_VERSION = "2.0.0-cdh4.0.1"
-jar "org.apache.hadoop:hadoop-client:jar:#{HADOOP_VERSION}"
+# HADOOP - Cloudera CDH4 distro
+# HADOOP_VERSION = "2.0.0-cdh4.0.1"
+# jar "org.apache.hadoop:hadoop-client:jar:#{HADOOP_VERSION}"
+# scope 'test' do
+#   jar "org.apache.hadoop:hadoop-common:jar:tests:#{HADOOP_VERSION}"
+#   jar "org.apache.hadoop:hadoop-hdfs:jar:tests:#{HADOOP_VERSION}"
+#   jar "org.apache.hadoop:hadoop-hdfs:jar:test-sources:#{HADOOP_VERSION}"
+# end
+
+# CDH3
+HADOOP_VERSION = "0.20.2-cdh3u5"
+jar "org.apache.hadoop:hadoop-core:jar:#{HADOOP_VERSION}"
+jar "org.apache.hadoop:hadoop-tools:jar:#{HADOOP_VERSION}"
+scope 'test' do
+  jar "org.apache.hadoop:hadoop-test:jar:#{HADOOP_VERSION}"
+end
 
 # LOGGING
 jar 'org.slf4j:slf4j-api:jar:1.6.4'
@@ -51,9 +64,3 @@ jar "org.jolokia:jolokia-jvm:jar:agent:1.0.5"
 jar 'com.googlecode.disruptor:disruptor:jar:2.10.3'
 jar 'com.yammer.metrics:metrics-core:jar:2.1.3'
 jar 'com.yammer.metrics:metrics-jetty:jar:2.1.3'
-
-scope 'test' do
-  jar "org.apache.hadoop:hadoop-common:jar:tests:#{HADOOP_VERSION}"
-  jar "org.apache.hadoop:hadoop-hdfs:jar:tests:#{HADOOP_VERSION}"
-  jar "org.apache.hadoop:hadoop-hdfs:jar:test-sources:#{HADOOP_VERSION}"
-end

@@ -17,7 +17,12 @@ public class AbstractHadoopTest extends AbstractNodeTest {
   private int namenodePort = 0;
 
   public void setupHdfs() throws IOException {
-    FileUtil.fullyDelete(new File(MiniDFSCluster.getBaseDirectory()));
+    // Fix for API change between CDH3 & CDH4
+    // MiniDFSCluster.getBaseDir()
+    // new File(MiniDFSCluster.getBaseDirectory())
+    File dfsBaseDir = new File(System.getProperty("test.build.data", "build/test/data"), "/dfs/");
+    FileUtil.fullyDelete(dfsBaseDir);
+
     dfsCluster = new MiniDFSCluster(getNamenodePort(), createConfig(), 1, true, true, null, null);
     fileSystem = dfsCluster.getFileSystem();
   }

@@ -18,6 +18,15 @@ import net.pixelcop.sewer.sink.durable.TransactionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Primary Sewer entry point. The node is responsible for configuring a source/sink pair. It
+ * currently operates in a 100% standalone manner, reading its configuration from a local file.
+ *
+ * Future master/child support was planned but never completed.
+ *
+ * @author chetan
+ *
+ */
 public class Node extends Thread implements SmartRpcClientEventHandler {
 
   static class ShutdownHook extends Thread {

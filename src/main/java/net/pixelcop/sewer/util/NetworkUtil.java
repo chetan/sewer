@@ -37,6 +37,10 @@ public class NetworkUtil {
     localhost = host;
   }
 
+  /**
+   * Returns the hostname of the the local machine
+   * @return String hostname
+   */
   public static final String getLocalhost() {
     return localhost;
   }

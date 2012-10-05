@@ -27,10 +27,6 @@ jar 'org.slf4j:slf4j-log4j12:jar:1.6.4'
 jar 'log4j:log4j:jar:1.2.16'
 jar 'log4j:apache-log4j-extras:jar:1.1'
 
-jar 'net.minidev:json-smart:jar:1.0.9-1'
-
-jar 'com.google.guava:guava:jar:11.0'
-
 # COMMONS
 jar "commons-cli:commons-cli:jar:1.2"
 jar 'org.apache.commons:commons-lang3:jar:3.1'
@@ -38,6 +34,7 @@ jar "commons-pool:commons-pool:jar:1.6"
 jar "commons-daemon:commons-daemon:jar:1.0.8"
 
 # JSON
+jar 'net.minidev:json-smart:jar:1.0.9-1'
 jar "com.fasterxml.jackson.core:jackson-core:jar:2.0.6"
 jar "com.fasterxml.jackson.core:jackson-databind:jar:2.0.6"
 jar "com.fasterxml.jackson.core:jackson-annotations:jar:2.0.6"
@@ -45,7 +42,6 @@ jar "com.fasterxml.jackson.core:jackson-annotations:jar:2.0.6"
 # older lib required by some deps
 jar "org.codehaus.jackson:jackson-core-asl:jar:1.9.9"
 jar "org.codehaus.jackson:jackson-mapper-asl:jar:1.9.9"
-
 
 # JETTY
 JETTY_VERSION = "8.1.4.v20120524"
@@ -61,6 +57,7 @@ jar "org.eclipse.jetty:jetty-util:jar:#{JETTY_VERSION}"
 jar "org.jolokia:jolokia-jvm:jar:agent:1.0.5"
 
 # MISC
+jar 'com.google.guava:guava:jar:11.0'
 jar 'com.googlecode.disruptor:disruptor:jar:2.10.3'
 jar 'com.yammer.metrics:metrics-core:jar:2.1.3'
 jar 'com.yammer.metrics:metrics-jetty:jar:2.1.3'

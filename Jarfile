@@ -44,7 +44,7 @@ jar "org.codehaus.jackson:jackson-core-asl:jar:1.9.9"
 jar "org.codehaus.jackson:jackson-mapper-asl:jar:1.9.9"
 
 # JETTY
-JETTY_VERSION = "8.1.4.v20120524"
+JETTY_VERSION = "8.1.8.v20121106"
 jar "org.eclipse.jetty.orbit:javax.servlet:jar:3.0.0.v201112011016"
 jar "org.eclipse.jetty:jetty-continuation:jar:#{JETTY_VERSION}"
 jar "org.eclipse.jetty:jetty-http:jar:#{JETTY_VERSION}"

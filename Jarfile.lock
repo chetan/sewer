@@ -27,12 +27,12 @@ scopes:
     - org.codehaus.jackson:jackson-core-asl:jar:1.9.9
     - org.codehaus.jackson:jackson-mapper-asl:jar:1.9.9
     - org.eclipse.jetty.orbit:javax.servlet:jar:3.0.0.v201112011016
-    - org.eclipse.jetty:jetty-continuation:jar:8.1.4.v20120524
-    - org.eclipse.jetty:jetty-http:jar:8.1.4.v20120524
-    - org.eclipse.jetty:jetty-io:jar:8.1.4.v20120524
-    - org.eclipse.jetty:jetty-jmx:jar:8.1.4.v20120524
-    - org.eclipse.jetty:jetty-server:jar:8.1.4.v20120524
-    - org.eclipse.jetty:jetty-util:jar:8.1.4.v20120524
+    - org.eclipse.jetty:jetty-continuation:jar:8.1.8.v20121106
+    - org.eclipse.jetty:jetty-http:jar:8.1.8.v20121106
+    - org.eclipse.jetty:jetty-io:jar:8.1.8.v20121106
+    - org.eclipse.jetty:jetty-jmx:jar:8.1.8.v20121106
+    - org.eclipse.jetty:jetty-server:jar:8.1.8.v20121106
+    - org.eclipse.jetty:jetty-util:jar:8.1.8.v20121106
     - org.jolokia:jolokia-jvm:jar:agent:1.0.5
     - org.slf4j:slf4j-api:jar:1.6.4
     - org.slf4j:slf4j-log4j12:jar:1.6.4
@@ -85,12 +85,12 @@ scopes:
     - org.codehaus.jettison:jettison:jar:1.1
     - org.eclipse.jdt:core:jar:3.1.1
     - org.eclipse.jetty.orbit:javax.servlet:jar:3.0.0.v201112011016
-    - org.eclipse.jetty:jetty-continuation:jar:8.1.4.v20120524
-    - org.eclipse.jetty:jetty-http:jar:8.1.4.v20120524
-    - org.eclipse.jetty:jetty-io:jar:8.1.4.v20120524
-    - org.eclipse.jetty:jetty-jmx:jar:8.1.4.v20120524
-    - org.eclipse.jetty:jetty-server:jar:8.1.4.v20120524
-    - org.eclipse.jetty:jetty-util:jar:8.1.4.v20120524
+    - org.eclipse.jetty:jetty-continuation:jar:8.1.8.v20121106
+    - org.eclipse.jetty:jetty-http:jar:8.1.8.v20121106
+    - org.eclipse.jetty:jetty-io:jar:8.1.8.v20121106
+    - org.eclipse.jetty:jetty-jmx:jar:8.1.8.v20121106
+    - org.eclipse.jetty:jetty-server:jar:8.1.8.v20121106
+    - org.eclipse.jetty:jetty-util:jar:8.1.8.v20121106
     - org.jolokia:jolokia-core:jar:1.0.5
     - org.jolokia:jolokia-jvm:jar:agent:1.0.5
     - org.mortbay.jetty:jetty-util:jar:6.1.26

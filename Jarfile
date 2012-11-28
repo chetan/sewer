@@ -1,13 +1,13 @@
 
 # repos
-local '~/.m2/repository'
+local_repo '~/.m2/repository'
 repository 'http://mirrors.ibiblio.org/pub/mirrors/maven2'
 repository "https://repository.cloudera.com/content/repositories/releases/"
 
 # HADOOP - Cloudera CDH4 distro
 # HADOOP_VERSION = "2.0.0-cdh4.0.1"
 # jar "org.apache.hadoop:hadoop-client:jar:#{HADOOP_VERSION}"
-# scope 'test' do
+# group 'test' do
 #   jar "org.apache.hadoop:hadoop-common:jar:tests:#{HADOOP_VERSION}"
 #   jar "org.apache.hadoop:hadoop-hdfs:jar:tests:#{HADOOP_VERSION}"
 #   jar "org.apache.hadoop:hadoop-hdfs:jar:test-sources:#{HADOOP_VERSION}"
@@ -17,7 +17,7 @@ repository "https://repository.cloudera.com/content/repositories/releases/"
 HADOOP_VERSION = "0.20.2-cdh3u5"
 jar "org.apache.hadoop:hadoop-core:jar:#{HADOOP_VERSION}"
 jar "org.apache.hadoop:hadoop-tools:jar:#{HADOOP_VERSION}"
-scope 'test' do
+group 'test' do
   jar "org.apache.hadoop:hadoop-test:jar:#{HADOOP_VERSION}"
 end
 

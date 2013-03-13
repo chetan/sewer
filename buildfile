@@ -14,8 +14,10 @@ repositories.remote << "http://mirrors.ibiblio.org/pub/mirrors/maven2"
 repositories.remote << "https://repository.cloudera.com/content/repositories/releases/"
 
 require "./buildfile_libraries"
-SEWER_JARS = add_artifacts(LockJar.list())
-SEWER_TEST_JARS = add_artifacts(LockJar.list(["compile", "runtime", "test"]))
+SEWER_JARS = add_artifacts( HADOOP, LOGGER, JSON_SMART, GUAVA, COMMONS_LANG3,
+                            JACKSON, JETTY, COMMONS_POOL, COMMONS_DAEMON,
+                            METRICS, DISRUPTOR, COMMONS_IO )
+SEWER_TEST_JARS = add_artifacts( SEWER_JARS, HADOOP_TEST )
 RUN_JARS = add_artifacts( JOLOKIA_JVM )
 
 

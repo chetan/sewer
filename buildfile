@@ -2,7 +2,7 @@
 require 'lock_jar/buildr'
 
 # Version number for this release
-VERSION_NUMBER = "0.5.0"
+VERSION_NUMBER = "0.5.1"
 # Group identifier for your projects
 GROUP = "net.pixelcop.sewer"
 VENDOR = "Pixelcop Research, Inc."

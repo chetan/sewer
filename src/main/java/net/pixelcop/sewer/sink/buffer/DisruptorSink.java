@@ -46,9 +46,12 @@ public class DisruptorSink extends Sink {
   @Override
   public void append(Event event) throws IOException {
     long sequence = disruptor.getRingBuffer().next(); // get next avail seq
-    DelegateEvent devent = disruptor.getRingBuffer().get(sequence); // get the placeholder object
-    devent.setDelegate(event);
-    disruptor.getRingBuffer().publish(sequence); // tell the buffer to publish
+    try {
+      DelegateEvent devent = disruptor.getRingBuffer().get(sequence); // get the placeholder object
+      devent.setDelegate(event);
+    } finally {
+      disruptor.getRingBuffer().publish(sequence); // tell the buffer to publish
+    }
   }
 
   @SuppressWarnings("unchecked")

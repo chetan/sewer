@@ -22,15 +22,30 @@ public class MeterSink extends Sink {
 
   private static final Logger LOG = LoggerFactory.getLogger(MeterSink.class);
 
+  private static final String DEFAULT_NAME = "events";
+
   private final Meter meter;
 
   public MeterSink(String[] args) {
-    meter = Metrics.newMeter(MeterSink.class, "events", "events", TimeUnit.SECONDS);
+
+    String name = null;
+    if (args != null && args.length > 0) {
+      name = args[0];
+      if (name != null) {
+        name = name.trim();
+      }
+    }
+    if (name == null || name.isEmpty()) {
+      name = DEFAULT_NAME;
+    }
+
+    meter = Metrics.newMeter(MeterSink.class, name, name, TimeUnit.SECONDS);
   }
 
   @Override
   public void close() throws IOException {
     setStatus(CLOSING);
+    meter.stop();
     subSink.close();
     setStatus(CLOSED);
   }

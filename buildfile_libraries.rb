@@ -96,9 +96,9 @@ HADOOP_TEST = [
 ] + JETTY_6
 
 METRICS = [
-    'com.yammer.metrics:metrics-core:jar:2.1.3',
-    'com.yammer.metrics:metrics-jetty:jar:2.1.3',
-    'com.yammer.metrics:metrics-graphite:jar:2.1.3'
+    'com.yammer.metrics:metrics-core:jar:2.2.0',
+    'com.yammer.metrics:metrics-jetty:jar:2.2.0',
+    'com.yammer.metrics:metrics-graphite:jar:2.2.0'
     ]
 
 DISRUPTOR = [ 'com.googlecode.disruptor:disruptor:jar:2.10.4' ]

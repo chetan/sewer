@@ -101,7 +101,7 @@ METRICS = [
     'com.yammer.metrics:metrics-graphite:jar:2.1.3'
     ]
 
-DISRUPTOR = [ 'com.googlecode.disruptor:disruptor:jar:2.10.3' ]
+DISRUPTOR = [ 'com.googlecode.disruptor:disruptor:jar:2.10.4' ]
 
 JOLOKIA_JVM = [
     "com.googlecode.json-simple:json-simple:jar:1.1",

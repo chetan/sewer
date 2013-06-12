@@ -47,8 +47,14 @@ public class TransactionManager extends Thread {
    */
   protected static TransactionManager instance;
 
+  /**
+   * A map of open transactions currently being processed
+   */
   protected final Map<String, Transaction> transactions = new HashMap<String, Transaction>();
 
+  /**
+   * A queue containing failed transactions (rollback was called)
+   */
   protected final LinkedBlockingQueue<Transaction> lostTransactions = new LinkedBlockingQueue<Transaction>();
 
   private final String txFileExt;

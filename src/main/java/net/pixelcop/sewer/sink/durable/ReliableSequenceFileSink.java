@@ -17,6 +17,14 @@ import org.apache.hadoop.io.compress.CompressionCodec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * An extension of the {@link SequenceFileSink} which writes simultaneously to an HDFS location
+ * and a local disk buffer. A transaction will be marked as failed (rolled back) if the HDFS path
+ * does not open and close cleanly.
+ *
+ * @author chetan
+ *
+ */
 @DrainSink
 public class ReliableSequenceFileSink extends SequenceFileSink {
 

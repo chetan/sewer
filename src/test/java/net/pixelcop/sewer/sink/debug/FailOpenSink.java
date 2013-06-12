@@ -4,6 +4,12 @@ import java.io.IOException;
 
 import net.pixelcop.sewer.DrainSink;
 
+/**
+ * A source which fails to open() and throws an {@link IOException}
+ *
+ * @author chetan
+ *
+ */
 @DrainSink
 public class FailOpenSink extends NullSink {
 

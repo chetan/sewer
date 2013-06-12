@@ -7,6 +7,12 @@ import net.pixelcop.sewer.Source;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * A source which never generates any events
+ *
+ * @author chetan
+ *
+ */
 public class NullSource extends Source {
 
   private static final Logger LOG = LoggerFactory.getLogger(NullSource.class);

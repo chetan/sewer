@@ -13,6 +13,7 @@ COMMONS_CLI         = [ "commons-cli:commons-cli:jar:1.2" ]
 COMMONS_EL          = [ "commons-el:commons-el:jar:1.0" ]
 COMMONS_CSV         = [ "commons-csv:commons-csv:jar:1.0" ]
 COMMONS_DAEMON      = [ "commons-daemon:commons-daemon:jar:1.0.8" ]
+COMMONS_CONFIGURATION = [ "commons-configuration:commons-configuration:jar:1.9" ]
 
 SOLR_COMMONS_CSV = [ "org.apache.solr:solr-commons-csv:jar:1.4.1" ]
 
@@ -36,8 +37,6 @@ JACKSON_OLD = [
     "org.codehaus.jackson:jackson-mapper-asl:jar:1.9.9"
     ]
 
-GUAVA = [ 'com.google.guava:guava:jar:11.0' ]
-
 HTTPCLIENT = [
     "commons-httpclient:commons-httpclient:jar:3.1",
     ] + COMMONS_CODEC + COMMONS_LOGGING
@@ -57,13 +56,23 @@ JETTY = [
   "org.eclipse.jetty:jetty-util:jar:#{JETTY_VERSION}"
   ]
 
-JETTY_VERSION_6 = "6.1.14" # 6.1.26
+
+
+
+JETTY_VERSION_6 = "6.1.14"
 JETTY_6 = [
     "org.mortbay.jetty:servlet-api:jar:2.5-20081211",
     "org.mortbay.jetty:jetty-util:jar:#{JETTY_VERSION_6}",
     "org.mortbay.jetty:jetty:jar:#{JETTY_VERSION_6}",
     "org.mortbay.jetty:jsp-2.1:jar:#{JETTY_VERSION_6}",
     "org.mortbay.jetty:jsp-api-2.1:jar:#{JETTY_VERSION_6}",
+    ]
+
+HADOOP_API = [
+    "javax.activation:activation:jar:1.1",
+    "javax.xml.bind:jaxb-api:jar:2.2.2",
+    "javax.xml.stream:stax-api:jar:1.0-2",
+    "javax.ws.rs:jsr311-api:jar:1.1.1"
     ]
 
 HADOOP_DEPS = [
@@ -74,26 +83,40 @@ HADOOP_DEPS = [
     "oro:oro:jar:2.0.8",
     "tomcat:jasper-compiler:jar:5.5.12",
     "tomcat:jasper-runtime:jar:5.5.12",
-    "xmlenc:xmlenc:jar:0.52",
-    "org.apache.hadoop.thirdparty.guava:guava:jar:r09-jarjar"
-    ]
+    "xmlenc:xmlenc:jar:0.52"
+    ] + HADOOP_API
 
-API = [
-    "javax.activation:activation:jar:1.1",
-    "javax.xml.bind:jaxb-api:jar:2.2.2",
-    "javax.xml.stream:stax-api:jar:1.0-2",
-    "javax.ws.rs:jsr311-api:jar:1.1.1"
-    ]
+GUAVA    = [ "com.google.guava:guava:jar:11.0.2" ]
+AVRO     = [ "org.apache.avro:avro:jar:1.7.3" ]
+PROTOBUF = [ "com.google.protobuf:protobuf-java:jar:2.4.0a" ]
 
-HADOOP_VERSION = "0.20.2-cdh3u5"
+CDH_VERSION       = "cdh4.2.1"
+HADOOP_MR_VERSION = "2.0.0-mr1-#{CDH_VERSION}"
+HADOOP_VERSION    = "2.0.0-#{CDH_VERSION}"
+HADOOP_ZK_VERSION = "3.4.5-#{CDH_VERSION}"
+
 HADOOP = [
-    "org.apache.hadoop:hadoop-core:jar:#{HADOOP_VERSION}",
-    "org.apache.hadoop:hadoop-tools:jar:#{HADOOP_VERSION}"
-] + API + ANT + COMMONS_CLI + COMMONS_CODEC + COMMONS_EL + COMMONS_LOGGING + COMMONS_NET + JETTY + JUNIT + HADOOP_DEPS + HTTPCLIENT
+    "org.apache.hadoop:hadoop-core:jar:#{HADOOP_MR_VERSION}",
+    "org.apache.hadoop:hadoop-tools:jar:#{HADOOP_MR_VERSION}",
+    "org.apache.hadoop:hadoop-annotations:jar:#{HADOOP_VERSION}",
+    "org.apache.hadoop:hadoop-auth:jar:#{HADOOP_VERSION}",
+    "org.apache.hadoop:hadoop-client:jar:#{HADOOP_VERSION}",
+    "org.apache.hadoop:hadoop-common:jar:#{HADOOP_VERSION}",
+    "org.apache.hadoop:hadoop-hdfs:jar:#{HADOOP_VERSION}",
+    "org.apache.zookeeper:zookeeper:jar:#{HADOOP_ZK_VERSION}"
+] + ANT + COMMONS_CLI + COMMONS_CODEC + COMMONS_EL + COMMONS_LOGGING +
+    COMMONS_NET + JETTY_6 + JUNIT + HADOOP_DEPS + HTTPCLIENT + GUAVA +
+    COMMONS_CONFIGURATION + COMMONS_LANG + AVRO + PROTOBUF + COMMONS_COLLECTIONS
 
 HADOOP_TEST = [
-  "org.apache.hadoop:hadoop-test:jar:#{HADOOP_VERSION}"
-] + JETTY_6
+  "org.apache.hadoop:hadoop-test:jar:#{HADOOP_MR_VERSION}",
+  "org.apache.hadoop:hadoop-minicluster:jar:#{HADOOP_MR_VERSION}",
+  "org.apache.hadoop:hadoop-common:jar:tests:#{HADOOP_VERSION}",
+  "org.apache.hadoop:hadoop-common:jar:test-sources:#{HADOOP_VERSION}",
+  "org.apache.hadoop:hadoop-hdfs:jar:tests:#{HADOOP_VERSION}",
+  "org.apache.hadoop:hadoop-hdfs:jar:test-sources:#{HADOOP_VERSION}",
+] + JETTY + JACKSON
+
 
 METRICS = [
     'com.yammer.metrics:metrics-core:jar:2.2.0',

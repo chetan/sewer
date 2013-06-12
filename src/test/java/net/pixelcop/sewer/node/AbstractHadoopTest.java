@@ -3,10 +3,16 @@ package net.pixelcop.sewer.node;
 import java.io.File;
 import java.io.IOException;
 
+import net.pixelcop.sewer.source.debug.StringEvent;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FileUtil;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
+import org.apache.hadoop.io.SequenceFile;
+import org.apache.hadoop.io.SequenceFile.Reader;
+import org.apache.hadoop.io.VLongWritable;
 import org.junit.After;
 
 public class AbstractHadoopTest extends AbstractNodeTest {
@@ -71,6 +77,36 @@ public class AbstractHadoopTest extends AbstractNodeTest {
       namenodePort = findOpenPort();
     }
     return namenodePort;
+  }
+
+  /**
+   * Count the number of events in the given sequence file
+   *
+   * @param path
+   * @return
+   * @throws IOException
+   */
+  protected long countEventsInSequenceFile(String path) throws IOException {
+
+    Reader reader = new SequenceFile.Reader(getFileSystem().getConf(), Reader.file(new Path(path)));
+
+    StringEvent event = new StringEvent();
+    VLongWritable lng = new VLongWritable();
+
+    long count = 0;
+
+    while (true) {
+      try {
+        if (!reader.next(event, lng)) {
+          break;
+        }
+      } catch (IOException e) {
+        break;
+      }
+      count++;
+    }
+
+    return count;
   }
 
 }

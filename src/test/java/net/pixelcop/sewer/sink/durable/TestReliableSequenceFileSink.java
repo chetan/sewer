@@ -41,6 +41,8 @@ public class TestReliableSequenceFileSink extends AbstractHadoopTest {
 
     TestableTransactionManager.assertNoTransactions();
     node.getTxTestHelper().verifyRecordsInBuffers(0, 0, new StringEvent());
+
+    assertEquals(1000, countEventsInSequenceFile(getConnectionString() + "/test/data.seq"));
   }
 
   /**

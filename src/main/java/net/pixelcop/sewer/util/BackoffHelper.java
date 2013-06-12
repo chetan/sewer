@@ -44,6 +44,7 @@ public class BackoffHelper {
       backoff = 30000;
     }
 
+    log.info("Sleeping for " + backoff + "ms before retry");
     Thread.sleep(backoff);
   }
 

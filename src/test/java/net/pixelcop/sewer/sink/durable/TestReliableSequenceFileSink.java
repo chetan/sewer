@@ -98,25 +98,17 @@ public class TestReliableSequenceFileSink extends AbstractHadoopTest {
     assertEquals(0, TestableTransactionManager.getTransactions().size());
     assertEquals(1, TestableTransactionManager.getLostTransactions().size());
 
-
     setupHdfs();
 
     // now lets try to restart the txman and drain this thing
     // create a new node & txman using the old tmp path
     node = createNode("gen(0)", "reliableseq('" + getConnectionString() + "/test/data')", node.getTxTestHelper().getTmpWalPath());
-    Thread.sleep(100);
-
-    // makes sure we reloaded from disk on reset()
-    assertEquals(0, TestableTransactionManager.getTransactions().size());
-    assertTrue("txns loaded from disk", TestableTransactionManager.getLostTransactions().size() >= 1
-        || TestableTransactionManager.getDrainingTx() != null);
 
     TestableTransactionManager.await();
     TestableTransactionManager.kill();
 
     TestableTransactionManager.assertNoTransactions();
     node.getTxTestHelper().verifyRecordsInBuffers(0, 0, new StringEvent());
-
   }
 
 }

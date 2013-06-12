@@ -100,6 +100,7 @@ public class EventGeneratorSource extends Source {
     try {
       sink.close();
     } catch (IOException e1) {
+      LOG.error("Error closing sink", e1);
     }
 
   }

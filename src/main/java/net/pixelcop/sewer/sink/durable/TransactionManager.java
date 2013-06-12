@@ -154,11 +154,11 @@ public class TransactionManager extends Thread {
     }
 
     try {
-      LOG.debug("rollbackTx: " + id);
+      LOG.info("rollbackTx: " + id);
       lostTransactions.put(transactions.remove(id));
 
     } catch (InterruptedException e) {
-      LOG.warn("Failed to release transaction into queue", e);
+      LOG.error("Failed to release transaction into queue", e);
     }
 
     saveOpenTransactionsToDisk();

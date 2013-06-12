@@ -3,7 +3,6 @@ package net.pixelcop.sewer.sink.durable;
 import java.io.IOException;
 
 import net.pixelcop.sewer.DrainSink;
-import net.pixelcop.sewer.Plumbing;
 import net.pixelcop.sewer.node.Node;
 import net.pixelcop.sewer.sink.SequenceFileSink;
 import net.pixelcop.sewer.util.HdfsUtil;
@@ -89,7 +88,8 @@ public class ReliableSequenceFileSink extends SequenceFileSink {
         writer.close();
       }
     } catch (IOException e) {
-      LOG.warn("sequence file writer failed to close for txid " + tx.getId());
+      LOG.error("sequence file writer failed to close for txid " + tx.getId(), e);
+      tx.rollback();
     }
 
     try {
@@ -98,11 +98,14 @@ public class ReliableSequenceFileSink extends SequenceFileSink {
       }
     } catch (IOException e) {
       LOG.error("reliable outpustream failed to close for txid " + tx.getId());
-      tx.rollback();
+      if (tx.isOpen()) {
+        tx.rollback();
+      }
     }
 
     if (tx.isOpen()) {
-      if (reliableOut.getStatus() == Plumbing.ERROR) {
+      if (reliableOut.getStatus() == ERROR) {
+        LOG.warn("reliable output stream was in error state for txid " + tx.getId());
         tx.rollback();
 
       } else {

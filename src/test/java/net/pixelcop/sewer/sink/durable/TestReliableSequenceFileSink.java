@@ -1,8 +1,10 @@
 package net.pixelcop.sewer.sink.durable;
 import java.io.IOException;
+import java.util.concurrent.BrokenBarrierException;
 
 import net.pixelcop.sewer.node.AbstractHadoopTest;
 import net.pixelcop.sewer.node.TestableNode;
+import net.pixelcop.sewer.source.debug.PausableEventGeneratorSource;
 import net.pixelcop.sewer.source.debug.StringEvent;
 
 import org.junit.Test;
@@ -46,7 +48,7 @@ public class TestReliableSequenceFileSink extends AbstractHadoopTest {
   }
 
   /**
-   * Test a simulated failure (HDFS not yet started)
+   * Test a simulated failure during open() (HDFS not yet started)
    *
    * @throws IOException
    * @throws InterruptedException
@@ -109,6 +111,48 @@ public class TestReliableSequenceFileSink extends AbstractHadoopTest {
 
     TestableTransactionManager.assertNoTransactions();
     node.getTxTestHelper().verifyRecordsInBuffers(0, 0, new StringEvent());
+  }
+
+  /**
+   * Test a simulated failure during append/write() (HDFS not yet started)
+   *
+   * @throws IOException
+   * @throws InterruptedException
+   * @throws BrokenBarrierException
+   */
+  @Test
+  public void testFailureDuringAppendBuffersToDisk() throws IOException, InterruptedException, BrokenBarrierException {
+
+    setupHdfs();
+    initBlocks("");
+
+    // now again
+    TestableNode node = createNode("pausegen(10000)", "reliableseq('" + getConnectionString() + "/test/data')");
+
+    // start node, opens source, blocks until half of events sent
+    node.start();
+
+    ((PausableEventGeneratorSource) node.getSource()).getBarrier().await();
+    LOG.debug("node started..");
+
+    // kill hdfs now
+    enterSafeMode();
+
+    // then resume writing
+    ((PausableEventGeneratorSource) node.getSource()).getBarrier().await();
+
+    node.await();
+    node.cleanup();
+
+    TestableTransactionManager.kill();
+
+    // now check expected results (buffers on disk, no appends on ultimate subsink)
+    assertEquals(0, TestableTransactionManager.getTransactions().size());
+    assertEquals(1, TestableTransactionManager.getLostTransactions().size());
+
+    // check count of events written to disk
+    node.getTxTestHelper().verifyRecordsInBuffers(1, 10000, new StringEvent());
+    node.getTxTestHelper().assertTxLogExists();
   }
 
 }

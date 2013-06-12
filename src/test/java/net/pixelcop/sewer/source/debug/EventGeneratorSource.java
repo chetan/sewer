@@ -28,14 +28,20 @@ public class EventGeneratorSource extends Source {
   private static final int DEFAULT_LENGTH = 32;
   private static final int DEFAULT_DELAY = 0;
 
-  private final AtomicInteger count = new AtomicInteger();
+  protected final AtomicInteger count = new AtomicInteger();
 
-  private int max;
-  private int length;
-  private int delay;
+  protected int max;
+  protected int length;
+  protected int delay;
 
-  private Sink sink;
+  protected Sink sink;
 
+  /**
+   * arg 0 = # of events
+   * arg 1 = length of event
+   * arg 2 = delay in ms
+   * @param args
+   */
   public EventGeneratorSource(String[] args) {
     if (args == null || args.length == 0) {
       return;
@@ -48,7 +54,7 @@ public class EventGeneratorSource extends Source {
       this.length = NumberUtils.toInt(args[1], DEFAULT_LENGTH);
     }
     if (args.length >= 3) {
-      this.delay = NumberUtils.toInt(args[2], DEFAULT_DELAY) * 1000;
+      this.delay = NumberUtils.toInt(args[2], DEFAULT_DELAY);
     }
   }
 
@@ -89,6 +95,10 @@ public class EventGeneratorSource extends Source {
         this.sink.append(new StringEvent(str));
       } catch (IOException e) {
         LOG.debug("Error appending", e);
+      }
+
+      if (delay == 0) {
+        continue;
       }
       try {
         Thread.sleep(delay);

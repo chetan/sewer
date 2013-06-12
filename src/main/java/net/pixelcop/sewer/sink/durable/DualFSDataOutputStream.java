@@ -32,12 +32,28 @@ public class DualFSDataOutputStream extends FSDataOutputStream implements Status
 
     @Override
     public void write(int b) throws IOException {
+
+      // always write to local buffer
       localOut.write(b);
+
       if (remoteOut == null) {
+        // received write before remote opened, mark as errored
         setStatus(ERROR);
         return;
       }
-      remoteOut.write(b);
+
+      if (getStatus() == ERROR) {
+        // short-circuit further attempts to write to remote
+        return;
+      }
+
+      try {
+        remoteOut.write(b);
+      } catch (Throwable t) {
+        // remote write failed, mark as error
+        setStatus(ERROR);
+        LOG.error("error writing to remote", t);
+      }
     }
 
     @Override

@@ -15,6 +15,7 @@ import net.pixelcop.sewer.sink.durable.TxTestHelper;
 import net.pixelcop.sewer.source.debug.EventGeneratorSource;
 import net.pixelcop.sewer.source.debug.FailOpenSource;
 import net.pixelcop.sewer.source.debug.NullSource;
+import net.pixelcop.sewer.source.debug.PausableEventGeneratorSource;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -79,6 +80,7 @@ public abstract class AbstractNodeTest extends Assert {
 
     SourceRegistry.register("null", NullSource.class);
     SourceRegistry.register("gen", EventGeneratorSource.class);
+    SourceRegistry.register("pausegen", PausableEventGeneratorSource.class);
     SourceRegistry.register("failopen", FailOpenSource.class);
 
     SinkRegistry.register("counting", CountingSink.class);

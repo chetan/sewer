@@ -78,11 +78,17 @@ public class Transaction {
   }
 
   public void rollback() {
+    if (!isOpen()) {
+      return;
+    }
     open = false;
     TransactionManager.getInstance().rollbackTx(this.id);
   }
 
   public void commit() {
+    if (!isOpen()) {
+      return;
+    }
     open = false;
     TransactionManager.getInstance().commitTx(this.id);
   }

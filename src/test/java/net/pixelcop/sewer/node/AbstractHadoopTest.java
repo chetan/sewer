@@ -29,7 +29,15 @@ public class AbstractHadoopTest extends AbstractNodeTest {
     File dfsBaseDir = new File(System.getProperty("test.build.data", "build/test/data"), "/dfs/");
     FileUtil.fullyDelete(dfsBaseDir);
 
-    dfsCluster = new MiniDFSCluster(getNamenodePort(), createConfig(), 1, true, true, null, null);
+    dfsCluster = new MiniDFSCluster.Builder(createConfig())
+      .nameNodePort(getNamenodePort())
+      .numDataNodes(1)
+      .format(true)
+      .manageDataDfsDirs(true)
+      .manageNameDfsDirs(true)
+      .manageNameDfsSharedDirs(true)
+      .build();
+
     fileSystem = dfsCluster.getFileSystem();
   }
 

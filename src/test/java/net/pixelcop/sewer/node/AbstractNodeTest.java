@@ -17,9 +17,12 @@ import net.pixelcop.sewer.source.debug.FailOpenSource;
 import net.pixelcop.sewer.source.debug.NullSource;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
+import org.junit.rules.TestName;
 import org.junit.runner.RunWith;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.slf4j.Logger;
@@ -51,6 +54,23 @@ public abstract class AbstractNodeTest extends Assert {
   private SecurityManager securityManager;
 
   private String tempWalPath = null;
+
+  @Rule
+  public TestName testName = new TestName();
+
+  @Before
+  public void newTestBanner() {
+    System.out.println(StringUtils.repeat("\n", 4));
+    System.out.println(StringUtils.repeat("*", 80));
+    System.out.println(getClass().getSimpleName() + "." + testName.getMethodName() + "()");
+    System.out.println(StringUtils.repeat("*", 80));
+    System.out.println(StringUtils.repeat("\n", 4));
+  }
+
+  @After
+  public void testFinishedBanner() {
+    System.out.println("\nTEST FINISHED\n");
+  }
 
   @Before
   public void setup() throws Exception {

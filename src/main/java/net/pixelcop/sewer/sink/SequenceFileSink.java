@@ -9,7 +9,6 @@ import net.pixelcop.sewer.util.HdfsUtil;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.SequenceFile.CompressionType;
@@ -83,13 +82,14 @@ public class SequenceFileSink extends BucketedSink {
 
     CompressionCodec codec = HdfsUtil.createCodec();
     dstPath = new Path(nextBucket + ".seq");
-    FileSystem hdfs = dstPath.getFileSystem(conf);
 
     writer = SequenceFile.createWriter(
-        hdfs, conf, dstPath,
-        Node.getInstance().getSource().getEventClass(),
-        VLongWritable.class,
-        CompressionType.BLOCK, codec);
+        conf,
+        Writer.file(dstPath),
+        Writer.keyClass(Node.getInstance().getSource().getEventClass()),
+        Writer.valueClass(VLongWritable.class),
+        Writer.compression(CompressionType.BLOCK, codec)
+        );
 
     if (LOG.isInfoEnabled()) {
       LOG.info("Opened: " + HdfsUtil.pathToString(dstPath));

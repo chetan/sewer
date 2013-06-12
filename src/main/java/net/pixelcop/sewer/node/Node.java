@@ -133,7 +133,7 @@ public class Node extends Thread implements SmartRpcClientEventHandler {
   /**
    * Load plugin classes specified in config
    */
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings({ "rawtypes" })
   protected void loadPlugins() {
     String[] plugins = conf.getStrings(NodeConfig.PLUGINS);
     if (plugins == null || plugins.length == 0) {

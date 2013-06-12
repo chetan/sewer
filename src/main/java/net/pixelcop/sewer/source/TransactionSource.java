@@ -14,7 +14,6 @@ import net.pixelcop.sewer.util.HdfsUtil;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.ChecksumException;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.SequenceFile.Reader;
@@ -137,11 +136,8 @@ public class TransactionSource extends Source {
   }
 
   public Reader createReader() throws IOException {
-
     Configuration conf = Node.getInstance().getConf();
-    FileSystem hdfs = path.getFileSystem(conf);
-
-    return new SequenceFile.Reader(hdfs, path, conf);
+    return new SequenceFile.Reader(conf, Reader.file(path));
   }
 
   @Override

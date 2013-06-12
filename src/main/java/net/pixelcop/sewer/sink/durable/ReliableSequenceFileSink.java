@@ -11,6 +11,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.SequenceFile.CompressionType;
+import org.apache.hadoop.io.SequenceFile.Writer;
 import org.apache.hadoop.io.VLongWritable;
 import org.apache.hadoop.io.compress.CompressionCodec;
 import org.slf4j.Logger;
@@ -55,10 +56,13 @@ public class ReliableSequenceFileSink extends SequenceFileSink {
 
     reliableOut = new DualFSDataOutputStream(localPath, dstPath, conf);
 
-    this.writer = SequenceFile.createWriter(conf, reliableOut,
-        Node.getInstance().getSource().getEventClass(),
-        VLongWritable.class,
-        CompressionType.BLOCK, codec);
+    this.writer = SequenceFile.createWriter(
+        conf,
+        Writer.stream(reliableOut),
+        Writer.keyClass(Node.getInstance().getSource().getEventClass()),
+        Writer.valueClass(VLongWritable.class),
+        Writer.compression(CompressionType.BLOCK, codec)
+        );
 
     nextBucket = null;
 

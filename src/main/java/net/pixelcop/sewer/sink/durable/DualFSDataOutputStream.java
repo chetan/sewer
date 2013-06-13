@@ -60,7 +60,16 @@ public class DualFSDataOutputStream extends FSDataOutputStream implements Status
     public void flush() throws IOException {
       localOut.flush();
       if (remoteOut != null) {
-        remoteOut.flush();
+        try {
+          remoteOut.flush();
+        } catch (Throwable t) {
+          if (getStatus() != ERROR) {
+            // we always try to flush (so we don't have any memory issues), but only log errors
+            // if we are not already in an error state
+            setStatus(ERROR);
+            LOG.error("error flushing remote", t);
+          }
+        }
       }
     }
 
@@ -68,6 +77,7 @@ public class DualFSDataOutputStream extends FSDataOutputStream implements Status
     public void close() throws IOException {
       localOut.close();
       if (remoteOut != null) {
+        // any exception here will be caught during ReliableSequenceFileSink.close()
         remoteOut.close();
       }
     }

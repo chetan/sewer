@@ -1,6 +1,4 @@
 
-require 'lock_jar/buildr'
-
 # Version number for this release
 VERSION_NUMBER = "0.5.2"
 # Group identifier for your projects

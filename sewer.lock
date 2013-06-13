@@ -1,8 +1,0 @@
----
-repositories:
-- http://repo1.maven.org/maven2/
-- http://mirrors.ibiblio.org/pub/mirrors/maven2
-- https://repository.cloudera.com/content/repositories/releases/
-local_repository: ~/.m2/repository
-scopes:
-  test:

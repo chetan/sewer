@@ -6,7 +6,7 @@ if [ -d $ROOT/target ]; then
 
 else
   # dist path
-  CP=`ls $ROOT/*.jar | grep -v sources`
+  CP=`ls $ROOT/*.jar | egrep -v 'sources|tests' | tr "\n" ":"`
   CP="$CP:$ROOT/lib/*:$ROOT/lib/"
 
 fi

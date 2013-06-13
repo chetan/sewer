@@ -42,6 +42,8 @@ define "sewer" do
 
   package(:jar)
   package(:sources)
+  package(:jar).with project.test.compile.target
+  package(:jar, {:classifier => "tests"}).clean.include("target/test/classes/*")
   #package(:javadoc)
 
   package(:tgz).path("#{id}-#{version}").tap do |path|

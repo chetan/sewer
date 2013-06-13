@@ -64,7 +64,7 @@ public class Benchmark extends AbstractNodeTest {
     NumberFormat f = DecimalFormat.getIntegerInstance();
 
     System.err.println("\n\n\n\n\n\n");
-    System.err.println("sink\tmsgs\topts/sec\t\tnotes");
+    System.err.println("sink\tmsgs\tops/sec\t\tnotes");
     for (Result result : results) {
       System.err.print(result.sink);
       System.err.print("\t");

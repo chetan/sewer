@@ -6,6 +6,7 @@ import java.util.Map;
 import net.pixelcop.sewer.source.PipeSource;
 import net.pixelcop.sewer.source.SyslogTcpSource;
 import net.pixelcop.sewer.source.TcpWriteableEventSource;
+import net.pixelcop.sewer.source.debug.ThreadedEventGeneratorSource;
 import net.pixelcop.sewer.source.http.HttpPixelSource;
 
 @SuppressWarnings("rawtypes")
@@ -18,6 +19,9 @@ public class SourceRegistry {
     register("syslog", SyslogTcpSource.class);
     register("pipe", PipeSource.class);
     register("pixel", HttpPixelSource.class);
+
+    // debug
+    register("tgen", ThreadedEventGeneratorSource.class);
   }
 
   public static final void register(String name, Class clazz) {

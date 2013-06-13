@@ -25,25 +25,30 @@ public class CountingSink extends Sink {
   @Override
   public void close() throws IOException {
     LOG.debug("close");
-    synchronized (closeCount) {
-      closeCount.incrementAndGet();
+    setStatus(CLOSING);
+    if (subSink != null) {
+      subSink.close();
     }
+    closeCount.incrementAndGet();
     setStatus(CLOSED);
   }
 
   @Override
   public void append(Event event) throws IOException {
-    synchronized (appendCount) {
-      appendCount.incrementAndGet();
+    appendCount.incrementAndGet();
+    if (subSink != null) {
+      subSink.append(event);
     }
   }
 
   @Override
   public void open() throws IOException {
     LOG.debug("open");
-    synchronized (openCount) {
-      openCount.incrementAndGet();
+    setStatus(OPENING);
+    if (createSubSink()) {
+      subSink.open();
     }
+    openCount.incrementAndGet();
     setStatus(FLOWING);
   }
 

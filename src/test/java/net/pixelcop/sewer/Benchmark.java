@@ -119,7 +119,7 @@ public class Benchmark extends AbstractNodeTest {
     r.sink = sink;
     r.notes = notes;
 
-    NodeConfig conf = loadTestConfig(false, "-v");
+    NodeConfig conf = loadTestConfig(false, "");
     if (props != null) {
       conf.addResource(props);
     }

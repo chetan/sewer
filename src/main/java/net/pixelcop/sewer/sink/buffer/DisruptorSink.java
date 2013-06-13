@@ -14,8 +14,8 @@ import org.slf4j.LoggerFactory;
 import com.lmax.disruptor.BlockingWaitStrategy;
 import com.lmax.disruptor.EventFactory;
 import com.lmax.disruptor.EventHandler;
-import com.lmax.disruptor.MultiThreadedClaimStrategy;
 import com.lmax.disruptor.dsl.Disruptor;
+import com.lmax.disruptor.dsl.ProducerType;
 
 public class DisruptorSink extends Sink {
 
@@ -66,10 +66,13 @@ public class DisruptorSink extends Sink {
         Node.getInstance().getConf().getInt(CONF_THREADS, 1));
 
     disruptor =
-      new Disruptor<DelegateEvent>(createEventFactory(), executor,
-          new MultiThreadedClaimStrategy(Double.valueOf(Math.pow(2, 17)).intValue()), // 2^17 = 131,072
+      new Disruptor<DelegateEvent>(
+          createEventFactory(),
+          Double.valueOf(Math.pow(2, 17)).intValue(), // 2^17 = 131,072
+          executor,
+          ProducerType.MULTI,
           new BlockingWaitStrategy()
-      );
+          );
 
     disruptor.handleEventsWith(new SewerEventHandler());
     disruptor.start();

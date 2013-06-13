@@ -54,10 +54,12 @@ public class DisruptorSink extends Sink {
 
   @Override
   public void close() throws IOException {
+    LOG.debug("closing");
     setStatus(CLOSING);
     disruptor.shutdown(); // blocks until buffer is clear
     subSink.close();
     setStatus(CLOSED);
+    LOG.debug("closed");
   }
 
   @Override
@@ -79,8 +81,15 @@ public class DisruptorSink extends Sink {
     setStatus(OPENING);
     createSubSink();
 
-    final ExecutorService executor = Executors.newFixedThreadPool(
-        Node.getInstance().getConf().getInt(CONF_THREADS, 1));
+    int numThreads = Node.getInstance().getConf().getInt(CONF_THREADS, 1);
+    WaitStrategy waitStrategy = createWaitStrategy();
+
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("num executor threads: " + numThreads);
+      LOG.debug("wait strategy: " + waitStrategy.getClass().getSimpleName());
+    }
+
+    final ExecutorService executor = Executors.newFixedThreadPool(numThreads);
 
     disruptor =
       new Disruptor<DelegateEvent>(
@@ -88,7 +97,7 @@ public class DisruptorSink extends Sink {
           Double.valueOf(Math.pow(2, 17)).intValue(), // 2^17 = 131,072
           executor,
           ProducerType.MULTI,
-          createWaitStrategy()
+          waitStrategy
           );
 
     disruptor.handleEventsWith(new SewerEventHandler());
@@ -105,6 +114,7 @@ public class DisruptorSink extends Sink {
    */
   private WaitStrategy createWaitStrategy() {
     String strat = Node.getInstance().getConf().get(CONF_WAIT_STRATEGY, WAIT_DEFAULT).toLowerCase();
+
     if (WAIT_BLOCKING.equals(strat)) {
       return new BlockingWaitStrategy();
     } else if (WAIT_BUSYSPIN.equals(strat)) {
@@ -114,7 +124,7 @@ public class DisruptorSink extends Sink {
     } else if (WAIT_SLEEPING.equals(strat)) {
       return new SleepingWaitStrategy();
     } else if (WAIT_TIMEOUT.equals(strat)) {
-      long timeout =Node.getInstance().getConf().getLong(CONF_TIMEOUT_MS, 1);
+      long timeout = Node.getInstance().getConf().getLong(CONF_TIMEOUT_MS, 1);
       return new TimeoutBlockingWaitStrategy(timeout, TimeUnit.MILLISECONDS);
     } else if (WAIT_YIELDING.equals(strat)) {
       return new YieldingWaitStrategy();

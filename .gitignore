@@ -3,6 +3,7 @@ reports/
 tmp/
 build/
 
+.ruby-version
 .classpath
 .project
 .settings/

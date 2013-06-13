@@ -11,7 +11,10 @@ import net.pixelcop.sewer.node.NodeConfig;
 import net.pixelcop.sewer.node.TestableNode;
 import net.pixelcop.sewer.sink.buffer.DisruptorSink;
 import net.pixelcop.sewer.source.debug.ThreadedEventGeneratorSource;
+import net.pixelcop.sewer.util.HdfsUtil;
 
+import org.apache.hadoop.io.compress.CompressionCodec;
+import org.apache.hadoop.io.compress.CompressionCodecFactory;
 import org.junit.Test;
 import org.junit.runner.JUnitCore;
 import org.slf4j.Logger;
@@ -29,6 +32,9 @@ public class Benchmark extends AbstractNodeTest {
     String notes;
   }
 
+  private static final long TEST_WARMUP = 10000;
+  private static final long TEST_DURATION = 30000;
+
   protected static final Logger LOG = LoggerFactory.getLogger(Benchmark.class);
 
   protected static final List<String> waitStrategies = new ArrayList<>();
@@ -39,6 +45,8 @@ public class Benchmark extends AbstractNodeTest {
     waitStrategies.add(DisruptorSink.WAIT_TIMEOUT);
     waitStrategies.add(DisruptorSink.WAIT_YIELDING);
   }
+
+  private String compressor = null;
 
   public static void main(String[] args) {
     JUnitCore.main(Benchmark.class.getName());
@@ -52,13 +60,20 @@ public class Benchmark extends AbstractNodeTest {
     props.setProperty(DisruptorSink.CONF_TIMEOUT_MS, "1");
 
     String source = "tgen(256)";
-    String dest = "null";
 
     List<Result> results = new ArrayList<>();
 
-    runAllTests(props, source, dest, results);
+    // null tests
+    runAllTests(props, source, "null", results);
 
-
+    // i/o tests
+    List<Class<? extends CompressionCodec>> codecs = CompressionCodecFactory.getCodecClasses(loadTestConfig(false, ""));
+    for (Class<? extends CompressionCodec> codec : codecs) {
+      props.put(HdfsUtil.CONFIG_COMPRESSION, codec.getName());
+      compressor = codec.getSimpleName();
+      runAllTests(props, source, "seqfile('/tmp/sewer-bench')", results);
+    }
+    compressor = null;
 
     // print results
     NumberFormat f = DecimalFormat.getIntegerInstance();
@@ -114,6 +129,15 @@ public class Benchmark extends AbstractNodeTest {
 
   private Result runTest(String source, String sink, Properties props, String notes) throws InterruptedException, IOException {
 
+    // add compressor to notes
+    if (compressor != null) {
+      if (notes == null) {
+        notes = "" + compressor;
+      } else {
+        notes = notes + ", " + compressor;
+      }
+    }
+
     Result r = new Result();
     r.source = source;
     r.sink = sink;
@@ -125,16 +149,16 @@ public class Benchmark extends AbstractNodeTest {
     }
     TestableNode node = createNode(source, sink, null, conf);
 
-    // start node, opens source, blocks until all events sent
+    // start node, opens source
     node.start();
 
     LOG.info("warming up...");
-    Thread.sleep(10000);
+    Thread.sleep(TEST_WARMUP);
 
     double startTime = System.nanoTime();
     ((ThreadedEventGeneratorSource) node.getSource()).resetCounters();
 
-    Thread.sleep(10000);
+    Thread.sleep(TEST_DURATION);
     node.await();
     node.cleanup();
 

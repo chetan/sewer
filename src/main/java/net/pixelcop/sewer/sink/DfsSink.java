@@ -60,12 +60,12 @@ public class DfsSink extends Sink {
   private void createWriter(String path) throws IOException {
 
     CompressionCodec codec = HdfsUtil.createCodec();
-
     Compressor cmp = codec.createCompressor();
-    dstPath = new Path(path + ".dat" + codec.getDefaultExtension());
-    FileSystem hdfs = dstPath.getFileSystem(Node.getInstance().getConf());
 
-    writer = new DataOutputStream(codec.createOutputStream(hdfs.create(dstPath), cmp));
+    dstPath = new Path(path + ".dat" + codec.getDefaultExtension());
+    FileSystem fs = dstPath.getFileSystem(Node.getInstance().getConf());
+
+    writer = new DataOutputStream(codec.createOutputStream(fs.create(dstPath), cmp));
 
     if (LOG.isInfoEnabled()) {
       LOG.info("Creating " + codec.getClass().getSimpleName() + " compressed HDFS file: " + dstPath.toString());

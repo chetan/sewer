@@ -47,6 +47,7 @@ public class DisruptorSink extends Sink {
 
   private static final Logger LOG = LoggerFactory.getLogger(DisruptorSink.class);
 
+  protected ExecutorService executor;
   protected Disruptor<DelegateEvent> disruptor;
 
   public DisruptorSink(String[] args) {
@@ -57,6 +58,7 @@ public class DisruptorSink extends Sink {
     LOG.debug("closing");
     setStatus(CLOSING);
     disruptor.shutdown(); // blocks until buffer is clear
+    executor.shutdown();
     subSink.close();
     setStatus(CLOSED);
     LOG.debug("closed");
@@ -89,8 +91,7 @@ public class DisruptorSink extends Sink {
       LOG.debug("wait strategy: " + waitStrategy.getClass().getSimpleName());
     }
 
-    final ExecutorService executor = Executors.newFixedThreadPool(numThreads);
-
+    executor = Executors.newFixedThreadPool(numThreads);
     disruptor =
       new Disruptor<DelegateEvent>(
           createEventFactory(),

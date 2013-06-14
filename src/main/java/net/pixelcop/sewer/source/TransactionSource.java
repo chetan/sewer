@@ -10,6 +10,8 @@ import net.pixelcop.sewer.Sink;
 import net.pixelcop.sewer.Source;
 import net.pixelcop.sewer.node.Node;
 import net.pixelcop.sewer.sink.BucketedSink;
+import net.pixelcop.sewer.sink.DfsSink;
+import net.pixelcop.sewer.sink.SequenceFileSink;
 import net.pixelcop.sewer.sink.durable.Transaction;
 import net.pixelcop.sewer.util.HdfsUtil;
 import net.pixelcop.sewer.util.TimeoutThread;
@@ -46,7 +48,7 @@ public class TransactionSource extends Source {
 
   @Override
   public void close() throws IOException {
-    if (sink != null) {
+    if (sink != null && sink.getStatus() != CLOSED) {
       sink.close();
     }
   }
@@ -56,19 +58,45 @@ public class TransactionSource extends Source {
    */
   @Override
   public void open() throws IOException {
-
     LOG.debug("Going to drain " + path.toString() + " to bucket " + bucket);
-    setStatus(OPENING);
-
-    // before we do anything, let's delete the existing destination file so
-    // we don't have any problems
-    if (bucket != null) {
-      // only if bucketed sink being used // TODO why??
-
-      deleteExistingFile();
-    }
+    setStatus(FLOWING);
 
     sink = getSinkFactory().build();
+    if (sink instanceof SequenceFileSink || sink instanceof DfsSink) {
+      System.err.println("copying via copy file");
+      // before we do anything, let's delete the existing destination file so
+      // we don't have any problems
+      final Path destFile = new Path(bucket + ext);
+      deleteExistingFile(destFile);
+
+      copySequenceFileToDfs(path, destFile);
+
+    } else {
+      copySequenceFileToSink();
+    }
+
+    setStatus(CLOSED);
+  }
+
+  /**
+   * Copy a file directly to output, byte by byte
+   *
+   * @param input
+   * @param output
+   * @throws IOException
+   */
+  private void copySequenceFileToDfs(Path input, Path output) throws IOException {
+    Configuration conf = new Configuration();
+    output.getFileSystem(conf).copyFromLocalFile(input, output);
+  }
+
+  /**
+   * Read a sequence file and copy it to the subsink
+   *
+   * @throws IOException
+   */
+  private void copySequenceFileToSink() throws IOException {
+
     if (sink instanceof BucketedSink && bucket != null) {
       ((BucketedSink) sink).setNextBucket(bucket);
     }
@@ -129,33 +157,32 @@ public class TransactionSource extends Source {
       }
     }
 
-    setStatus(CLOSED);
+
   }
 
   /**
    * Try to delete the existing file. Throws exception if it takes more than 10 seconds
    * @throws IOException
    */
-  private void deleteExistingFile() throws IOException {
-    final Path dst = new Path(bucket + ext);
+  private void deleteExistingFile(final Path file) throws IOException {
 
     TimeoutThread t = new TimeoutThread() {
       @Override
       public void work() throws Exception {
         try {
-          HdfsUtil.deletePath(dst);
+          HdfsUtil.deletePath(file);
         } catch (InterruptedException e) {
-          throw new IOException("Interrupted trying to delete " + dst, e);
+          throw new IOException("Interrupted trying to delete " + file, e);
         }
       }
     };
     if (!t.await(10, TimeUnit.SECONDS)) {
       setStatus(ERROR);
-      throw new IOException("Error trying to delete " + dst, t.getError());
+      throw new IOException("Error trying to delete " + file, t.getError());
     }
   }
 
-  public Reader createReader() throws IOException {
+  private Reader createReader() throws IOException {
     Configuration conf = Node.getInstance().getConf();
     return new SequenceFile.Reader(conf, Reader.file(path));
   }

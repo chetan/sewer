@@ -30,6 +30,18 @@ public class Benchmark extends AbstractNodeTest {
     String source;
     String sink;
     String notes;
+
+    @Override
+    public String toString() {
+      NumberFormat f = DecimalFormat.getIntegerInstance();
+      if (duration > 0) {
+        return sink + "\t" +
+        f.format(count) + "\t" +
+        f.format(opsPerSec) + "\t\t" +
+        notes;
+      }
+      return sink + "\t" + notes;
+    }
   }
 
   private static final long TEST_WARMUP = 10000;
@@ -81,14 +93,7 @@ public class Benchmark extends AbstractNodeTest {
     System.err.println("\n\n\n\n\n\n");
     System.err.println("sink\tmsgs\tops/sec\t\tnotes");
     for (Result result : results) {
-      System.err.print(result.sink);
-      System.err.print("\t");
-      System.err.print(f.format(result.count));
-      System.err.print("\t");
-      System.err.print(f.format(result.opsPerSec));
-      System.err.print("\t\t");
-      System.err.print(result.notes);
-      System.err.print("\n");
+      System.err.println(result);
     }
     System.err.println("\n\n\n\n\n\n");
   }
@@ -135,10 +140,10 @@ public class Benchmark extends AbstractNodeTest {
 
     // add compressor to notes
     if (compressor != null) {
-      if (notes == null) {
-        notes = "" + compressor;
+      if (notes == null || notes.isEmpty()) {
+        notes = "\t" + compressor;
       } else {
-        notes = notes + ", " + compressor;
+        notes = notes + "\t" + compressor;
       }
     }
 
@@ -146,6 +151,8 @@ public class Benchmark extends AbstractNodeTest {
     r.source = source;
     r.sink = sink;
     r.notes = notes;
+
+    System.out.println("running test: " + r);
 
     NodeConfig conf = loadTestConfig(false, "");
     if (props != null) {

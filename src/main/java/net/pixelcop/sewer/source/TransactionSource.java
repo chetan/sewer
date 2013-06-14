@@ -2,6 +2,7 @@ package net.pixelcop.sewer.source;
 
 import java.io.EOFException;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import net.pixelcop.sewer.ByteArrayEvent;
 import net.pixelcop.sewer.Event;
@@ -11,6 +12,7 @@ import net.pixelcop.sewer.node.Node;
 import net.pixelcop.sewer.sink.BucketedSink;
 import net.pixelcop.sewer.sink.durable.Transaction;
 import net.pixelcop.sewer.util.HdfsUtil;
+import net.pixelcop.sewer.util.TimeoutThread;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.ChecksumException;
@@ -61,14 +63,9 @@ public class TransactionSource extends Source {
     // before we do anything, let's delete the existing destination file so
     // we don't have any problems
     if (bucket != null) {
-      // only if bucketed sink being used
-      Path dst = new Path(bucket + ext);
-      try {
-        HdfsUtil.deletePath(dst);
-      } catch (InterruptedException e) {
-        setStatus(ERROR);
-        throw new IOException("Interrupted trying to delete " + dst, e);
-      }
+      // only if bucketed sink being used // TODO why??
+
+      deleteExistingFile();
     }
 
     sink = getSinkFactory().build();
@@ -133,6 +130,29 @@ public class TransactionSource extends Source {
     }
 
     setStatus(CLOSED);
+  }
+
+  /**
+   * Try to delete the existing file. Throws exception if it takes more than 10 seconds
+   * @throws IOException
+   */
+  private void deleteExistingFile() throws IOException {
+    final Path dst = new Path(bucket + ext);
+
+    TimeoutThread t = new TimeoutThread() {
+      @Override
+      public void work() throws Exception {
+        try {
+          HdfsUtil.deletePath(dst);
+        } catch (InterruptedException e) {
+          throw new IOException("Interrupted trying to delete " + dst, e);
+        }
+      }
+    };
+    if (!t.await(10, TimeUnit.SECONDS)) {
+      setStatus(ERROR);
+      throw new IOException("Error trying to delete " + dst, t.getError());
+    }
   }
 
   public Reader createReader() throws IOException {

@@ -31,17 +31,22 @@ public class AsyncBufferSink extends Sink implements Runnable {
   /**
    * Buffering sink which will close when the parent sink closes and the queue is empty
    *
-   * @param name Thread name
+   * @param args
    */
-  public AsyncBufferSink(String name) {
-    this.name = name;
+  public AsyncBufferSink(String[] args) {
+
+    if (args.length > 0) {
+      if (args[0] != null && !args[0].isEmpty()) {
+        this.name = args[0];
+      } else {
+        this.name = DEFAULT_THREAD_NAME;
+      }
+    } else {
+      this.name = DEFAULT_THREAD_NAME;
+    }
 
     this.thread = new Thread(this);
     this.thread.setName(this.name + " " + this.thread.getId());
-  }
-
-  public AsyncBufferSink(String[] args) {
-    this(DEFAULT_THREAD_NAME);
   }
 
   @Override

@@ -6,63 +6,49 @@ import net.pixelcop.sewer.Event;
 import net.pixelcop.sewer.Sink;
 import net.pixelcop.sewer.sink.BucketedSink;
 import net.pixelcop.sewer.sink.SequenceFileSink;
-import net.pixelcop.sewer.sink.buffer.AsyncBufferSink;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Creates a new Transaction on open(). All appended Events until close() are then made durable
+ * Creates a new {@link Transaction} on open(). All appended Events until close() are then made durable
  * by persisting to disk until a proper close(). If close() fails, the batch is retried in another
- * thread.
+ * thread (via {@link TransactionManager}.
  *
  * @author chetan
  *
  */
-public class ReliableSink extends Sink implements SinkOpenerEvents {
+public class ReliableSink extends Sink {
 
   private static final Logger LOG = LoggerFactory.getLogger(ReliableSink.class);
 
   private Transaction tx;
   private SequenceFileSink durableSink;
 
-  private SinkOpenerThread opener;
-  private AsyncBufferSink persister;
-  private AsyncBufferSink delayedSink;
+  private boolean subSinkError;
 
   public ReliableSink(String[] args) {
   }
 
   @Override
   public void close() throws IOException {
+    LOG.debug("closing");
+    setStatus(CLOSING);
 
-    setStatus(CLOSED); // signal our threads to wrap up
-
-    if (subSink == null) {
-      // never opened??
-      return;
-    }
-
-    // cleanup threads first, then close subsink and commit tx
-    persister.close();
-    delayedSink.close();
-    if (opener != null) {
-      opener.cancel();
-    }
+    boolean error = false;
 
     try {
       durableSink.close();
     } catch (IOException e) {
-      LOG.warn("Failed to close durable sink: " + e.getMessage(), e);
-      // we can continue safely assuming that the subsink closes cleanly
-      // in which case, the tx will be committed anyway
+      LOG.warn("Failed to close durable sink", e);
+      error = true;
     }
 
-    LOG.debug("subSink is currently: " + subSink.getStatusString());
-    if (subSink.getStatus() == OPENING || subSink.getStatus() == ERROR) {
+    if (subSink == null || subSinkError
+        || subSink.getStatus() == OPENING || subSink.getStatus() == ERROR) {
+
       // never opened or some other error, rollback!
-      tx.rollback();
-      return;
+      error = true;
     }
 
     // try to close subsink. it succeeds w/o error, then the tx is completed.
@@ -70,23 +56,33 @@ public class ReliableSink extends Sink implements SinkOpenerEvents {
       subSink.close();
 
     } catch (IOException e) {
-      // release tx
       LOG.error("subsink failed to close for txid " + tx.getId());
-      tx.rollback();
-      return;
-
+      error = true;
     }
 
-    // closed cleanly, commit tx
-    tx.commit();
+    if (error) {
+      tx.rollback();
+    } else {
+      tx.commit();
+    }
+
+    setStatus(CLOSED);
+    LOG.debug("closed");
   }
 
   @Override
   public void open() throws IOException {
-
+    LOG.debug("opening");
     setStatus(OPENING);
 
+    subSinkError = false;
     createSubSink();
+    try {
+      subSink.open();
+    } catch (Throwable t) {
+      LOG.warn("Error opening subsink, continuing with local buffer", t);
+      subSinkError = true;
+    }
 
     String nextBucket = null;
     if (subSink instanceof BucketedSink) {
@@ -104,18 +100,7 @@ public class ReliableSink extends Sink implements SinkOpenerEvents {
     }
 
     setStatus(FLOWING);
-
-    opener = new SinkOpenerThread(Thread.currentThread().getId(), subSink, this);
-    opener.start();
-
-    persister = new AsyncBufferSink("persister");
-    persister.setSubSink(durableSink);
-    persister.open();
-
-    delayedSink = new AsyncBufferSink("delaybuffer");
-    delayedSink.setSubSink(this.subSink);
-    delayedSink.open();
-
+    LOG.debug("flowing");
   }
 
   /**
@@ -126,26 +111,18 @@ public class ReliableSink extends Sink implements SinkOpenerEvents {
   @Override
   public void append(Event event) throws IOException {
 
-    if (subSink.getStatus() == FLOWING) {
-      try {
-        subSink.append(event);
-      } catch (IOException e) {
-        // This is 'OK' in that we still persist the message to our durable sink
-        // for later transfer
-        LOG.warn("Caught error while appending to subsink: " + e.getMessage(), e);
-      }
+    durableSink.append(event);
 
-    } else {
-      // write message to delayed queue
-      delayedSink.append(event);
+    if (subSinkError) {
+      return;
+    }
+    try {
+      subSink.append(event);
+    } catch (Throwable t) {
+      LOG.warn("Caught error while appending to subsink", t);
+      subSinkError = true;
     }
 
-    persister.append(event);
-  }
-
-  @Override
-  public void onSubSinkOpen() {
-    opener = null;
   }
 
 }

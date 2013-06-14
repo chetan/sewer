@@ -35,7 +35,7 @@ public class AsyncBufferSink extends Sink implements Runnable {
    */
   public AsyncBufferSink(String[] args) {
 
-    if (args.length > 0) {
+    if (args != null && args.length > 0) {
       if (args[0] != null && !args[0].isEmpty()) {
         this.name = args[0];
       } else {

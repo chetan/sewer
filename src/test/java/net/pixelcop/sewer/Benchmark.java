@@ -61,8 +61,18 @@ public class Benchmark extends AbstractNodeTest {
   }
 
   private String compressor = null;
+  private long test = 0;
+  private static long runTestNum = 0;
 
   public static void main(String[] args) {
+
+    if (args != null && args.length > 0 && args[0] != null && !args[0].isEmpty()) {
+      try {
+        runTestNum = Long.parseLong(args[0]);
+      } catch (Throwable t) {
+      }
+    }
+
     JUnitCore.main(Benchmark.class.getName());
   }
 
@@ -76,7 +86,7 @@ public class Benchmark extends AbstractNodeTest {
     String source = "tgen(256)";
 
     List<Result> results = new ArrayList<Result>();
-    System.err.println("sink\tmsgs\tops/sec\t\tnotes");
+    //System.err.println("sink\tmsgs\tops/sec\t\tnotes");
 
     // null tests
     runAllTests(props, source, "null", results);
@@ -138,6 +148,11 @@ public class Benchmark extends AbstractNodeTest {
   }
 
   private Result runTest(String source, String sink, Properties props, String notes) throws InterruptedException, IOException {
+
+    test++;
+    if (runTestNum > 0 && test != runTestNum) {
+      return null;
+    }
 
     // add compressor to notes
     if (compressor != null) {

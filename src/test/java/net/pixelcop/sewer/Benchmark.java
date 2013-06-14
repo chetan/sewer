@@ -37,7 +37,7 @@ public class Benchmark extends AbstractNodeTest {
 
   protected static final Logger LOG = LoggerFactory.getLogger(Benchmark.class);
 
-  protected static final List<String> waitStrategies = new ArrayList<>();
+  protected static final List<String> waitStrategies = new ArrayList<String>();
   static {
     waitStrategies.add(DisruptorSink.WAIT_BLOCKING);
     waitStrategies.add(DisruptorSink.WAIT_BUSYSPIN);
@@ -61,7 +61,7 @@ public class Benchmark extends AbstractNodeTest {
 
     String source = "tgen(256)";
 
-    List<Result> results = new ArrayList<>();
+    List<Result> results = new ArrayList<Result>();
 
     // null tests
     runAllTests(props, source, "null", results);

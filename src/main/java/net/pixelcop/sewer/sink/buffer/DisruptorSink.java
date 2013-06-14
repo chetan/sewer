@@ -12,6 +12,7 @@ import net.pixelcop.sewer.node.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.codahale.metrics.Gauge;
 import com.lmax.disruptor.BlockingWaitStrategy;
 import com.lmax.disruptor.BusySpinWaitStrategy;
 import com.lmax.disruptor.EventFactory;
@@ -103,6 +104,16 @@ public class DisruptorSink extends Sink {
 
     disruptor.handleEventsWith(new SewerEventHandler());
     disruptor.start();
+
+    if (!Node.getInstance().getMetricReporters().isEmpty()) {
+      // create gauge on queue size if any reporters are registered (metrics enabled)
+      Node.getInstance().getMetricRegistry().register("disruptor_queue_size", new Gauge<Integer>() {
+        @Override
+        public Integer getValue() {
+          return (int) (disruptor.getBufferSize() - disruptor.getRingBuffer().remainingCapacity());
+        }
+      });
+    }
 
     subSink.open();
     setStatus(FLOWING);

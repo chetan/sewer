@@ -8,7 +8,8 @@ URL = "https://github.com/chetan/sewer"
 MAIN_CLASS = 'net.pixelcop.sewer.node.Node'
 
 # Specify Maven 2.0 remote repositories here, like this:
-repositories.remote << "http://mirrors.ibiblio.org/pub/mirrors/maven2"
+repositories.remote << "http://repo1.maven.org/maven2"
+repositories.remote << "http://mirrors.ibiblio.org/maven2/"
 repositories.remote << "https://repository.cloudera.com/content/repositories/releases/"
 
 require "./buildfile_libraries"

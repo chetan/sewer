@@ -6,12 +6,12 @@ import java.util.concurrent.TimeUnit;
 
 import net.pixelcop.sewer.Event;
 import net.pixelcop.sewer.Sink;
+import net.pixelcop.sewer.node.Node;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.yammer.metrics.Metrics;
-import com.yammer.metrics.core.Gauge;
+import com.codahale.metrics.Gauge;
 
 public class AsyncBufferSink extends Sink implements Runnable {
 
@@ -76,12 +76,15 @@ public class AsyncBufferSink extends Sink implements Runnable {
     setStatus(OPENING);
     buffer = new LinkedBlockingQueue<Event>(100000);
 
-    Metrics.newGauge(AsyncBufferSink.class, "buffer_queue_size", new Gauge<Integer>() {
-      @Override
-      public Integer value() {
-        return buffer.size();
-      }
-    });
+    if (!Node.getInstance().getMetricReporters().isEmpty()) {
+      // create gauge on queue size if any reporters are registered (metrics enabled)
+      Node.getInstance().getMetricRegistry().register("buffer_queue_size", new Gauge<Integer>() {
+        @Override
+        public Integer getValue() {
+          return buffer.size();
+        }
+      });
+    }
 
     if (createSubSink()) {
       ownSubSink = true;

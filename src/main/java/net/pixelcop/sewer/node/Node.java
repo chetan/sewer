@@ -2,6 +2,9 @@ package net.pixelcop.sewer.node;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
+import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import net.pixelcop.sewer.PlumbingFactory;
@@ -14,14 +17,17 @@ import net.pixelcop.sewer.rpc.MasterAPI;
 import net.pixelcop.sewer.rpc.SmartRpcClient;
 import net.pixelcop.sewer.rpc.SmartRpcClientEventHandler;
 import net.pixelcop.sewer.rpc.SmartRpcServer;
-import net.pixelcop.sewer.sink.CustomGraphiteReporter;
+import net.pixelcop.sewer.sink.debug.GraphiteConsole;
 import net.pixelcop.sewer.sink.durable.TransactionManager;
+import net.pixelcop.sewer.util.NetworkUtil;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.yammer.metrics.reporting.ConsoleReporter;
-import com.yammer.metrics.reporting.GraphiteReporter;
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.ScheduledReporter;
+import com.codahale.metrics.graphite.Graphite;
+import com.codahale.metrics.graphite.GraphiteReporter;
 
 /**
  * Primary Sewer entry point. The node is responsible for configuring a source/sink pair. It
@@ -56,6 +62,9 @@ public class Node extends Thread implements SmartRpcClientEventHandler {
 
   private MasterAPI master;
   private String nodeType;
+
+  private MetricRegistry metricRegistry;
+  private List<ScheduledReporter> metricReporters;
 
   private Source source;
 
@@ -176,19 +185,33 @@ public class Node extends Thread implements SmartRpcClientEventHandler {
    */
   private void configureMetrics() throws IOException {
 
+    this.metricRegistry = new MetricRegistry();
+    this.metricReporters = new ArrayList<ScheduledReporter>();
+
+    String prefix = conf.get(NodeConfig.GRAPHITE_PREFIX, "") +
+        NetworkUtil.getLocalhost().replace('.', '_');
+
     String host = conf.get(NodeConfig.GRAPHITE_HOST);
     if (host != null) {
-      LOG.debug("Enabling graphite metrics");
-      CustomGraphiteReporter.create(
-          host,
-          conf.getInt(NodeConfig.GRAPHITE_PORT, 2003),
-          conf.get(NodeConfig.GRAPHITE_PREFIX, "")
-          ).start(60, TimeUnit.SECONDS);
+      LOG.info("Enabling graphite metrics");
+
+      int port = conf.getInt(NodeConfig.GRAPHITE_PORT, 2003);
+      Graphite graphite = new Graphite(new InetSocketAddress(host, port));
+      addMetricReporter(GraphiteReporter.forRegistry(metricRegistry)
+          .prefixedWith(prefix)
+          .convertRatesTo(TimeUnit.SECONDS)
+          .convertDurationsTo(TimeUnit.MILLISECONDS)
+          .build(graphite)).start(1, TimeUnit.MINUTES);
     }
 
     if (LOG.isDebugEnabled()) {
       LOG.debug("Enabling console metrics since DEBUG level enabled");
-      ConsoleReporter.enable(60, TimeUnit.SECONDS);
+      Graphite graphite = new GraphiteConsole();
+      addMetricReporter(GraphiteReporter.forRegistry(metricRegistry)
+          .prefixedWith(prefix)
+          .convertRatesTo(TimeUnit.SECONDS)
+          .convertDurationsTo(TimeUnit.MILLISECONDS)
+          .build(graphite)).start(1, TimeUnit.MINUTES);
     }
 
   }
@@ -267,6 +290,19 @@ public class Node extends Thread implements SmartRpcClientEventHandler {
 
   public NodeConfig getConf() {
     return conf;
+  }
+
+  public MetricRegistry getMetricRegistry() {
+    return metricRegistry;
+  }
+
+  public List<ScheduledReporter> getMetricReporters() {
+    return metricReporters;
+  }
+
+  public ScheduledReporter addMetricReporter(ScheduledReporter reporter) {
+    this.metricReporters.add(reporter);
+    return reporter;
   }
 
 }

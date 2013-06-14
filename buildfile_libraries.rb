@@ -119,9 +119,8 @@ HADOOP_TEST = [
 
 
 METRICS = [
-    'com.yammer.metrics:metrics-core:jar:2.2.0',
-    'com.yammer.metrics:metrics-jetty:jar:2.2.0',
-    'com.yammer.metrics:metrics-graphite:jar:2.2.0'
+    "com.codahale.metrics:metrics-core:jar:3.0.0",
+    "com.codahale.metrics:metrics-graphite:jar:3.0.0"
     ]
 
 DISRUPTOR = [ 'com.lmax:disruptor:jar:3.0.1' ]

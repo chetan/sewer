@@ -1,16 +1,15 @@
 package net.pixelcop.sewer.sink;
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 
 import net.pixelcop.sewer.Event;
 import net.pixelcop.sewer.Sink;
+import net.pixelcop.sewer.node.Node;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.yammer.metrics.Metrics;
-import com.yammer.metrics.core.Meter;
+import com.codahale.metrics.Meter;
 
 /**
  * Inject's a {@link Meter} into the sink stream
@@ -39,13 +38,12 @@ public class MeterSink extends Sink {
       name = DEFAULT_NAME;
     }
 
-    meter = Metrics.newMeter(MeterSink.class, name, name, TimeUnit.SECONDS);
+    meter = Node.getInstance().getMetricRegistry().meter(name);
   }
 
   @Override
   public void close() throws IOException {
     setStatus(CLOSING);
-    meter.stop();
     subSink.close();
     setStatus(CLOSED);
   }

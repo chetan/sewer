@@ -44,12 +44,7 @@ public class Node extends Thread implements SmartRpcClientEventHandler {
     @Override
     public void run() {
       LOG.warn("Caught shutdown signal. Going to try to stop cleanly..");
-      try {
-        Node.getInstance().getSource().close();
-      } catch (IOException e) {
-        LOG.error("Source failed to close cleanly: " + e.getMessage(), e);
-        return;
-      }
+      Node.getInstance().shutdown();
       LOG.debug("Shutdown complete. Goodbye!");
     }
   }
@@ -216,6 +211,18 @@ public class Node extends Thread implements SmartRpcClientEventHandler {
 
   }
 
+  /**
+   * Cleanup any configured metrics
+   */
+  private void cleanupMetrics() {
+    if (metricReporters == null) {
+      return;
+    }
+    for (ScheduledReporter reporter : metricReporters) {
+      reporter.stop();
+    }
+  }
+
   @SuppressWarnings("unused")
   private void connectToMaster() {
 
@@ -238,6 +245,9 @@ public class Node extends Thread implements SmartRpcClientEventHandler {
 
   }
 
+  /**
+   * Start the node. Open source and enable metric reporting
+   */
   @Override
   public void run() {
 
@@ -252,6 +262,20 @@ public class Node extends Thread implements SmartRpcClientEventHandler {
 
     }
 
+  }
+
+  /**
+   * Stop the node. Close the source and any sinks and disable metric reporting
+   */
+  public void shutdown() {
+    if (source != null) {
+      try {
+        source.close();
+      } catch (IOException e) {
+        LOG.error("Source failed to close cleanly: " + e.getMessage(), e);
+      }
+    }
+    cleanupMetrics();
   }
 
   @Override

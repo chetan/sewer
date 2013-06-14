@@ -65,13 +65,7 @@ public class TestableNode extends Node {
       return;
     }
 
-    try {
-      if (node.getSource() != null) {
-        node.getSource().close();
-      }
-    } catch (IOException e) {
-      LOG.warn("error during cleanup", e);
-    }
+    node.shutdown();
 
     try {
       TestableTransactionManager.kill();

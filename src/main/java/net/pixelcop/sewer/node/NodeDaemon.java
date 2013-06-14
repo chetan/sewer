@@ -1,7 +1,5 @@
 package net.pixelcop.sewer.node;
 
-import java.io.IOException;
-
 import net.pixelcop.sewer.node.Node.ShutdownHook;
 
 import org.apache.commons.daemon.Daemon;
@@ -43,12 +41,7 @@ public class NodeDaemon implements Daemon {
   @Override
   public void stop() throws Exception {
     LOG.warn("Caught shutdown signal. Going to try to stop cleanly..");
-    try {
-      Node.getInstance().getSource().close();
-    } catch (IOException e) {
-      LOG.error("Source failed to close cleanly: " + e.getMessage(), e);
-      return;
-    }
+    Node.getInstance().shutdown();
     LOG.info("Shutdown complete. Goodbye!");
   }
 

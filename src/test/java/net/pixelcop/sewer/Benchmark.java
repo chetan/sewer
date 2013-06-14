@@ -167,11 +167,13 @@ public class Benchmark extends AbstractNodeTest {
     LOG.info("warming up...");
     Thread.sleep(TEST_WARMUP);
 
+    LOG.info("warmed up. starting test...");
     double startTime = System.nanoTime();
     ((ThreadedEventGeneratorSource) node.getSource()).resetCounters();
 
     Thread.sleep(TEST_DURATION);
 
+    LOG.info("test complete. cleaning up...");
     final CountDownLatch stopLatch = new CountDownLatch(1);
     Thread t = new Thread() {
       @Override
@@ -185,8 +187,8 @@ public class Benchmark extends AbstractNodeTest {
       }
     };
     t.start();
-    if (!stopLatch.await(5, TimeUnit.SECONDS)) {
-      LOG.warn("node didn't cleanup within 5 seconds, interrupting");
+    if (!stopLatch.await(30, TimeUnit.SECONDS)) {
+      LOG.warn("node didn't cleanup within 30 seconds, interrupting");
       t.interrupt();
     }
 
@@ -197,6 +199,7 @@ public class Benchmark extends AbstractNodeTest {
 
     System.gc(); // why not
 
+    LOG.info("test run completed.");
     System.err.println(r);
     return r;
   }

@@ -5,6 +5,8 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import net.pixelcop.sewer.node.AbstractNodeTest;
 import net.pixelcop.sewer.node.NodeConfig;
@@ -74,6 +76,7 @@ public class Benchmark extends AbstractNodeTest {
     String source = "tgen(256)";
 
     List<Result> results = new ArrayList<Result>();
+    System.err.println("sink\tmsgs\tops/sec\t\tnotes");
 
     // null tests
     runAllTests(props, source, "null", results);
@@ -88,14 +91,12 @@ public class Benchmark extends AbstractNodeTest {
     compressor = null;
 
     // print results
-    NumberFormat f = DecimalFormat.getIntegerInstance();
+    //System.err.println("\n\n\n\n\n\n");
 
-    System.err.println("\n\n\n\n\n\n");
-    System.err.println("sink\tmsgs\tops/sec\t\tnotes");
-    for (Result result : results) {
-      System.err.println(result);
-    }
-    System.err.println("\n\n\n\n\n\n");
+    // for (Result result : results) {
+    // System.err.println(result);
+    // }
+    //System.err.println("\n\n\n\n\n\n");
   }
 
   private void runAllTests(Properties props, String source, String dest, List<Result> results)
@@ -158,7 +159,7 @@ public class Benchmark extends AbstractNodeTest {
     if (props != null) {
       conf.addResource(props);
     }
-    TestableNode node = createNode(source, sink, null, conf);
+    final TestableNode node = createNode(source, sink, null, conf);
 
     // start node, opens source
     node.start();
@@ -170,8 +171,25 @@ public class Benchmark extends AbstractNodeTest {
     ((ThreadedEventGeneratorSource) node.getSource()).resetCounters();
 
     Thread.sleep(TEST_DURATION);
-    node.await();
-    node.cleanup();
+
+    final CountDownLatch stopLatch = new CountDownLatch(1);
+    Thread t = new Thread() {
+      @Override
+      public void run() {
+        try {
+          node.await();
+        } catch (InterruptedException e) {
+        }
+        node.cleanup();
+        stopLatch.countDown();
+      }
+    };
+    t.start();
+    if (!stopLatch.await(5, TimeUnit.SECONDS)) {
+      LOG.warn("node didn't cleanup within 5 seconds, interrupting");
+      t.interrupt();
+    }
+
 
     r.count = ((ThreadedEventGeneratorSource) node.getSource()).getTotalCount();
     r.duration = System.nanoTime() - startTime;
@@ -179,6 +197,7 @@ public class Benchmark extends AbstractNodeTest {
 
     System.gc(); // why not
 
+    System.err.println(r);
     return r;
   }
 

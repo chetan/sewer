@@ -34,10 +34,10 @@ public class AsyncBufferSink extends Sink implements Runnable {
    * @param name Thread name
    */
   public AsyncBufferSink(String name) {
-    this.name = name + " ";
+    this.name = name;
 
     this.thread = new Thread(this);
-    this.thread.setName(this.name + this.thread.getId());
+    this.thread.setName(this.name + " " + this.thread.getId());
   }
 
   public AsyncBufferSink(String[] args) {
@@ -78,7 +78,11 @@ public class AsyncBufferSink extends Sink implements Runnable {
 
     if (!Node.getInstance().getMetricReporters().isEmpty()) {
       // create gauge on queue size if any reporters are registered (metrics enabled)
-      Node.getInstance().getMetricRegistry().register("buffer_queue_size", new Gauge<Integer>() {
+      String metricName = "buffer_queue_size";
+      if (name != DEFAULT_THREAD_NAME) {
+        metricName = name + "." + metricName;
+      }
+      Node.getInstance().getMetricRegistry().register(metricName, new Gauge<Integer>() {
         @Override
         public Integer getValue() {
           return buffer.size();

@@ -103,12 +103,16 @@ public class Benchmark extends AbstractNodeTest {
     // disruptor > null
     runDisruptorTests(props, source, "disruptor > " + dest, results);
 
-    // meter > null
+    // meter before
     results.add(runTest(source, "meter > " + dest));
+    results.add(runTest(source, "meter > buffer > " + dest));
+    runDisruptorTests(props, source, "meter > disruptor > " + dest, results);
+
+    // meter after
     results.add(runTest(source, "buffer > meter > " + dest));
     runDisruptorTests(props, source, "disruptor > meter > " + dest, results);
 
-    // 2 meters > null
+    // meter before & after
     results.add(runTest(source, "meter > buffer > meter > " + dest));
     runDisruptorTests(props, source, "meter > disruptor > meter > " + dest, results);
   }

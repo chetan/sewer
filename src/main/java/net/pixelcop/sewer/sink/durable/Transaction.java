@@ -68,7 +68,7 @@ public class Transaction {
   /**
    * Create a unique ID for this Transaction
    *
-   * <p>Formatted so that lexigraphical and chronological sorting is identical.</p>
+   * <p>Formatted so that lexicographical and chronological sorting is identical.</p>
    * <p><code>yyyyMMdd-HHmmssSSSZ.nanosec</code></p>
    *
    * @return

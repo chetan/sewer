@@ -8,7 +8,6 @@ import net.pixelcop.sewer.node.Node;
 import net.pixelcop.sewer.util.HdfsUtil;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.SequenceFile.CompressionType;
@@ -19,7 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Simple wrapper around {@link FSDataOutputStream} with compression
+ * A sink which writes to a {@link SequenceFile}, on any filesystem supported by hadoop.
  *
  * @author chetan
  *
@@ -32,12 +31,12 @@ public class SequenceFileSink extends BucketedSink {
   private static final VLongWritable ONE = new VLongWritable(1L);
 
   /**
-   * Configured DFS path to write to
+   * Configured path to write to
    */
   protected String configPath;
 
   /**
-   * Reference to DFS Path object
+   * Reference to {@link Path} object
    */
   protected Path dstPath;
 

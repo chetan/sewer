@@ -13,10 +13,6 @@ import net.pixelcop.sewer.Sink;
 import net.pixelcop.sewer.SinkRegistry;
 import net.pixelcop.sewer.Source;
 import net.pixelcop.sewer.SourceRegistry;
-import net.pixelcop.sewer.rpc.MasterAPI;
-import net.pixelcop.sewer.rpc.SmartRpcClient;
-import net.pixelcop.sewer.rpc.SmartRpcClientEventHandler;
-import net.pixelcop.sewer.rpc.SmartRpcServer;
 import net.pixelcop.sewer.sink.debug.GraphiteConsole;
 import net.pixelcop.sewer.sink.durable.TransactionManager;
 import net.pixelcop.sewer.util.NetworkUtil;
@@ -38,7 +34,7 @@ import com.codahale.metrics.graphite.GraphiteReporter;
  * @author chetan
  *
  */
-public class Node extends Thread implements SmartRpcClientEventHandler {
+public class Node extends Thread {
 
   static class ShutdownHook extends Thread {
     @Override
@@ -54,9 +50,6 @@ public class Node extends Thread implements SmartRpcClientEventHandler {
   protected static Node instance;
 
   private final NodeConfig conf;
-
-  private MasterAPI master;
-  private String nodeType;
 
   private MetricRegistry metricRegistry;
   private List<ScheduledReporter> metricReporters;
@@ -95,15 +88,10 @@ public class Node extends Thread implements SmartRpcClientEventHandler {
     instance = this;
 
     setName("Node " + getId());
-    this.setNodeType(null); // TODO set node type
-
     this.conf = config;
     configure();
 
-    // Boot TransactionManager
     TransactionManager.init(conf);
-
-    // connectToMaster();
   }
 
   /**
@@ -223,28 +211,6 @@ public class Node extends Thread implements SmartRpcClientEventHandler {
     }
   }
 
-  @SuppressWarnings("unused")
-  private void connectToMaster() {
-
-    String host = "localhost";
-    int port = SmartRpcServer.DEFAULT_PORT;
-
-    try {
-
-      SmartRpcClient client = new SmartRpcClient(host, port);
-      client.setEventHandler(this);
-      client.start();
-
-      master = (MasterAPI) SmartRpcClient.createClient(
-          MasterAPI.class, client);
-
-    } catch (Exception e) {
-      LOG.error("Startup failed! Bailing out");
-      System.exit(ExitCodes.OTHER_ERROR);
-    }
-
-  }
-
   /**
    * Start the node. Open source and enable metric reporting
    */
@@ -278,31 +244,8 @@ public class Node extends Thread implements SmartRpcClientEventHandler {
     cleanupMetrics();
   }
 
-  @Override
-  public void onConnect() {
-    if (!master.handshake(nodeType)) {
-      LOG.error("HANDSHAKE FAILED");
-      System.exit(ExitCodes.OTHER_ERROR);
-    }
-    LOG.debug("Handshake succeeded");
-  }
-
-  @Override
-  public void onDisconnect() {
-    // nothing for now
-   LOG.debug("onDisconnect() raised");
-  }
-
 
   // GETTERS & SETTERS
-
-  public void setNodeType(String nodeType) {
-    this.nodeType = nodeType;
-  }
-
-  public String getNodeType() {
-    return nodeType;
-  }
 
   public Source getSource() {
     return source;

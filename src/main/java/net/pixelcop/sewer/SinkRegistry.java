@@ -14,6 +14,7 @@ import net.pixelcop.sewer.sink.buffer.ThreadLocalBufferSink;
 import net.pixelcop.sewer.sink.debug.ConsoleSink;
 import net.pixelcop.sewer.sink.debug.DelayedOpenSink;
 import net.pixelcop.sewer.sink.debug.NullSink;
+import net.pixelcop.sewer.sink.durable.DeferSink;
 import net.pixelcop.sewer.sink.durable.ReliableSequenceFileSink;
 import net.pixelcop.sewer.sink.durable.ReliableSink;
 import net.pixelcop.sewer.sink.durable.RollSink;
@@ -31,6 +32,7 @@ public class SinkRegistry {
     register("tcpwrite", TcpWriteableEventSink.class);
 
     // decorators
+    register("defer", DeferSink.class);
     register("reliable", ReliableSink.class);
     register("roll", RollSink.class);
     register("delayed_open", DelayedOpenSink.class);

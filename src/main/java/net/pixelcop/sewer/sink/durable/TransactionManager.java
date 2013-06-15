@@ -354,12 +354,11 @@ public class TransactionManager extends Thread {
       if (builder.getClazz() == ReliableSequenceFileSink.class) {
         // replace with SequenceFileSink
         rawSinkClasses.add(new PlumbingBuilder<Sink>(SequenceFileSink.class, builder.getArgs()));
-        continue;
 
-      } else if (!builder.getClazz().isAnnotationPresent(DrainSink.class)) {
-        continue; // skip all other types
+      } else if (builder.getClazz().isAnnotationPresent(DrainSink.class)) {
+        rawSinkClasses.add(builder);
       }
-      rawSinkClasses.add(builder);
+      // skip all other types
     }
 
     return new PlumbingFactory<Sink>(rawSinkClasses);

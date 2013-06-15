@@ -63,7 +63,7 @@ public class TransactionSource extends Source {
 
     sink = getSinkFactory().build();
     if (sink instanceof SequenceFileSink || sink instanceof DfsSink) {
-      System.err.println("copying via copy file");
+
       // before we do anything, let's delete the existing destination file so
       // we don't have any problems
       final Path destFile = new Path(bucket + ext);

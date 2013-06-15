@@ -216,6 +216,12 @@ public class Benchmark extends AbstractNodeTest {
 
     LOG.info("test run completed.");
     System.err.println(r);
+
+    if (runTestNum > 0 && test == runTestNum) {
+      LOG.info("exiting");
+      System.exit(0);
+    }
+
     return r;
   }
 

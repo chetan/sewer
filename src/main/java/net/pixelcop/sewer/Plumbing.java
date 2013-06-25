@@ -74,6 +74,28 @@ public abstract class Plumbing implements Closeable, StatusProvider {
   }
 
   /**
+   * Helper method for reading strings from arguments, with default value handling
+   *
+   * @param args
+   * @param pos
+   * @param defaultValue
+   * @return
+   */
+  protected String getString(String[] args, int pos, String defaultValue) {
+
+    if (args == null || args.length < pos + 1) {
+      return defaultValue;
+    }
+
+    String arg = args[pos];
+    if (arg == null || arg.isEmpty()) {
+      return defaultValue;
+    }
+
+    return arg;
+  }
+
+  /**
    * Helper method for reading long values from arguments
    *
    * @param args String[]

@@ -133,8 +133,16 @@ public class Node extends Thread {
     }
     for (int i = 0; i < plugins.length; i++) {
       try {
-        Constructor con = Class.forName(plugins[i]).getConstructor(new String[]{}.getClass());
-        Object obj = con.newInstance(new Object[] { new String[]{} });
+        Class clazz = Class.forName(plugins[i]);
+        Constructor con = null;
+        Object obj = null;
+        try {
+          con = clazz.getConstructor(null);
+          obj = con.newInstance();
+        } catch (NoSuchMethodException e) {
+          con = clazz.getConstructor(new String[]{}.getClass());
+          obj = con.newInstance(new Object[] { new String[]{} });
+        }
         ((PlumbingProvider) obj).register();
 
       } catch (Throwable t) {

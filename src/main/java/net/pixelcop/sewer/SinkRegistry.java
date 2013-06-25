@@ -10,6 +10,7 @@ import net.pixelcop.sewer.sink.TcpWriteableEventSink;
 import net.pixelcop.sewer.sink.buffer.AsyncBufferSink;
 import net.pixelcop.sewer.sink.buffer.BufferPoolSink;
 import net.pixelcop.sewer.sink.buffer.DisruptorSink;
+import net.pixelcop.sewer.sink.buffer.ParallelBufferSink;
 import net.pixelcop.sewer.sink.buffer.ThreadLocalBufferSink;
 import net.pixelcop.sewer.sink.debug.ConsoleSink;
 import net.pixelcop.sewer.sink.debug.DelayedOpenSink;
@@ -41,6 +42,7 @@ public class SinkRegistry {
     register("local_buffer", ThreadLocalBufferSink.class);
     register("disruptor", DisruptorSink.class);
     register("meter", MeterSink.class);
+    register("parallel", ParallelBufferSink.class);
 
     // debug
     register("null", NullSink.class);

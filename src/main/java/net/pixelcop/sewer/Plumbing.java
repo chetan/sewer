@@ -83,7 +83,7 @@ public abstract class Plumbing implements Closeable, StatusProvider {
    */
   protected long getLong(String[] args, int pos, long defaultValue) {
 
-    if (args.length < pos + 1) {
+    if (args == null || args.length < pos + 1) {
       return defaultValue;
     }
 

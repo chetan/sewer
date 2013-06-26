@@ -33,6 +33,10 @@ public class BatchHelper {
     return batch.isEmpty();
   }
 
+  public int size() {
+    return batch.size();
+  }
+
   /**
    * Retrieves the current batch as an array and clears the queue
    *

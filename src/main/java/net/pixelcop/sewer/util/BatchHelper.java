@@ -29,6 +29,10 @@ public class BatchHelper {
     return batch.offer(event);
   }
 
+  public boolean isEmpty() {
+    return batch.isEmpty();
+  }
+
   /**
    * Retrieves the current batch as an array and clears the queue
    *

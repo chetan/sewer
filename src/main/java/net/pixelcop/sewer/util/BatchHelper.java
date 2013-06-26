@@ -39,7 +39,7 @@ public class BatchHelper {
    * @return
    */
   public Event[] getBatch() {
-    Event[] b = (Event[]) batch.toArray();
+    Event[] b = batch.toArray(new Event[0]);
     batch.clear();
     return b;
   }

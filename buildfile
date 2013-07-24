@@ -36,6 +36,7 @@ define "sewer" do
   compile.with SEWER_JARS
   resources
 
+  test.include 'net.pixelcop.sewer.SewerTestSuite'
   test.compile.with SEWER_TEST_JARS
   test.resources
 

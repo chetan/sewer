@@ -12,6 +12,8 @@ repositories.remote << "http://repo1.maven.org/maven2"
 repositories.remote << "http://mirrors.ibiblio.org/maven2/"
 repositories.remote << "https://repository.cloudera.com/content/repositories/releases/"
 
+repositories.release_to = ENV["RELEASE_URI"]
+
 require "./buildfile_libraries"
 SEWER_JARS = add_artifacts( HADOOP, LOGGER, JSON_SMART, GUAVA, COMMONS_LANG3,
                             JACKSON, JETTY, COMMONS_POOL, COMMONS_DAEMON,

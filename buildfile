@@ -36,7 +36,12 @@ define "sewer" do
   compile.with SEWER_JARS
   resources
 
-  test.include 'net.pixelcop.sewer.SewerTestSuite'
+  if ENV["SKIP"] == "1" then
+    test.include 'net.pixelcop.sewer.NullTestSuite'
+  else
+    test.include 'net.pixelcop.sewer.SewerTestSuite'
+  end
+
   test.compile.with SEWER_TEST_JARS
   test.resources
 

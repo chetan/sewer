@@ -23,7 +23,7 @@ start () {
   # setup classpath
   . $ROOT/bin/_cp.sh
 
-  RUN="jsvc"
+  RUN=`which jsvc`
   if [ -n "$USER" ]; then
     RUN="$RUN -user $USER"
   fi

@@ -67,10 +67,16 @@ public class TransactionManager extends Thread {
   protected AtomicInteger status;
   protected AtomicBoolean shutdown;
 
+  /**
+   * Cheap hack to move rollback logging to debug level
+   */
+  protected boolean silentRollback;
+
   protected TransactionManager(String walPath) {
     if (LOG.isDebugEnabled()) {
       LOG.debug("Initializing TransactionManager " + this.getId());
     }
+    this.silentRollback = false;
     this.status = new AtomicInteger();
     this.shutdown = new AtomicBoolean(false);
     this.walPath = walPath;
@@ -154,7 +160,11 @@ public class TransactionManager extends Thread {
     }
 
     try {
-      LOG.info("rollbackTx: " + id);
+      if (silentRollback) {
+        LOG.debug("rollbackTx: " + id);
+      } else {
+        LOG.info("rollbackTx: " + id);
+      }
       lostTransactions.put(transactions.remove(id));
 
     } catch (InterruptedException e) {
@@ -370,6 +380,14 @@ public class TransactionManager extends Thread {
 
   private void setStatus(int status) {
     this.status.set(status);
+  }
+
+  public boolean isSilentRollback() {
+    return silentRollback;
+  }
+
+  public void setSilentRollback(boolean silentRollback) {
+    this.silentRollback = silentRollback;
   }
 
 }

@@ -26,6 +26,7 @@ public class DeferSink extends Sink {
   private SequenceFileSink durableSink;
 
   public DeferSink(String[] args) {
+    TransactionManager.getInstance().setSilentRollback(true);
   }
 
   @Override

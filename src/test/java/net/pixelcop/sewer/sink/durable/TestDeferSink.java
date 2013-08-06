@@ -6,9 +6,17 @@ import net.pixelcop.sewer.node.AbstractHadoopTest;
 import net.pixelcop.sewer.node.TestableNode;
 import net.pixelcop.sewer.source.debug.StringEvent;
 
+import org.junit.After;
 import org.junit.Test;
 
 public class TestDeferSink extends AbstractHadoopTest {
+
+  @Override
+  @After
+  public void teardown() throws Exception {
+    super.teardown();
+    TransactionManager.getInstance().setSilentRollback(false);
+  }
 
   /**
    * Test normal operation with background delivery

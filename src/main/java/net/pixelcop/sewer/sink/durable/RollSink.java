@@ -47,8 +47,9 @@ public class RollSink extends Sink implements Runnable {
     LOG.debug("close()");
     setStatus(CLOSING);
 
-    this.subSink.close();
+    // stop roll thread, then close subsink
     this.rollThread.interrupt();
+    this.subSink.close();
     try {
       this.rollThread.join();
     } catch (InterruptedException e) {

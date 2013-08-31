@@ -48,7 +48,7 @@ public class TransactionManager extends Thread {
   protected static TransactionManager instance;
 
   /**
-   * A map of open transactions currently being processed
+   * A map of open transactions currently being processed by a running Sink
    */
   protected final Map<String, Transaction> transactions = new HashMap<String, Transaction>();
 
@@ -115,8 +115,61 @@ public class TransactionManager extends Thread {
    * Shutdown the Transaction Manager immediately
    */
   public void shutdown() {
+    shutdown(true);
+  }
+
+  /**
+   * Shutdown the Transaction Manager
+   *
+   * @param immediate
+   *          whether to stop immediately or wait for a transaction to drain
+   */
+  public void shutdown(boolean immediate) {
+    if (!immediate) {
+      cleanup();
+    }
     this.shutdown.set(true);
     this.interrupt();
+  }
+
+  /**
+   * Wait for transaction queue to empty
+   */
+  private void cleanup() {
+    LOG.debug("cleanup");
+    if (failedTransactions.size() == 0 && drainingTx == null) {
+      return; // nothing to do
+    }
+
+    LOG.info("Waiting up to " + CLEANUP_TIME + " seconds for " + numRemaining()
+        + " remaining transactions to drain before quit");
+
+    int timeWaited = 0;
+    while (timeWaited < CLEANUP_TIME) {
+      if (numRemaining() == 0) {
+        LOG.info("Transaction queue emptied");
+        return;
+      }
+      try {
+        Thread.sleep(1000);
+      } catch (InterruptedException e) {
+        LOG.warn("Cleanup thread interrupted!");
+        return;
+      }
+      timeWaited++;
+    }
+
+    if (numRemaining() > 0) {
+      LOG.warn("Cleanup thread finished with " + numRemaining() + " transactions left");
+    }
+  }
+
+  private int numRemaining() {
+    int numRemaining = failedTransactions.size();
+    if (drainingTx != null) {
+      numRemaining++;
+    }
+    return numRemaining;
   }
 
   public boolean isShutdown() {

@@ -40,9 +40,7 @@ public class NodeDaemon implements Daemon {
 
   @Override
   public void stop() throws Exception {
-    LOG.warn("Caught shutdown signal. Going to try to stop cleanly..");
-    Node.getInstance().shutdown();
-    LOG.info("Shutdown complete. Goodbye!");
+    new Node.ShutdownHook().run();
   }
 
   @Override

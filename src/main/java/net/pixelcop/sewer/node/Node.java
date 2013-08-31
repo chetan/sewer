@@ -41,6 +41,7 @@ public class Node extends Thread {
     public void run() {
       LOG.warn("Caught shutdown signal. Going to try to stop cleanly..");
       Node.getInstance().shutdown();
+      TransactionManager.getInstance().shutdown(false);
       LOG.debug("Shutdown complete. Goodbye!");
     }
   }

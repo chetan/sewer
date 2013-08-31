@@ -57,13 +57,29 @@ public class TransactionManager extends Thread {
    */
   protected final LinkedBlockingQueue<Transaction> lostTransactions = new LinkedBlockingQueue<Transaction>();
 
+  /**
+   * Extension used by transactional data
+   */
   private final String txFileExt;
 
+  /**
+   * Location where Write Ahead Logs will be stored
+   */
   protected String walPath;
 
+  /**
+   * The configured Sink without any durability mechanisms (i.e., only the final destination)
+   */
   protected PlumbingFactory<Sink> unreliableSinkFactory;
+
+  /**
+   * The currently draining transaction, if any.
+   */
   protected Transaction drainingTx;
 
+  /**
+   * Tracks the status of the {@link TransactionManager}: STOPPED, IDLE, or DRAINING
+   */
   protected AtomicInteger status;
   protected AtomicBoolean shutdown;
 
@@ -95,6 +111,9 @@ public class TransactionManager extends Thread {
     return instance;
   }
 
+  /**
+   * Shutdown the Transaction Manager immediately
+   */
   public void shutdown() {
     this.shutdown.set(true);
     this.interrupt();

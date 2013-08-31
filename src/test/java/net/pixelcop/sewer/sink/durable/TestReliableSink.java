@@ -26,7 +26,7 @@ public class TestReliableSink extends AbstractNodeTest {
     // now check expected results (buffers on disk, no appends on ultimate subsink)
     assertEquals(0, CountingSink.getAppendCount());
     assertEquals(0, TestableTransactionManager.getTransactions().size());
-    assertEquals(1, TestableTransactionManager.getLostTransactions().size());
+    assertEquals(1, TestableTransactionManager.getFailedTransactions().size());
 
     // check count of events written to disk
     node.getTxTestHelper().verifyRecordsInBuffers(1, 1000, new StringEvent());
@@ -56,7 +56,7 @@ public class TestReliableSink extends AbstractNodeTest {
 
     // now we should still have 1 lost tx, but 0 in progress
     assertEquals(0, TestableTransactionManager.getTransactions().size());
-    assertEquals(1, TestableTransactionManager.getLostTransactions().size());
+    assertEquals(1, TestableTransactionManager.getFailedTransactions().size());
 
 
     // now lets try to restart the txman and drain this thing

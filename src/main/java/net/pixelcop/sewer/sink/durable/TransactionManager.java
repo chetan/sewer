@@ -55,7 +55,7 @@ public class TransactionManager extends Thread {
   /**
    * A queue containing failed transactions (rollback was called)
    */
-  protected final LinkedBlockingQueue<Transaction> lostTransactions = new LinkedBlockingQueue<Transaction>();
+  protected final LinkedBlockingQueue<Transaction> failedTransactions = new LinkedBlockingQueue<Transaction>();
 
   /**
    * Extension used by transactional data
@@ -184,7 +184,7 @@ public class TransactionManager extends Thread {
       } else {
         LOG.info("rollbackTx: " + id);
       }
-      lostTransactions.put(transactions.remove(id));
+      failedTransactions.put(transactions.remove(id));
 
     } catch (InterruptedException e) {
       LOG.error("Failed to release transaction into queue", e);
@@ -206,13 +206,13 @@ public class TransactionManager extends Thread {
       // look for tx to drain
       drainingTx = null;
       try {
-        drainingTx = lostTransactions.poll(NANO_WAIT, TimeUnit.NANOSECONDS);
+        drainingTx = failedTransactions.poll(NANO_WAIT, TimeUnit.NANOSECONDS);
 
       } catch (InterruptedException e) {
         // Interrupted, must be shutting down TxMan
         LOG.debug("Interrupted while waiting for next tx to drain");
         if (drainingTx != null) {
-          lostTransactions.add(drainingTx);
+          failedTransactions.add(drainingTx);
           drainingTx = null;
         }
         saveOpenTransactionsToDisk();
@@ -228,7 +228,7 @@ public class TransactionManager extends Thread {
       // drain it
       if (!drainTx()) {
         // drain failed (interrupted, tx man shutting down), stick tx at end of queue (front ??)
-        lostTransactions.add(drainingTx);
+        failedTransactions.add(drainingTx);
         drainingTx = null;
         saveOpenTransactionsToDisk();
         return;
@@ -271,11 +271,11 @@ public class TransactionManager extends Thread {
         txList.addAll(transactions.values());
       }
 
-      if (!lostTransactions.isEmpty()) {
+      if (!failedTransactions.isEmpty()) {
         if (LOG.isTraceEnabled()) {
-          LOG.trace("Found " + lostTransactions.size() + " lost transactions");
+          LOG.trace("Found " + failedTransactions.size() + " lost transactions");
         }
-        txList.addAll(lostTransactions);
+        txList.addAll(failedTransactions);
       }
 
       try {
@@ -307,7 +307,7 @@ public class TransactionManager extends Thread {
           new TypeReference<ArrayList<Transaction>>() {});
 
       LOG.info("Loaded " + recovered.size() + " txns from disk");
-      lostTransactions.addAll(recovered);
+      failedTransactions.addAll(recovered);
 
     } catch (FileNotFoundException e) {
       LOG.debug(e.getMessage());

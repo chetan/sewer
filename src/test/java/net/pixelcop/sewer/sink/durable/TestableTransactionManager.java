@@ -29,8 +29,8 @@ public class TestableTransactionManager extends TransactionManager {
     return getInstance().transactions;
   }
 
-  public static LinkedBlockingQueue<Transaction> getLostTransactions() {
-    return getInstance().lostTransactions;
+  public static LinkedBlockingQueue<Transaction> getFailedTransactions() {
+    return getInstance().failedTransactions;
   }
 
   public static Transaction getDrainingTx() {
@@ -42,7 +42,7 @@ public class TestableTransactionManager extends TransactionManager {
   }
 
   public static boolean hasTransactions() {
-    return (getTransactions().size() > 0 || getLostTransactions().size() > 0
+    return (getTransactions().size() > 0 || getFailedTransactions().size() > 0
         || getDrainingTx() != null);
   }
 

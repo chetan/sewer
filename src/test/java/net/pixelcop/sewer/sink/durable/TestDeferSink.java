@@ -43,7 +43,7 @@ public class TestDeferSink extends AbstractHadoopTest {
 
     // now we should still have 1 lost tx, but 0 in progress
     assertEquals(0, TestableTransactionManager.getTransactions().size());
-    assertEquals(1, TestableTransactionManager.getLostTransactions().size());
+    assertEquals(1, TestableTransactionManager.getFailedTransactions().size());
 
 
     // now lets try to restart the txman and drain this thing

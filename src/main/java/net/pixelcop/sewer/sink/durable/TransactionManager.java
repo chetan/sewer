@@ -35,6 +35,7 @@ public class TransactionManager extends Thread {
   private static final Logger LOG = LoggerFactory.getLogger(TransactionManager.class);
 
   private static final long NANO_WAIT = TimeUnit.SECONDS.toNanos(3);
+  private static final long CLEANUP_TIME = TimeUnit.SECONDS.toSeconds(60);
 
   private static final String DEFAULT_WAL_PATH = "/opt/sewer/wal";
 
